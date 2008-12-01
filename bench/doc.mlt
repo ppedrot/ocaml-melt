@@ -1,0 +1,61 @@
+open Latex
+
+let latex = command \"LaTeX\" [] T
+let melt = "Melt"
+let ocaml = "OCaml"
+let code x = texttt x
+
+let dollar = "<<$>>"
+let slash = "<<\>>"
+let lbrace = "<<{>>"
+let rbrace = "<<}>>"
+let dquote = symbol 34
+
+let braces x = $\{{x}\}$
+
+let _ = emit begin
+  document
+    ~title: "Melt Pre-Processor User Manual"
+    ~author: "Romain Bardou"
+    ~date: ""
+    begin concat [
+      section "Introduction";
+
+      "{latex} is great to format text. {ocaml} is great to program.
+What if you want to program {latex} documents using the {ocaml} syntax
+and type system? Then you need {melt}. Let's see why, by trying to
+produce the following:
+      {displaymath "Let $x {subset} {braces $1, 2, 3$}$."}
+      {par}
+      In {latex}, this is easy:
+      {displaymath (code "Let {dollar}x {slash}subset
+{slash}{lbrace}1, 2, 3{slash}{rbrace}{dollar}.")}
+      {par}
+      What does it mean to encode this in {ocaml}? Let's assume that
+you have some {code "Latex"} module providing the following functions:
+{code "t"} which converts a string to {latex} text,
+{code "m"} which converts a string to {latex} math,
+some basic {latex} macros and
+{code "c"} which concatenates a list of {latex} expressions.
+Our example may be encoded like this:
+{displaymath (code "
+c [
+t {dquote}Let {dquote};
+m {dquote}x{dquote};
+subset;
+braces (t {dquote}1, 2, 3{dquote})
+]
+")}
+      This is much more verbose than the original code in {latex}!
+      {par}
+      The {melt} pre-processor allows lighter syntax:
+{displaymath (code "
+{dquote}Let {dollar}x {braces "subset"}
+{slash}{lbrace}1, 2, 3{slash}{rbrace}{dollar}.{dquote}
+")}
+      Note how close this is to the {latex} syntax. The main differences
+are: usage of double quotes to enter {emph "text"} mode and usage of
+braces to enter {emph "code"} mode. The code mode, here, is used
+for command {code "subset"}, which is an {ocaml} value of {latex} type."
+    ] end
+end

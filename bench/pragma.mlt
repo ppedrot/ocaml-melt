@@ -1,0 +1,10 @@
+##verbatim '#' = test
+##plugin test
+
+let () = emit (document "<#coucou#>")
+
+(*
+Local Variables:
+compile-command: "../meltpp -o pragma.ml pragma.mlt && cat pragma.ml && rm pragma.ml"
+End:
+*)

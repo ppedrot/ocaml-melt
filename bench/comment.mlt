@@ -1,0 +1,14 @@
+let x = "coucou"
+
+(* ceci est un commentaire (* imbrique (* de surcroit *) mais bon
+(* on s'en fout un peu *) *) ou pas *)
+
+let y (* un peu de melt dans un commentaire: "bla$bli$"
+(* imbrique "b{l}u" *) *) =
+  "tata"
+
+(* et voici du melt non termine: $blabla
+a noter que ca ne marche pas avec les guillemets doubles vu que Caml va
+raler de toute facon *)
+
+let () = emit (document "x = {x}, y = {y}")

@@ -1,0 +1,11 @@
+let tt x = texttt (Verbatim.verbatim x)
+
+let caml x = mode M (Verbatim.keywords [\"let\"; \"in\"] x)
+
+let () = emit begin document
+  "soit <:tt:<c'est la \vie/ avec un guillemet "!>>
+  un bout de <:tt:+v_e_r_b+> facile <!he-he!>
+  {par}
+  Un peu de Caml:
+  {displaymath "<:caml:<let x = 42 in x + (f x)>>"}"
+end

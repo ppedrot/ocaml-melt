@@ -1,0 +1,8 @@
+let lbl_intro = label ()
+
+let intro = concat [
+  section ~label: lbl_intro "Introduction";
+  "This is Sect.~{ref_ lbl_intro}.";
+]
+
+let () = emit begin document intro end

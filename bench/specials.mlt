@@ -1,0 +1,34 @@
+let x = $x$
+
+let () = emit begin document
+  "{section "Without backslashes"}
+
+Some special characters in text mode: sharp #, as in Spec#, underscore _,
+as in some_dummy_example, []@()/ are already ok. A blank line yields
+a new paragraph:
+
+See?
+
+{section "With backslashes"}
+
+The backslash itself \\ yields a new line.
+
+In math mode: braces $\{$ and $\}$, dollar $\$$, double quote
+$\"$
+
+In text mode: double quote \", dollar \$, braces \{ and \}
+
+Ampersand in text \& and in math $\&$
+
+Space escaping (text): .  . (2 spaces) and .\ \ . (2 spaces backslashed)
+
+Space escaping (math): $.  .$ (2 spaces) and $.\ \ .$ (2 spaces backslashed)
+
+{section "Blocks, indices, exponents"}
+
+Index: {index x $n+1$}
+
+Exponent: {exponent x $n+1$}
+
+Nested: {exponent (index $f$ (exponent $n+1$ $42$)) $xyz$}"
+end

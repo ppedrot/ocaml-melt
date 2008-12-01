@@ -1,0 +1,188 @@
+open Printf
+
+let files = Queue.create ()
+let main_file = ref ""
+
+let mlpost = ref true
+let ocamlbuild = ref true
+let native = ref true
+let final = ref true
+let link = ref true
+
+let dvi = ref false
+let pdf = ref false
+let quiet = ref false
+let continue = ref false
+let fake = ref false
+
+let bibtex = ref false
+let fast = ref false
+
+let clean = ref false
+
+let melt_dir = ref "_melt"
+
+let meltpp = ref "meltpp"
+
+let spec = Arg.align [
+  "-meltpp", Arg.Set_string meltpp, "<meltpp> Specify the location of the \
+Melt pre-processor";
+
+  "-no-mlpost", Arg.Clear mlpost, " Do not call mlpost, use ocamlbuild instead \
+(or ocamlc if -no-ocamlbuild)";
+  "-no-ocamlbuild", Arg.Clear ocamlbuild, " Do not use Ocamlbuild";
+  "-no-final", Arg.Clear final, " Do not produce the PS or the PDF";
+  "-no-link", Arg.Clear link, " Do not create a symbolic link to the PS or PDF";
+
+  "-byte", Arg.Clear native, " Compile to bytecode instead of native code";
+
+  "-dvi", Arg.Set dvi, " Produce a DVI instead of a PS";
+  "-pdf", Arg.Set pdf, " Produce a PDF instead of a PS";
+  "-quiet", Arg.Set quiet, " Be quiet";
+  "-q", Arg.Set quiet, " Same as -quiet";
+  "-continue", Arg.Set continue, " Continue on errors";
+  "-k", Arg.Set continue, " Same as -continue";
+  "-fake", Arg.Set fake, " Do not actually execute commands";
+  "-n", Arg.Set fake, " Same as -fake";
+
+  "-bibtex", Arg.Set bibtex, " Use BibTeX";
+  "-fast", Arg.Set fast, " Do not call LaTeX again to get references right";
+
+  "-melt-dir", Arg.Set_string melt_dir, "<dir> Change the named used for \
+the _melt directory";
+
+  "-clean", Arg.Set clean, " Remove the _melt directory and, if not -no-link, \
+all symbolic links of the current directory linking into _melt \
+(cleaning is done before anything else)"
+]
+let anon s =
+  main_file := s;
+  Queue.add s files
+let usage =
+  "Usage: " ^ Filename.basename Sys.argv.(0) ^
+    " [options] [other_files] main_file\n
+All [other_files] will be copied in the _melt directory. In particular, this \
+allows you to use other modules or libraries.\n"
+
+let cmd x = ksprintf begin fun s ->
+  if not !quiet then printf "%s\n%!" s;
+  if not !fake then
+    let code = Sys.command s in
+    if code <> 0 && not !continue then exit code
+end x
+
+let melt_to_ml f =
+  let o = Filename.chop_extension f ^ ".ml" in
+  cmd "%s -dir \"../\" -open Latex -open Melt %s -o %s" !meltpp f o;
+  o
+
+let libopt lib =
+  " -ccopt " ^ if !ocamlbuild then "\"-lib " ^ lib ^ "\"" else lib ^ ".cma"
+
+let ml_to_tex f =
+  let bf = Filename.chop_extension f in
+  let pdfo = if !pdf then " -pdf" else "" in
+  let pdfeo = if !pdf then " -execopt \"-pdf\"" else "" in
+  let nameo = " -name " ^ bf in
+  let nameeo = " -execopt \"-name " ^ bf ^ "\"" in
+  let ocamlbuildo = if !ocamlbuild then " -ocamlbuild" else "" in
+  let nativeo = if !native then " -native" else "" in
+  let latexlibo = libopt "latex" in
+  let meltlibo = libopt "melt" in
+  let mlpostlibo = libopt "mlpost" in
+  let strlibo = libopt "str" in
+  let ext = if !native then "native" else "byte" in
+  if !mlpost then
+    cmd "mlpost%s%s%s%s%s%s%s%s %s" pdfo pdfeo ocamlbuildo nativeo
+      strlibo latexlibo meltlibo nameeo f
+  else if !ocamlbuild then
+    cmd "ocamlbuild%s%s%s%s %s.%s --%s%s"
+      strlibo latexlibo mlpostlibo meltlibo bf ext pdfo nameo
+  else begin
+    cmd "ocaml%s%s%s%s%s %s -o %s.%s"
+      (if !native then "opt" else "c")
+      strlibo latexlibo mlpostlibo meltlibo f bf ext;
+    cmd "./%s.%s%s%s" bf ext pdfo nameo
+  end
+
+let produce_tex f =
+  if Filename.check_suffix f ".mlt" then begin
+    let ml = melt_to_ml f in
+    ml_to_tex ml
+  end else if Filename.check_suffix f ".ml" then
+    ml_to_tex f
+  else if not (Filename.check_suffix f ".tex") then begin
+    if not !quiet then
+      Printf.printf "Warning: don't know what to do with %s.\n%!" f
+  end
+
+let produce_final f =
+  let bf = Filename.chop_extension f in
+  let latex = if !pdf then "pdflatex" else "latex" in
+  let latex =
+    latex ^ " -interaction nonstopmode -file-line-error -halt-on-error" in
+
+  cmd "%s %s" latex bf;
+  if !bibtex then begin
+    cmd "bibtex %s" bf;
+    cmd "%s %s" latex bf
+  end;
+  if not !fast then
+    cmd "%s %s" latex bf;
+
+  if not !pdf && not !dvi then
+    cmd "dvips %s" bf
+
+let produce_link f =
+  let bf = Filename.chop_extension f in
+  let o =
+    if !pdf then bf ^ ".pdf" else
+      if !dvi then bf ^ ".dvi" else
+        bf ^ ".ps" in
+  cmd "ln -f -s %s/%s %s" !melt_dir o o
+
+let chdir d =
+  if not !quiet then
+    if !fake then
+      Printf.printf "cd %s\n%!" d
+    else
+      Printf.printf "melt: Entering directory `%s'\n%!" d;
+  if not !fake then Sys.chdir d
+
+let make_temp_dir () =
+  let dir = !melt_dir in
+  cmd "mkdir -p %s" dir;
+  Queue.iter begin fun f ->
+    cmd "cp -f %s %s/%s" f dir f;
+  end files;
+  chdir dir
+
+let prefix s t =
+  if String.length s > String.length t then false else
+    String.compare s (String.sub t 0 (String.length s)) = 0
+
+let do_clean () =
+  let dir = !melt_dir in
+  cmd "rm -rf %s" dir;
+  if !link then begin
+    let cwd = Unix.opendir (Sys.getcwd ()) in
+    begin try while true do
+      let f = Unix.readdir cwd in
+      if (Unix.lstat f).Unix.st_kind = Unix.S_LNK then
+        if prefix dir (Unix.readlink f) then
+          cmd "rm -f %s" f
+    done with End_of_file -> () end;
+    Unix.closedir cwd
+  end
+
+let () =
+  Arg.parse spec anon usage;
+  if !clean then do_clean ();
+  if !main_file <> "" then begin
+    let cwd = Sys.getcwd () in
+    make_temp_dir ();
+    Queue.iter produce_tex files;
+    if !final then produce_final !main_file;
+    chdir cwd;
+    produce_link !main_file
+  end

@@ -1,0 +1,21 @@
+open Tree
+open Pic
+
+let _ = emit begin document
+    ~title: "Test"
+    ~author: "Romain Bardou"
+    ~packages: ["graphicx", ""]
+    "Small test of Mlpost inclusion:
+{mlpost [
+  draw
+    ~ls: 1.5
+    ~cs: 0.6
+  (
+    bin
+      (latex "Cou{alpha}cou")
+      (leaf (latex "Arf"))
+      (leaf (latex "Plop"))
+  )
+]}
+Does it work?"
+end
