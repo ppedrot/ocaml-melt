@@ -1,3 +1,5 @@
+include Config
+
 BUILD := _build
 OB := ocamlbuild -no-links -build-dir $(BUILD)
 OBCLASSIC := $(OB) -classic-display
@@ -25,7 +27,7 @@ world all:
 #################################################################################
 
 noob.makefile: clean
-	cat Config > $@
+	cat noob.prelude > $@
 	$(OBCLASSIC) $(BYTE) $(NATIVE) $(DOC) | ob2make default >> $@
 
 clean:
@@ -33,3 +35,6 @@ clean:
 	rm -f noob.makefile *~
 
 .PHONY: default fast world clean doc all
+
+Config: configure.ml
+	ocaml configure.ml

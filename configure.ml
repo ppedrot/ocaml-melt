@@ -1,6 +1,10 @@
 (******************************************************************************)
 open Printf
 
+type yes_no =
+  | Yes of string
+  | No of string
+
 module Version: sig
   type t = int list * string
   exception Uncomparable_versions of t * t
@@ -73,57 +77,75 @@ end
 
 let error x = ksprintf (fun s -> eprintf "Error: %s\n%!" s; exit 1) x
 
-exception Exec_error of int * string
+exception Exec_error of int
 
-let exec _ _ = assert false
+let exec_line cmd args =
+  let c = String.concat " " (cmd::args) in
+  let tmp = Filename.temp_file "configure_exec_line" ".out" in
+  match Sys.command (c ^ " > " ^ tmp) with
+    | 0 -> input_line (open_in tmp)
+    | n -> raise (Exec_error n)
 
 let find s =
-  try Some(exec "which" [s]) with Exec_error _ -> None
+  try Yes(exec_line "which" [s]) with Exec_error _ -> No s
 
-let rec first = function
-  | [] -> None
+let rec first ?(name = "") = function
+  | [] -> No name
   | x::r -> match find x with
-      | None -> first r
-      | Some y -> y
+      | No _ -> first ~name: (if name = "" then x else name) r
+      | y -> y
 
 let query ?(default = "") question =
   printf "%s [%s]: " question default;
-  read_line ()
-
-let require _ = assert false
+  let l = read_line () in
+  if l = "" then default else l
 
 let check_file f =
   if not (Sys.file_exists f) || Sys.is_directory f then
-    error "Required file %s does not exist." f
+    error "Could not find %s." f
+
+let require = function
+  | Yes s -> s
+  | No s -> error "Could not find %s." s
+
+let some_of_yes = function
+  | Yes s -> Some s
+  | No _ -> None
+
+let dirname x =
+  let r = Filename.dirname x in
+  if x = "" || x.[String.length x - 1] <> '/' then r ^ "/" else r
 (******************************************************************************)
 
 let () =
-  let best x = first [x^".opt"; x] in
-  let ocamlc = query ?default: (best "ocamlc") "OCaml compiler" in
+  let best x = first ~name: x [x^".opt"; x] in
+  let ocamlc = query ?default: (some_of_yes (best "ocamlc")) "OCaml compiler" in
   check_file ocamlc;
-  let best_ocaml x = best (Filename.dirname ocamlc ^ x) in
+  let best_ocaml x = best (dirname ocamlc ^ x) in
   let ocamlopt = best_ocaml "ocamlopt" in
   let ocamllex = require (best_ocaml "ocamllex") in
   let ocamlyacc = require (best_ocaml "ocamlyacc") in
   let ocamldoc = best_ocaml "ocamldoc" in
-  let bin = query ~default: "/usr/local/bin" "Install directory (programs)" in
-  let ocaml_lib = query ~default: (exec ocamlc ["-where"])
+  let install_bin = query ~default: "/usr/local/bin"
+    "Install directory (programs)" in
+  let install_lib = query ~default: (exec_line ocamlc ["-where"])
     "Install directory (OCaml libraries)" in
 
-  let ocaml_version = Version.of_string (exec ocamlc ["-version"]) in
+  let ocaml_version = Version.of_string
+    (exec_line ocamlc ["-version"]) in
 
   let out = open_out "Config" in
   let var = fprintf out "%s = %s\n" in
-  let ovar x = function None -> () | Some y -> var x y in
+  let ovar x = function No _ -> () | Yes y -> var x y in
   var "OCAMLC" ocamlc;
   ovar "OCAMLOPT" ocamlopt;
   var "OCAMLLEX" ocamllex;
   var "OCAMLYACC" ocamlyacc;
   ovar "OCAMLDOC" ocamldoc;
-  var "BIN" bin;
-  var "OCAMLLIB" ocaml_lib;
+  var "INSTALLBIN" install_bin;
+  var "INSTALLLIB" install_lib;
 
-  let o = function None -> "NOT FOUND" | Some x -> x in
+  let o = function No _ -> "NOT FOUND" | Yes x -> x in
   printf "
 Summary:
 --------
@@ -134,6 +156,7 @@ ocamllex: %s
 ocamlyacc: %s
 ocamldoc: %s
 Install directory (programs): %s
-Install directory (OCaml libraries): %s"
+Install directory (OCaml libraries): %s
+"
     (Version.to_string ocaml_version) ocamlc (o ocamlopt) ocamllex ocamlyacc
-    (o ocamldoc) bin ocaml_lib
+    (o ocamldoc) install_bin install_lib

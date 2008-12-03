@@ -1,0 +1,5 @@
+include Config
+
+Config: configure.ml
+        ocaml configure.ml
+
