@@ -1,0 +1,2 @@
+<melt/tool.*>: use_unix
+<meltpp/*.*>: use_dynlink, use_str

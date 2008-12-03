@@ -1,0 +1,7 @@
+OCAMLC = ocamlc
+OCAMLOPT = ocamlopt
+OCAMLLEX = ocamllex
+OCAMLYACC = ocamlyacc
+OCAMLDOC = ocamldoc
+BIN = /usr/local/bin
+OCAMLLIB = $(shell ocamlc -where)
