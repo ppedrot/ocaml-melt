@@ -71,22 +71,37 @@ end = struct
     | _ -> v1
 end
 
-let best _ = assert false
+let error x = ksprintf (fun s -> eprintf "Error: %s\n%!" s; exit 1) x
 
-let query ?(default = "") question = assert false
-
-let require _ = assert false
+exception Exec_error of int * string
 
 let exec _ _ = assert false
 
-let check_file _ = assert false
+let find s =
+  try Some(exec "which" [s]) with Exec_error _ -> None
+
+let rec first = function
+  | [] -> None
+  | x::r -> match find x with
+      | None -> first r
+      | Some y -> y
+
+let query ?(default = "") question =
+  printf "%s [%s]: " question default;
+  read_line ()
+
+let require _ = assert false
+
+let check_file f =
+  if not (Sys.file_exists f) || Sys.is_directory f then
+    error "Required file %s does not exist." f
 (******************************************************************************)
 
 let () =
-  let bestopt x = best [x^".opt"; x] in
-  let ocamlc = query ?default: (bestopt "ocamlc") "OCaml compiler" in
+  let best x = first [x^".opt"; x] in
+  let ocamlc = query ?default: (best "ocamlc") "OCaml compiler" in
   check_file ocamlc;
-  let best_ocaml x = bestopt (Filename.dirname ocamlc ^ x) in
+  let best_ocaml x = best (Filename.dirname ocamlc ^ x) in
   let ocamlopt = best_ocaml "ocamlopt" in
   let ocamllex = require (best_ocaml "ocamllex") in
   let ocamlyacc = require (best_ocaml "ocamlyacc") in
@@ -108,6 +123,7 @@ let () =
   var "BIN" bin;
   var "OCAMLLIB" ocaml_lib;
 
+  let o = function None -> "NOT FOUND" | Some x -> x in
   printf "
 Summary:
 --------
@@ -119,5 +135,5 @@ ocamlyacc: %s
 ocamldoc: %s
 Install directory (programs): %s
 Install directory (OCaml libraries): %s"
-    (Version.to_string ocaml_version) ocamlc ocamlopt ocamllex ocamlyacc
-    ocamldoc bin ocaml_lib
+    (Version.to_string ocaml_version) ocamlc (o ocamlopt) ocamllex ocamlyacc
+    (o ocamldoc) bin ocaml_lib
