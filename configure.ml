@@ -95,7 +95,7 @@ let rec first ?(name = "") = function
       | No _ -> first ~name: (if name = "" then x else name) r
       | y -> y
 
-let query ?(default = "") question =
+let query question default =
   printf "%s [%s]: " question default;
   let l = read_line () in
   if l = "" then default else l
@@ -108,9 +108,7 @@ let require = function
   | Yes s -> s
   | No s -> error "Could not find %s." s
 
-let some_of_yes = function
-  | Yes s -> Some s
-  | No _ -> None
+let yes_no = function Yes s | No s -> s
 
 let dirname x =
   let r = Filename.dirname x in
@@ -119,20 +117,16 @@ let dirname x =
 
 let () =
   let best x = first ~name: x [x^".opt"; x] in
-  let ocamlc = query ?default: (some_of_yes (best "ocamlc")) "OCaml compiler" in
+  let ocamlc = query "OCaml compiler" (yes_no (best "ocamlc"))  in
   check_file ocamlc;
   let best_ocaml x = best (dirname ocamlc ^ x) in
   let ocamlopt = best_ocaml "ocamlopt" in
   let ocamllex = require (best_ocaml "ocamllex") in
   let ocamlyacc = require (best_ocaml "ocamlyacc") in
   let ocamldoc = best_ocaml "ocamldoc" in
-  let install_bin = query ~default: "/usr/local/bin"
-    "Install directory (programs)" in
-  let install_lib = query ~default: (exec_line ocamlc ["-where"])
-    "Install directory (OCaml libraries)" in
-
-  let ocaml_version = Version.of_string
-    (exec_line ocamlc ["-version"]) in
+  let install_bin = query "Install directory (programs)" "/usr/local/bin" in
+  let install_lib = query "Install directory (OCaml libraries)"
+    (exec_line ocamlc ["-where"]) in
 
   let out = open_out "Config" in
   let var = fprintf out "%s = %s\n" in
@@ -145,18 +139,4 @@ let () =
   var "INSTALLBIN" install_bin;
   var "INSTALLLIB" install_lib;
 
-  let o = function No _ -> "NOT FOUND" | Yes x -> x in
-  printf "
-Summary:
---------
-OCaml version: %s
-ocamlc: %s
-ocamlopt: %s
-ocamllex: %s
-ocamlyacc: %s
-ocamldoc: %s
-Install directory (programs): %s
-Install directory (OCaml libraries): %s
-"
-    (Version.to_string ocaml_version) ocamlc (o ocamlopt) ocamllex ocamlyacc
-    (o ocamldoc) install_bin install_lib
+  printf "Configuration successful.\n"
