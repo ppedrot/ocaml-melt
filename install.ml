@@ -1,0 +1,92 @@
+open Printf
+
+let bin = ref ""
+let lib = ref ""
+let build = ref ""
+let uninstall = ref false
+let fake = ref false
+
+let speclist = [
+  "-bin", Arg.Set_string bin, "Install directory (program binaries)";
+  "-lib", Arg.Set_string lib, "Install directory (OCaml libraries)";
+  "-build", Arg.Set_string build, "Base build directory";
+  "-uninstall", Arg.Set uninstall, "Uninstall instead of install";
+  "-fake", Arg.Set fake, "Do not execute commands, only print them.";
+]
+let anon_fun x = raise (Arg.Bad ("Unknown parameter: "^x))
+let usage_msg = "ocaml install.ml -bin <dir> -lib <dir>"
+
+let check sr =
+  if !sr = "" then begin
+    Arg.usage speclist usage_msg;
+    exit 1
+  end
+
+let () =
+  Arg.parse speclist anon_fun usage_msg;
+  check bin;
+  check lib
+
+let script = Queue.create ()
+
+let rec first name = function
+  | [] ->
+      eprintf "Warning: file %s has not been compiled.\n" name;
+      raise Not_found
+  | x::r ->
+      let x = if !build = "" then x else !build ^ "/" ^ x in
+      if Sys.file_exists x then x else first name r
+
+let install_lib l =
+  let base = Filename.basename l in
+  try
+    let l = first base [l] in
+    Queue.add (sprintf "install -m 644 %s %s/%s" l !lib base) script
+  with Not_found -> ()
+
+let install_bin b final =
+  try
+    let b = first final b in
+    Queue.add (sprintf "install %s %s/%s" b !bin final) script
+  with Not_found -> ()
+
+let rm f =
+  if Sys.file_exists f then
+    Queue.add (sprintf "rm %s" f) script
+  else
+    eprintf "Warning: file %s does not exist.\n" f
+
+let uninstall_lib l =
+  rm (!lib ^ "/" ^ Filename.basename l)
+
+let uninstall_bin _ final =
+  rm (!bin ^ "/" ^ final)
+
+let do_lib = if !uninstall then uninstall_lib else install_lib
+let do_bin = if !uninstall then uninstall_bin else install_bin
+
+let check_code = function
+  | 0 -> ()
+  | n -> exit n
+
+let execute cmd =
+  printf "%s\n%!" cmd;
+  if not !fake then check_code (Sys.command cmd)
+
+let finish () =
+  Queue.iter execute script
+
+let () =
+  do_bin ["meltpp/main.native"; "meltpp/main.byte"] "meltpp";
+  do_bin ["melt/tool.native"; "melt/tool.byte"] "melt";
+  List.iter do_lib [
+    "latex/latex.a";
+    "latex/latex.cmi";
+    "latex/latex.cma";
+    "latex/latex.cmxa";
+    "melt/melt.a";
+    "melt/melt.cmi";
+    "melt/melt.cma";
+    "melt/melt.cmxa";
+  ];
+  finish ()

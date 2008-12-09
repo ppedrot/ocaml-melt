@@ -22,6 +22,9 @@ fast:
 doc:
 	$(OB) $(DOC)
 
+world.10:
+	$(OB) $(BYTE) $(DOC) $(NATIVE)
+
 world all:
 	$(OB) $(BYTE) $(DOC) $(NATIVE11)
 #################################################################################
@@ -30,11 +33,17 @@ noob.makefile: clean
 	cat noob.prelude > $@
 	$(OBCLASSIC) $(BYTE) $(NATIVE) $(DOC) | ob2make default >> $@
 
+install:
+	ocaml install.ml -bin $(INSTALLBIN) -lib $(INSTALLLIB) -build $(BUILD)
+
+uninstall:
+	ocaml install.ml -bin $(INSTALLBIN) -lib $(INSTALLLIB) -uninstall
+
 clean:
 	rm -rf $(BUILD)
 	rm -f noob.makefile *~
 
-.PHONY: default fast world clean doc all
+.PHONY: default fast world clean doc all world.10
 
 Config: configure.ml
 	ocaml configure.ml

@@ -124,7 +124,8 @@ let () =
   let ocamllex = require (best_ocaml "ocamllex") in
   let ocamlyacc = require (best_ocaml "ocamlyacc") in
   let ocamldoc = best_ocaml "ocamldoc" in
-  let install_bin = query "Install directory (programs)" "/usr/local/bin" in
+  let install_bin = query "Install directory (program binaries)"
+    "/usr/local/bin" in
   let install_lib = query "Install directory (OCaml libraries)"
     (exec_line ocamlc ["-where"]) in
 
