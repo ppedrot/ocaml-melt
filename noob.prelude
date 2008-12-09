@@ -3,3 +3,9 @@ include Config
 Config: configure.ml
         ocaml configure.ml
 
+install:
+	$(OCAML) install.ml -bin $(INSTALLBIN) -lib $(INSTALLLIB)
+
+uninstall:
+	$(OCAML) install.ml -bin $(INSTALLBIN) -lib $(INSTALLLIB) -uninstall
+

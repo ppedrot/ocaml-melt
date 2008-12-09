@@ -34,10 +34,10 @@ noob.makefile: clean
 	$(OBCLASSIC) $(BYTE) $(NATIVE) $(DOC) | ob2make default >> $@
 
 install:
-	ocaml install.ml -bin $(INSTALLBIN) -lib $(INSTALLLIB) -build $(BUILD)
+	$(OCAML) install.ml -bin $(INSTALLBIN) -lib $(INSTALLLIB) -build $(BUILD)
 
 uninstall:
-	ocaml install.ml -bin $(INSTALLBIN) -lib $(INSTALLLIB) -uninstall
+	$(OCAML) install.ml -bin $(INSTALLBIN) -lib $(INSTALLLIB) -uninstall
 
 clean:
 	rm -rf $(BUILD)

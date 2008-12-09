@@ -120,6 +120,7 @@ let () =
   let ocamlc = query "OCaml compiler" (yes_no (best "ocamlc"))  in
   check_file ocamlc;
   let best_ocaml x = best (dirname ocamlc ^ x) in
+  let ocaml = best_ocaml "ocaml" in
   let ocamlopt = best_ocaml "ocamlopt" in
   let ocamllex = require (best_ocaml "ocamllex") in
   let ocamlyacc = require (best_ocaml "ocamlyacc") in
@@ -133,6 +134,7 @@ let () =
   let var = fprintf out "%s = %s\n" in
   let ovar x = function No _ -> () | Yes y -> var x y in
   var "OCAMLC" ocamlc;
+  ovar "OCAML" ocaml;
   ovar "OCAMLOPT" ocamlopt;
   var "OCAMLLEX" ocamllex;
   var "OCAMLYACC" ocamlyacc;
