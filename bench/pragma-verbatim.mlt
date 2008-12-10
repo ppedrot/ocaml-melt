@@ -1,0 +1,18 @@
+##verbatim '#' = test
+
+let test x =
+  let f = function
+    | `V s -> "Quotation {Latex.Verbatim.verbatim s}{newline}"
+    | `C i -> "Anti-quotation (int) {text (string_of_int i)}{newline}"
+    | `M m -> "Anti-quotation (math) {m}{newline}"
+    | `T t -> "Anti-quotation (text) {t}{newline}"
+  in
+  concat (List.map f x)
+
+let () = emit (document "<#coucou#{159}#plop#$x$#plop#"roulou lou !"{42}>")
+
+(*
+Local Variables:
+compile-command: "../meltpp -o pragma.ml pragma.mlt && cat pragma.ml && rm pragma.ml"
+End:
+*)

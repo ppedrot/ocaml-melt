@@ -1,4 +1,9 @@
-type verbatim_item = [ `V of string | `A of Format.formatter -> unit -> unit ]
+type verbatim_item = [
+| `V of string
+| `C of Format.formatter -> unit -> unit
+| `M of Format.formatter -> unit -> unit
+| `T of Format.formatter -> unit -> unit
+]
 
 type verbatim_function = Format.formatter -> verbatim_item list -> unit
 

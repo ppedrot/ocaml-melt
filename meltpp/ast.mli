@@ -1,18 +1,27 @@
+type verb_name =
+  | VNUser of string
+  | VNDelim of char
+  | VNDefault
+
 type verb_item =
   | VString of string
-  | VOther of item
+  | VCode of item list
+  | VMath of item list
+  | VText of item list
 
 and item =
   | String of string
   | Code of item list
   | Math of item list
   | Text of item list
-  | Verb of string * verb_item list
+  | Verb of verb_name * verb_item list
   | Par of int (* the int is the number of new lines in the source code *)
 
 type verb_interp =
   | VIString of string
-  | VIOther of interp
+  | VICode of interp
+  | VIMath of interp
+  | VIText of interp
 
 and interp =
   | IString of string

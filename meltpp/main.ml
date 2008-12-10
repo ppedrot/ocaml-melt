@@ -7,6 +7,8 @@ open Meltpp_plugin
 
 let dir = ref ""
 
+let meltpp_verbatim_default_name = "meltpp_verbatim_default"
+
 let locate_error (b, e) x =
   let buf = Buffer.create 42 in
   kfprintf
@@ -33,19 +35,30 @@ let rec interp code = function
   | String s ->
       if code then ICode s else IString s
   | Code l ->
-      IConcatCode(List.map (interp true) l)
+      interp_list true l
   | Math l ->
-      IApply("mode M", IConcat(List.map (interp false) l))
+      IApply("mode M", interp_list false l)
   | Text l ->
-      IApply("mode T", IConcat(List.map (interp false) l))
+      IApply("mode T", interp_list false l)
   | Verb(f, l) ->
+      let f = match f with
+        | VNDefault -> meltpp_verbatim_default_name
+        | VNUser s -> s
+        | VNDelim c -> Hashtbl.find Lexer.verbatim_delims c
+      in
       let l = List.map begin function
         | VString s -> VIString s
-        | VOther i -> VIOther (interp false i) (* i cannot be String *)
+        | VCode l -> VICode(interp_list true l)
+        | VMath l -> VIMath(interp_list false l)
+        | VText l -> VIText(interp_list false l)
       end l in
       IVerb(f, l)
   | Par n ->
       ICode ("(par)" ^ String.make n '\n')
+
+and interp_list code l =
+  let l = List.map (interp code) l in
+  if code then IConcatCode l else IConcat l
 
 let rec print f = function
   | ICode s ->
@@ -78,7 +91,9 @@ let rec print f = function
       in
       let l = List.map begin function
         | VIString s -> `V s
-        | VIOther i -> `A (fun f () -> print f i)
+        | VICode i -> `C (fun f () -> print f i)
+        | VIMath i -> `M (fun f () -> print f i)
+        | VIText i -> `T (fun f () -> print f i)
       end l in
       vf f l
 

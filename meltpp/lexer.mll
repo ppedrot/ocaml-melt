@@ -18,7 +18,7 @@
     | C
     | M
     | T
-    | V of string
+    | V of string option
 
   let get_mode, begin_mode, end_mode, reset_mode, top_level =
     let mode = ref [C] in
@@ -73,8 +73,6 @@
     let s = Buffer.contents comment_buf in
     Buffer.reset comment_buf;
     STRING s
-
-  let meltpp_verbatim_default_name = "meltpp_verbatim_default"
 
   let pragma_return lexbuf =
     newline lexbuf;
@@ -165,9 +163,9 @@ and text = parse
   | '{' { begin_mode C }
   | '"' { end_mode lexbuf }
   | "<:" (['a'-'z' 'A'-'Z' '0'-'9' '.' ' ']+ as apply) ':'
-      { begin_mode (V apply) }
+      { begin_mode (V(Some apply)) }
   | '<'
-      { begin_mode (V meltpp_verbatim_default_name) }
+      { begin_mode (V None) }
   | '\n'+
       { let s = lexeme lexbuf in
         let l = String.length s in
@@ -209,7 +207,7 @@ and verb_item delim = parse
       { if c = delim then begin
           let s = Buffer.contents verb_buf in
           Buffer.reset verb_buf;
-          STRING s
+          VERB_ITEM(delim, s)
         end else begin
           Buffer.add_char verb_buf c;
           verb_item delim lexbuf

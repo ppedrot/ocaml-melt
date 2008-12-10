@@ -16,8 +16,15 @@ anti-quotations. A simple verbatim function is an instance of a complex verbatim
 function which applies the simple function to all items and concatenates
 the results, anti-quotation being inserted as-it. *)
 
-type verbatim_item = [ `V of string | `A of Format.formatter -> unit -> unit ]
+type verbatim_item = [
+| `V of string
+| `C of Format.formatter -> unit -> unit
+| `M of Format.formatter -> unit -> unit
+| `T of Format.formatter -> unit -> unit
+]
   (** A verbatim item is either a verbatim string or an anti-quotation.
+Anti-quotations can be code anti-quotations ([`C]),
+math anti-quotations ([`M]) or text anti-quotations ([`T]).
 Applying the anti-quotation will print its piece of code, with no extra
 parenthesis. It can be used with the ["%a"] formatter. *)
 
@@ -33,13 +40,14 @@ can then be used as a verbatim mode. *)
 val verbatim_complex: string -> verbatim_function
   (** [verbatim_complex "f"] is a verbatim function which prints a piece of code
 which fill apply [f] to the [verbatim_item list], which is printed as an
-expression of type [[ `V of string | `A of 'a ] list]. *)
+expression of type
+[[ `V of string | `C of 'a | `M of Latex.t | `T of Latex.t ] list]. *)
 
 val verbatim_simple: string -> verbatim_function
   (** [verbatim_simple "f"] is a verbatim function which prints a piece of code
 which will apply [f] to all quotations parts, keeping the anti-quotations
 as it. The default verbatim function is actually
-[verbatim_simple "Verbatim.verbatim"]. *)
+[verbatim_simple "Latex.Verbatim.verbatim"]. *)
 
 (** {2 Miscellaneous} *)
 

@@ -31,19 +31,19 @@ let escape_except_newline s =
   Str.global_replace (Str.regexp_string "\\n") "\n" s
 
 let verbatim_complex name: verbatim_function = fun f l ->
+  let l = list_insert `I (l :> [ verbatim_item | `I ] list) in
   fprintf f "(%s [" name;
   List.iter begin function
     | `V s -> fprintf f "`V \"%s\"" (escape_except_newline s)
-    | `A a -> fprintf f "`A(%a)" a ()
+    | `C a -> fprintf f "`C(%a)" a ()
+    | `M a -> fprintf f "`M(%a)" a ()
+    | `T a -> fprintf f "`T(%a)" a ()
+    | `I -> fprintf f "; "
   end l;
   fprintf f "])"
 
 let verbatim_simple name: verbatim_function = fun f l ->
-  let l = list_insert `C (l :> [ verbatim_item | `C ] list) in
-  fprintf f "(";
-  List.iter begin function
+  list_iter_concat f begin fun f -> function
     | `V s -> fprintf f "(%s \"%s\")" name (escape_except_newline s)
-    | `A a -> fprintf f "(%a)" a ()
-    | `C -> fprintf f "^^"
-  end l;
-  fprintf f ")"
+    | `C a | `M a | `T a -> fprintf f "(%a)" a ()
+  end l
