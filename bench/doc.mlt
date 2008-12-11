@@ -1,61 +1,127 @@
-open Latex
+##verbatim '#' = verbatim_code
+
+let verbatim_code x = texttt (Verbatim.verbatim x)
 
 let latex = command \"LaTeX\" [] T
+let latexlib = texttt "Latex"
 let melt = "Melt"
+let meltlib = texttt "Melt"
 let ocaml = "OCaml"
-let code x = texttt x
+let mlpost = textsc "Mlpost"
+let postscript = "Postscript"
+let pdf = "PDF"
 
-let dollar = "<<$>>"
-let slash = "<<\>>"
-let lbrace = "<<{>>"
-let rbrace = "<<}>>"
-let dquote = symbol 34
+let ie = emph "i.e."
 
-let braces x = $\{{x}\}$
+let display = displaymath
+let listing x =
+  environment \"center\"
+    (T, command \"fbox\"
+       [T, environment \"minipage\" ~args: [T, text \"0.9\\textwidth\"] (T, x) T]
+       T) T
 
-let _ = emit begin
-  document
-    ~title: "Melt Pre-Processor User Manual"
-    ~author: "Romain Bardou"
-    ~date: ""
-    begin concat [
-      section "Introduction";
+let doc = ("
+{section "Introduction"}
 
-      "{latex} is great to format text. {ocaml} is great to program.
+{paragraph "Motivation"}
+
+{latex} is great to format text. {ocaml} is great to program.
 What if you want to program {latex} documents using the {ocaml} syntax
-and type system? Then you need {melt}. Let's see why, by trying to
+and type system? Then you can use {melt}. Let's see how we can
 produce the following:
-      {displaymath "Let $x {subset} {braces $1, 2, 3$}$."}
-      {par}
-      In {latex}, this is easy:
-      {displaymath (code "Let {dollar}x {slash}subset
-{slash}{lbrace}1, 2, 3{slash}{rbrace}{dollar}.")}
-      {par}
-      What does it mean to encode this in {ocaml}? Let's assume that
-you have some {code "Latex"} module providing the following functions:
-{code "t"} which converts a string to {latex} text,
-{code "m"} which converts a string to {latex} math,
+      {display "Let $X {subset} \{1, 2, 3\}$."}
+      With {latex}, this is easy:
+      {display "<#Let $X \subset \{1, 2, 3\}$.#>"}
+      What does it mean to program this in {ocaml}? Let's assume that
+you have some {latexlib} library providing the following functions:
+<#t#> which converts a string to {latex} text,
+<#m#> which converts a string to {latex} math,
 some basic {latex} macros and
-{code "c"} which concatenates a list of {latex} expressions.
-Our example may be encoded like this:
-{displaymath (code "
-c [
-t {dquote}Let {dquote};
-m {dquote}x{dquote};
-subset;
-braces (t {dquote}1, 2, 3{dquote})
-]
-")}
-      This is much more verbose than the original code in {latex}!
-      {par}
+<#c#> which concatenates a list of {latex} expressions.
+Our example may then be encoded like this:
+      {display "<#c [ t "Let "; m "X"; subset; lbrace; m "1, 2, 3"; rbrace; t "." ]#>"}
+      This is much more verbose than the original {latex} code!
       The {melt} pre-processor allows lighter syntax:
-{displaymath (code "
-{dquote}Let {dollar}x {braces "subset"}
-{slash}{lbrace}1, 2, 3{slash}{rbrace}{dollar}.{dquote}
-")}
+      {display "<#"Let $X {subset} \{1, 2, 3\}$."#>"}
       Note how close this is to the {latex} syntax. The main differences
 are: usage of double quotes to enter {emph "text"} mode and usage of
 braces to enter {emph "code"} mode. The code mode, here, is used
-for command {code "subset"}, which is an {ocaml} value of {latex} type."
-    ] end
-end
+for command <#subset#>, which is an {ocaml} value of {latex} type.
+
+{paragraph "What is {melt}?"}
+
+{melt} allows you to write {latex} documents using {ocaml}.
+It is composed of the {latexlib} library for {ocaml},
+the {melt} preprocessor,
+the {melt} tool,
+and the {meltlib} library.
+
+The {latexlib} library provides an {ocaml} interface to {latex}. It allows to
+create {latex} values in text or math mode and to concatenate them. It defines
+basic {latex} commands, such as <#\subset#>, as {ocaml} values.
+
+It is possible to write an entire document using only the {latexlib} library,
+but the syntax of {ocaml} is awful for this purpose, and the document quickly
+becomes an awful, unreadable mess. The {melt} preprocessor provides a much
+lighter syntax, allowing the user to easily interleave {latex} values and
+{ocaml} code.
+
+The {melt} tool takes a {melt} program and compiles it into a {postscript} or
+a {pdf} document. It runs the preprocessor if needed, compiles the program,
+executes it to produce a {latex} program, and then runs {latex} to produce
+the final document.
+
+The {meltlib} library contains various tools to glue things together. In
+particular, it contains functions to easily include {mlpost} pictures.
+
+{section "Hello, World!"}
+
+A basic {melt} program, <#hello.mlt#>, looks like this:
+{listing "<#emit (document "Hello, world!")#>"}
+Let's see how to compile this document, and how does it work.
+
+{paragraph "Compiling Using the {melt} Tool."}
+
+You can compile <#hello.mlt#> in one command using the {melt} tool:
+{listing "<#melt hello.mlt#>"}
+This produces a file <#hello.ps#> containing the text ``Hello, world!''.
+You can produce a {pdf} file instead, using the <#-pdf#> option.
+
+{paragraph "Compiling by Hand."}
+
+Instead of using the {melt} tool, you can apply the preprocessor yourself:
+{listing "<#meltpp hello.mlt -o hello.ml -open Latex -open Melt#>"}
+This produces a file <#hello.ml#> which looks like this:
+{listing "<#open Latex;;
+open Melt;;
+emit (document (mode T ((text "Hello, world!"))))#>"}
+As you can see, the string <#"Hello, world!"#> is no longer a string but a
+value of type <#Latex.t#>. You can them compile this {ocaml} program.
+Once executed, it will produce a file <#hello.tex#> looking like this:
+{listing "<#\documentclass{article}
+\author{}
+\begin{document}
+  Hello, world!
+\end{document}#>"}
+You can compile this file using <#latex#> or <#pdflatex#>.
+
+{paragraph "Understanding the Code."}
+
+The <#emit#> function of the {meltlib} library takes a value of type
+<#Latex.t#>. Values of this type describe {latex} abstract syntax trees
+(ASTs), {ie}, {latex} programs. The function writes this AST into the
+file <#hello.tex#>.
+
+What we want to emit is a full {latex} document. The <#document#> function
+of the {latexlib} library takes a body, of type <#Latex.t#>, and returns
+another value of type <#Latex.t#>. The returned AST contains the document class,
+the <#document#> environment, the author and so on.
+
+To produce the body of the document, we use the {melt} preprocessor. In a
+{melt} document, double quotes do not create values of type <#string#>
+but values of type <#Latex.t#>. So, here, <#"Hello, world!"#> is not a
+<#string#> but a piece of {latex} AST that we can give to the <#document#>
+function.
+")
+
+let () = emit (document ~title: "Melt User Manual" ~date: "" doc)
