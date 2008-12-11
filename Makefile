@@ -1,7 +1,7 @@
 include Config
 
 BUILD := _build
-OB := ocamlbuild -no-links -build-dir $(BUILD)
+OB := ocamlbuild -no-links -build-dir $(BUILD) -I meltpp
 OBCLASSIC := $(OB) -classic-display
 ifeq ($(TERM), dumb)
 	OB := $(OBCLASSIC)
@@ -12,6 +12,7 @@ BYTE = latex/latex.cma melt/melt.cma melt/tool.byte meltpp/main.byte
 NATIVE = latex/latex.cmxa melt/melt.cmxa melt/tool.native
 NATIVE11 = $(NATIVE) meltpp/main.native
 DOC = latex/latex.docdir/index.html melt/melt.docdir/index.html
+BENCHPLUGS = bench/plugs/quot.cma
 
 default:
 	$(OB) $(BYTE) $(DOC)
@@ -44,6 +45,7 @@ clean:
 	rm -f noob.makefile *~
 
 check bench test %.bench %.check %.test:
+	$(OB) $(BYTE) $(BENCHPLUGS)
 	@make -C bench $@
 
 .PHONY: default fast world clean doc all world.10 bench test check

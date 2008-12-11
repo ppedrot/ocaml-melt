@@ -23,10 +23,15 @@ let clean = ref false
 let melt_dir = ref "_melt"
 
 let meltpp = ref "meltpp"
+let includes = ref []
+let meltpp_includes = ref ""
+let add_include x = includes := x :: !includes
 
 let spec = Arg.align [
   "-meltpp", Arg.Set_string meltpp, "<meltpp> Specify the location of the \
 Melt pre-processor";
+  "-P", Arg.String add_include, "<dir> Look for plugins in <dir> \
+(this option is passed to the Melt pre-processor)";
 
   "-no-mlpost", Arg.Clear mlpost, " Do not call mlpost, use ocamlbuild instead \
 (or ocamlc if -no-ocamlbuild)";
@@ -73,7 +78,8 @@ end x
 
 let melt_to_ml f =
   let o = Filename.chop_extension f ^ ".ml" in
-  cmd "%s -dir \"../\" -open Latex -open Melt %s -o %s" !meltpp f o;
+  cmd "%s%s -dir \"../\" -open Latex -open Melt %s -o %s" !meltpp
+    !meltpp_includes f o;
   o
 
 let libopt lib =
@@ -177,6 +183,10 @@ let do_clean () =
 
 let () =
   Arg.parse spec anon usage;
+  meltpp_includes := begin match !includes with
+    | [] -> ""
+    | l -> " " ^ String.concat " " (List.map (fun x -> "-P "^x) l)
+  end;
   if !clean then do_clean ();
   if !main_file <> "" then begin
     let cwd = Sys.getcwd () in

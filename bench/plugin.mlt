@@ -1,4 +1,4 @@
-##plugin test
+##plugin quot
 
 let () = emit (document "Verbatim test: <:test:<this is fun
 and >"this is an anti-quotation"< and this is a quotation>>")

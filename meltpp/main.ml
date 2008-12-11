@@ -104,8 +104,11 @@ let files = Queue.create ()
 let plugins = Queue.create ()
 let opens = Queue.create ()
 let add_open x = Queue.add x opens
+let includes = ref []
+let add_include x = includes := x :: !includes
 
 let spec = Arg.align [
+  "-P", Arg.String add_include, "<dir> Look for plugins in <dir>";
   "-o", Arg.Set_string output, " Output file name (cannot be used when \
 compiling multiple files at the same time)";
   "-open", Arg.String add_open, "<Module> Add \"open Module;;\" at \
@@ -127,7 +130,7 @@ let file_ext s =
 
 let anon s =
   match file_ext s with
-    | ".cma" | ".cmxa" | ".cmo" | ".cmx" -> Queue.add s plugins
+    | ".cma" | ".cmo" | ".cmxs" -> Queue.add s plugins
     | _ -> Queue.add s files
 
 let print_opens oc =
@@ -143,6 +146,7 @@ let () =
 (* parse arguments *)
 let () =
   Arg.parse spec anon usage;
+  Plugin_private.includes := List.rev !includes;
   if !output <> "" && Queue.length files > 1 then begin
     eprintf "Cannot use the -o option when compiling multiple files \
 at the same time.\n%!";
