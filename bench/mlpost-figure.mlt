@@ -1,5 +1,8 @@
+open Mlpost
 open Tree
-open Pic
+open Box
+open Picture
+open Num
 
 let _ = emit begin document
     ~title: "Test"
@@ -7,14 +10,11 @@ let _ = emit begin document
     ~packages: ["graphicx", ""]
     "Small test of Mlpost inclusion:
 {mlpost [
-  draw
-    ~ls: 1.5
-    ~cs: 0.6
-  (
-    bin
-      (latex "Cou{alpha}cou")
-      (leaf (latex "Arf"))
-      (leaf (latex "Plop"))
+  draw (
+    bin ~ls: (cm 1.5) ~cs: (cm 0.6)
+      (pic (latex "Cou{alpha}cou"))
+      (leaf (pic (latex "Arf")))
+      (leaf (pic (latex "Plop")))
   )
 ]}
 Does it work?"
