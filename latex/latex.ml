@@ -393,6 +393,8 @@ let array_line ?sep x = {
 
 let newline = text "\\\\\n"
 
+let noindent = command "noindent" [] T
+
 let newlinesep x = text (Printf.sprintf "\\\\[%s]\n" (string_of_size x))
 
 let newlinegen = function

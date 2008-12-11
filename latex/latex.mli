@@ -128,6 +128,7 @@ val latex_of_int: int -> t
 val itemize: t list -> t
 val enumerate: t list -> t
 val newline: t
+val noindent: t
 val quad: t
 val includegraphics: t -> t
 val symbol: int -> t
