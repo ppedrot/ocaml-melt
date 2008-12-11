@@ -43,7 +43,10 @@ clean:
 	rm -rf $(BUILD)
 	rm -f noob.makefile *~
 
-.PHONY: default fast world clean doc all world.10
+check bench test %.bench %.check %.test:
+	@make -C bench $@
+
+.PHONY: default fast world clean doc all world.10 bench test check
 
 Config: configure.ml
 	ocaml configure.ml

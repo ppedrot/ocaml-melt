@@ -44,7 +44,9 @@ let rec interp code = function
       let f = match f with
         | VNDefault -> meltpp_verbatim_default_name
         | VNUser s -> s
-        | VNDelim c -> Hashtbl.find Lexer.verbatim_delims c
+        | VNDelim c ->
+            try Hashtbl.find Lexer.verbatim_delims c
+            with Not_found -> meltpp_verbatim_default_name
       in
       let l = List.map begin function
         | VString s -> VIString s
