@@ -10,9 +10,3 @@ let test x =
   concat (List.map f x)
 
 let () = emit (document "<#coucou#{159}#plop#$x$#plop#"roulou lou !"{42}>")
-
-(*
-Local Variables:
-compile-command: "../meltpp -o pragma.ml pragma.mlt && cat pragma.ml && rm pragma.ml"
-End:
-*)
