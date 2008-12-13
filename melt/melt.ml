@@ -42,13 +42,14 @@ let emit ?(file = name ^ ".tex") x = Latex.to_file file x
 
 module Verbatim = struct
   type latex_verbatim_function = string -> Latex.t
-  type melt_verbatim_function = [ `V of string | `A of Latex.t ] list ->
-    Latex.t
+  type melt_verbatim_function =
+      [ `V of string | `C of Latex.t | `M of Latex.t | `T of Latex.t ] list ->
+        Latex.t
 
   let convert f l =
     Latex.concat begin List.map begin function
       | `V s -> f s
-      | `A a -> a
+      | `C a | `M a | `T a -> a
     end l end
 
   let verbatim = convert Latex.Verbatim.verbatim

@@ -31,8 +31,9 @@ module Verbatim: sig
 except that they work with the Melt pre-processor. *)
 
   type latex_verbatim_function = string -> Latex.t
-  type melt_verbatim_function = [ `V of string | `A of Latex.t ] list ->
-    Latex.t
+  type melt_verbatim_function =
+      [ `V of string | `C of Latex.t | `M of Latex.t | `T of Latex.t ] list ->
+        Latex.t
 
   val convert: latex_verbatim_function -> melt_verbatim_function
     (** Convert a verbatim function of the [Latex] module to a function
