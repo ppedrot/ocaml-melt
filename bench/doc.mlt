@@ -192,7 +192,7 @@ Note that the
 {listing "<#"Code: {texttt "<<printf "Toto has $%d to spare." 42>>"}"#>"}
 This will produce:
 {listing "Code: {texttt "<<printf "Toto has $%d to spare." 42>>"}"}
-Also note that the verbatim mode can only used in text mode. If you write
+Also note that the verbatim mode can only be used in text mode. If you write
 <#<<#> in math mode, this will produce $<<$, and in code mode this will produce
 a syntax error from the {ocaml} compiler or a quotation if you use the
 {camlp4} syntax extension.
