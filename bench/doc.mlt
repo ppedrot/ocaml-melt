@@ -7,21 +7,25 @@ let latexlib = texttt "Latex"
 let melt = "Melt"
 let meltlib = texttt "Melt"
 let ocaml = "OCaml"
+let camlp4 = "Camlp4"
 let mlpost = textsc "Mlpost"
 let postscript = "Postscript"
 let pdf = "PDF"
 
 let ie = emph "i.e."
 
-let display = displaymath
-let listing x =
+let display x =
   environment \"center\"
     (T, command \"fbox\"
        [T, environment \"minipage\" ~args: [T, text \"0.9\\textwidth\"] (T, x) T]
        T) T
 
+let listing = display
+
 let doc = ("
 {section "Introduction"}
+
+{subsection "What is {melt}?"}
 
 {paragraph "Motivation"}
 
@@ -39,7 +43,8 @@ you have some {latexlib} library providing the following functions:
 some basic {latex} macros and
 <#c#> which concatenates a list of {latex} expressions.
 Our example may then be encoded like this:
-      {display "<#c [ t "Let "; m "X"; subset; lbrace; m "1, 2, 3"; rbrace; t "." ]#>"}
+      {display "<#c [ t "Let "; m "X"; subset; lbrace; m "1, 2, 3"; rbrace;
+    t "." ]#>"}
       This is much more verbose than the original {latex} code!
       The {melt} pre-processor allows lighter syntax:
       {display "<#"Let $X {subset} \{1, 2, 3\}$."#>"}
@@ -74,7 +79,7 @@ the final document.
 The {meltlib} library contains various tools to glue things together. In
 particular, it contains functions to easily include {mlpost} pictures.
 
-{section "Hello, World!"}
+{subsection "Getting Started"}
 
 A basic {melt} program, <#hello.mlt#>, looks like this:
 {listing "<#emit (document "Hello, world!")#>"}
@@ -122,6 +127,79 @@ To produce the body of the document, we use the {melt} preprocessor. In a
 but values of type <#Latex.t#>. So, here, <#"Hello, world!"#> is not a
 <#string#> but a piece of {latex} AST that we can give to the <#document#>
 function.
+
+{paragraph "Text and Math Modes."}
+
+You can insert math formula using the dollar delimiters <#$#{cdots}#$#>,
+as in {latex}:
+{listing "<#"Assume $x+y=42$."#>"}
+This will produce:
+{display "Assume $x+y=42$."}
+The world ``Assume'', as well as the ending dot, are printed in
+{emph "text"} mode, whereas the math formula is printed in {emph "math"} mode.
+You enter text mode using double quotes <#"#{cdots}#"#>, and you enter math
+mode using dollars <#$#{cdots}#$#>. Note that you can enter math mode
+directly:
+{listing "<#emit (document $x+y=42$)#>"}
+You can also enter text mode while in math mode:
+{listing "<#$x+y=42 " but " z+t=69$#>"}
+This will produce:
+{display $x+y=42 " but " z+t=69$}
+These modes can be nested arbitrarily, but do not abuse this feature as your
+code will become less readable.
+
+{paragraph "Code Mode."}
+
+The third mode is called {emph "code"} mode. It is introduced using round
+brackets delimiters <#{#{cdots}#}#>. It allows to insert an {ocaml} value of
+type <#Latex.t#>. In particular, this is useful to write macros:
+{listing "<#let p = $3.141592$ in
+emit (document "{pi} is {p}.")#>"}
+This will produce:
+{display (let p = $3.141592$ in "{pi} is {p}.")}
+<#pi#> is a value of type <#Latex.t#> which is defined in the <#Latex#> module.
+
+In code mode, you can insert {ocaml} code of any complexity:
+{listing "<#$1+2+3 = {latex_of_int (1+2+3)}$#>"}
+This will produce:
+{display $1+2+3 = {latex_of_int (1+2+3)}$}
+The code in code mode is also preprocessed. This means that you can nest
+code, math and text modes arbitrarily. For example:
+{listing "<#"The {emph "code"} mode is emphasized."#>"}
+This will produce:
+{display "The {emph "code"} mode is emphasized."}
+
+{paragraph "Verbatim Mode."}
+
+The last mode is called {emph "verbatim"} mode. It can be used to insert text
+that should not be parsed, such as code listing{footnote
+"It is {emph "heavily"} used in the source
+of this document, which is of course written using {melt}."}.
+Here is an example:
+{listing "<#"Code: <<printf "Toto has $%d to spare." 42>>"#>"}
+This will produce:
+{display "Here is some code: <<printf "Toto has $%d to spare." 42>>"}
+As you can see, the code between the <#<<#{cdots}#>>#> delimiters is not
+preprocessed: the double quotes and dollars are left as it. Moreover, every
+symbol is translated into the latex command <#symbol#> so it
+can be printed correctly. Spaces and new lines are also translated. To sum up,
+the text you write in verbatim mode will be printed
+verbatim{footnote "This is no coincidence."}.
+
+Note that the
+<#symbol#> command of {latex} often does not work well unless you use a
+<#tt#> font. The above example should be rewritten:
+{listing "<#"Code: {texttt "<<printf "Toto has $%d to spare." 42>>"}"#>"}
+This will produce:
+{listing "Code: {texttt "<<printf "Toto has $%d to spare." 42>>"}"}
+Also note that the verbatim mode can only used in text mode. If you write
+<#<<#> in math mode, this will produce $<<$, and in code mode this will produce
+a syntax error from the {ocaml} compiler or a quotation if you use the
+{camlp4} syntax extension.
+
+The verbatim mode has other features such as delimiter selection,
+function selection and
+antiquotations. They will be described later in this document.
 ")
 
 let () = emit (document ~title: "Melt User Manual" ~date: "" doc)
