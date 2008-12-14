@@ -200,6 +200,20 @@ a syntax error from the {ocaml} compiler or a quotation if you use the
 The verbatim mode has other features such as delimiter selection,
 function selection and
 antiquotations. They will be described later in this document.
+
+{section "The {latexlib} Library"}
+
+- modes et coercions
+- commandes, environnements
+- verbatim
+- link
+
+{section "The Melt Preprocessor"}
+
+- modes
+- pragmas
+- verbatim
+- command line options
 ")
 
 let () = emit (document ~title: "Melt User Manual" ~date: "" doc)
