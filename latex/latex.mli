@@ -128,6 +128,7 @@ val latex_of_int: int -> t
 val itemize: t list -> t
 val enumerate: t list -> t
 val newline: t
+val newpage: t
 val noindent: t
 val quad: t
 val includegraphics: t -> t
@@ -152,6 +153,14 @@ val tiny: t -> t
 val stackrel: t -> t -> t
 
 val vspace: size -> t
+  (** A vertical space. *)
+val addvspace: size -> t
+  (** Similar to [vspace], but an [addvspace x] followed by an [addvspace y]
+will produce an [addvspace] of [max x y]. *)
+val smallskip: t (** A small [vspace]. *)
+val medskip: t (** A medium [vspace]. *)
+val bigskip: t (** A big [vspace]. *)
+val nointerlineskip: t (** Delete the interline vertical space. *)
 
 type array_column = [ `L | `C | `R ]
 type array_line

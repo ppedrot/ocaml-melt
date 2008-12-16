@@ -392,8 +392,7 @@ let array_line ?sep x = {
 }
 
 let newline = text "\\\\\n"
-
-let noindent = command "noindent" [] T
+let newpage = command "newpage" [] T
 
 let newlinesep x = text (Printf.sprintf "\\\\[%s]\n" (string_of_size x))
 
@@ -453,6 +452,13 @@ let itemize l = list_env l "itemize"
 let enumerate l = list_env l "enumerate"
 
 let vspace s = command "vspace" [T, latex_of_size s] T
+let addvspace s = command "addvspace" [T, latex_of_size s] T
+let smallskip = command "smallskip" [] T
+let medskip = command "medskip" [] T
+let bigskip = command "bigskip" [] T
+let nointerlineskip = command "nointerlineskip" [] T
+
+let noindent = command "noindent" [] T
 
 let stackrel x y = command "stackrel" [M, x; M, y] M
 
