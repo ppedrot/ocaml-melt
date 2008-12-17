@@ -484,7 +484,7 @@ let sharp  =command "sharp" [] M
 
 let emptyset = command "emptyset" [] M
 
-type delimiter = [ `None | `Brace | `Paren | `Vert ]
+type delimiter = [ `None | `Brace | `Paren | `Vert | `Bracket ]
 
 let left d =
   let ds = match d with
@@ -492,6 +492,7 @@ let left d =
     | `Brace -> "\\{"
     | `Paren -> "("
     | `Vert -> "\\|"
+    | `Bracket -> "["
   in
   command (sprintf "left%s" ds) [] M
 
@@ -501,6 +502,7 @@ let right d =
     | `Brace -> "\\}"
     | `Paren -> ")"
     | `Vert -> "\\|"
+    | `Bracket -> "]"
   in
   command (sprintf "right%s" ds) [] M
 

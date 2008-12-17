@@ -391,7 +391,7 @@ val cdots: t
 
 val emptyset: t
 
-type delimiter = [ `None | `Brace | `Paren | `Vert ]
+type delimiter = [ `None | `Brace | `Paren | `Vert | `Bracket ]
 
 val left: delimiter -> t
 val right: delimiter -> t
