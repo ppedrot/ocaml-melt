@@ -83,7 +83,9 @@ let melt_to_ml f =
   o
 
 let libopt lib =
-  " -ccopt " ^ if !ocamlbuild then "\"-lib " ^ lib ^ "\"" else lib ^ ".cma"
+  if !mlpost then
+    " -ccopt " ^ if !ocamlbuild then "\"-lib " ^ lib ^ "\"" else lib ^ ".cma"
+  else if !ocamlbuild then " -lib \"" ^ lib ^ "\"" else " -cclib "^lib^".cma"
 
 let ml_to_tex f =
   let bf = Filename.chop_extension f in
@@ -97,17 +99,18 @@ let ml_to_tex f =
   let meltlibo = libopt "melt" in
   let mlpostlibo = libopt "mlpost" in
   let strlibo = libopt "str" in
+  let unixlibo = libopt "unix" in
   let ext = if !native then "native" else "byte" in
   if !mlpost then
     cmd "mlpost%s%s%s%s%s%s%s%s %s" pdfo pdfeo ocamlbuildo nativeo
       strlibo latexlibo meltlibo nameeo f
   else if !ocamlbuild then
-    cmd "ocamlbuild%s%s%s%s %s.%s --%s%s"
-      strlibo latexlibo mlpostlibo meltlibo bf ext pdfo nameo
+    cmd "ocamlbuild%s%s%s%s%s %s.%s --%s%s"
+      strlibo unixlibo latexlibo mlpostlibo meltlibo bf ext pdfo nameo
   else begin
-    cmd "ocaml%s%s%s%s%s %s -o %s.%s"
+    cmd "ocaml%s%s%s%s%s%s %s -o %s.%s"
       (if !native then "opt" else "c")
-      strlibo latexlibo mlpostlibo meltlibo f bf ext;
+      strlibo unixlibo latexlibo mlpostlibo meltlibo f bf ext;
     cmd "./%s.%s%s%s" bf ext pdfo nameo
   end
 
