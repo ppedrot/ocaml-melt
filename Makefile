@@ -1,7 +1,7 @@
 include Config
 
 BUILD := _build
-OB := ocamlbuild -no-links -build-dir $(BUILD) -I meltpp
+OB := ocamlbuild -no-links -build-dir $(BUILD) -Is latex,meltpp,melt
 OBCLASSIC := $(OB) -classic-display
 ifeq ($(TERM), dumb)
 	OB := $(OBCLASSIC)
@@ -14,8 +14,7 @@ NATIVE11 = $(NATIVE) meltpp/main.native
 DOC = latex/latex.docdir/index.html melt/melt.docdir/index.html
 BENCHPLUGS = bench/plugs/quot.cma
 
-default:
-	$(OB) $(BYTE) $(DOC)
+default: world.10
 
 fast:
 	$(OB) $(BYTE)
