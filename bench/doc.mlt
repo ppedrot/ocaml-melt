@@ -203,10 +203,61 @@ antiquotations. They will be described later in this document.
 
 {section "The {latexlib} Library"}
 
-- modes et coercions
-- commandes, environnements
-- verbatim
-- link
+The  {latexlib} library  is  composed  of a  kernel,  which allows  to
+describe  low-level {latex}  ASTs, and  of basic  function definitions
+built on top of this kernel.
+
+{subsection "Using the Library"}
+
+{subsubsection "Compiling the Library"}
+
+The  library is  automatically compiled  when you  compile  the {melt}
+distribution. See its Makefile if you want to know more.
+
+{subsubsection "Installing the Library"}
+
+The  library will  automatically  be installed  when  you install  the
+{melt}  distribution. It  will normally  be installed  in  the {ocaml}
+library  directory, which  you  can find  using  the command
+<#ocamlc -where#>. The following files should be copied there:
+{listing "<#latex.a
+latex.cmi
+latex.cma
+latex.cmxa#>"}
+To uninstall the library, simply delete these files.
+
+{subsubsection "Compiling a Program Which Uses the Library"}
+
+At compile-time, the {ocaml} compiler  needs to know where to find the
+interface  <#latex.cmi#>.  If this  file  has  been  installed in  the
+default {ocaml} library directory, {ocaml} will find it automatically.
+Else, you need to include the directory using the <#-I#> option.
+For example, to compile <#hello.ml#> if the library has been installed
+in the <#latex#> subdirectory of the default directory:
+{listing "<#ocamlc -c -I +latex hello.ml#>"}
+
+At  link-time, the  {ocaml} compiler  needs to  know that  the archive
+<#latex.cma#>,   along   with   its   dependencies   <#str.cma#>   and
+<#mlpost.cma#>,  have to  be  linked with  the  program. The  {mlpost}
+archive also depends  on <#unix.cma#>.  Add all these  archives in the
+command line, in the right  order.  Replace <#.cma#> with <#.cmxa#> if
+you use the native compiler. For example, to produce the <#hello#>
+bytecode executable:
+{listing ""}
+
+{subsection "The Kernel"}
+
+{subsubsection "Modes"}
+
+{subsubsection "Commands and Environments"}
+
+{subsubsection "Printing the AST"}
+
+{subsection "Pervasive Definitions"}
+
+{subsubsection "References and Labels"}
+
+{subsubsection "Verbatim"}
 
 {section "The Melt Preprocessor"}
 
