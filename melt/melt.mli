@@ -4,7 +4,7 @@
 val latex: Latex.t -> Mlpost.Picture.t
 
 (** Emit a figure to use it in a LaTeX document. *)
-val mlpost: ?pdf: bool -> ?file: string -> Mlpost.Command.figure -> Latex.t
+val mlpost: ?pdf: bool -> ?file: string -> Mlpost.Command.t -> Latex.t
   (**  The default  value  of [~pdf]  is  [true] if  the command  line
 contain  [-pdf], and  [false] otherwise.  It should  be [true]  if the
 figure will be  used in a PDF file, and  [false] otherwise. The [melt]
