@@ -23,15 +23,23 @@ let clean = ref false
 let melt_dir = ref "_melt"
 
 let meltpp = ref "meltpp"
+
+(* -P includes for meltpp *)
+let plugin_includes = ref []
+let meltpp_plugin_includes = ref ""
+let add_plugin_include x = plugin_includes := x :: !plugin_includes
+
+(* -I includes for the OCaml compiler *)
 let includes = ref []
-let meltpp_includes = ref ""
 let add_include x = includes := x :: !includes
 
 let spec = Arg.align [
   "-meltpp", Arg.Set_string meltpp, "<meltpp> Specify the location of the \
 Melt pre-processor";
-  "-P", Arg.String add_include, "<dir> Look for plugins in <dir> \
+  "-P", Arg.String add_plugin_include, "<dir> Look for plugins in <dir> \
 (this option is passed to the Melt pre-processor)";
+  "-I", Arg.String add_include, "<dir> Look for libraries in <dir> \
+(this option is passed to the OCaml compiler)";
 
   "-no-mlpost", Arg.Clear mlpost, " Do not call mlpost, use ocamlbuild instead \
 (or ocamlc if -no-ocamlbuild)";
@@ -79,7 +87,7 @@ end x
 let melt_to_ml f =
   let o = Filename.chop_extension f ^ ".ml" in
   cmd "%s%s -dir \"../\" -open Latex -open Melt %s -o %s" !meltpp
-    !meltpp_includes f o;
+    !meltpp_plugin_includes f o;
   o
 
 let libopt lib =
@@ -101,15 +109,36 @@ let ml_to_tex f =
   let strlibo = libopt "str" in
   let unixlibo = libopt "unix" in
   let ext = if !native then "native" else "byte" in
+  let ocamlc_includes = match !includes with
+    | [] -> ""
+    | l -> " -I " ^ String.concat " -I " l
+  in
+  let ocamlbuild_includes = match !includes with
+    | [] -> ""
+    | l ->
+        let includes = "-I," ^ String.concat ",-I," l in
+        " -cflags " ^ includes ^ " -lflags " ^ includes
+  in
+  let mlpost_includes = match !includes with
+    | [] -> ""
+    | l ->
+        " -ccopt \"" ^
+          (if !ocamlbuild then ocamlbuild_includes else ocamlc_includes)
+        ^ "\""
+  in
   if !mlpost then
-    cmd "mlpost%s%s%s%s%s%s%s%s %s" pdfo pdfeo ocamlbuildo nativeo
+    cmd "mlpost%s%s%s%s%s%s%s%s%s %s"
+      mlpost_includes
+      pdfo pdfeo ocamlbuildo nativeo
       strlibo latexlibo meltlibo nameeo f
   else if !ocamlbuild then
-    cmd "ocamlbuild%s%s%s%s%s %s.%s --%s%s"
+    cmd "ocamlbuild%s%s%s%s%s%s %s.%s --%s%s"
+      ocamlbuild_includes
       strlibo unixlibo latexlibo mlpostlibo meltlibo bf ext pdfo nameo
   else begin
-    cmd "ocaml%s%s%s%s%s%s %s -o %s.%s"
+    cmd "ocaml%s%s%s%s%s%s%s %s -o %s.%s"
       (if !native then "opt" else "c")
+      ocamlc_includes
       strlibo unixlibo latexlibo mlpostlibo meltlibo f bf ext;
     cmd "./%s.%s%s%s" bf ext pdfo nameo
   end
@@ -186,7 +215,7 @@ let do_clean () =
 
 let () =
   Arg.parse spec anon usage;
-  meltpp_includes := begin match !includes with
+  meltpp_plugin_includes := begin match !plugin_includes with
     | [] -> ""
     | l -> " " ^ String.concat " " (List.map (fun x -> "-P "^x) l)
   end;
