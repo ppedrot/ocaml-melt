@@ -40,7 +40,7 @@ uninstall:
 	$(OCAML) install.ml -bin $(INSTALLBIN) -lib $(INSTALLLIB) -uninstall
 
 clean:
-	rm -rf $(BUILD)
+	rm -rf $(BUILD) bench/_melt
 	rm -f noob.makefile *~
 
 check bench test %.bench %.check %.test:
