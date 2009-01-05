@@ -9,13 +9,12 @@ let _ = emit begin document
     ~author: "Romain Bardou"
     ~packages: ["graphicx", ""]
     "Small test of Mlpost inclusion:
-{mlpost [
-  draw (
-    bin ~ls: (cm 1.5) ~cs: (cm 0.6)
-      (pic (latex "Cou{alpha}cou"))
-      (leaf (pic (latex "Arf")))
-      (leaf (pic (latex "Plop")))
-  )
-]}
+{mlpost
+  (draw (
+     bin ~ls: (cm 1.5) ~cs: (cm 0.6)
+       (pic (latex "Cou{alpha}cou"))
+       (leaf (pic (latex "Arf")))
+       (leaf (pic (latex "Plop")))
+   ))}
 Does it work?"
 end
