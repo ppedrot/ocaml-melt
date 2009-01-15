@@ -1,0 +1,12 @@
+TO DO
+=====
+
+* Protect the name of the verbatim functions when using the pragma.
+
+The pragma
+  ##verbatim '#' = test
+should become
+  let __meltpp_verbatim_delimiter_0 = test
+and this fresh name should be used instead.
+
+* Find a Unicode lexer. Menhir?
