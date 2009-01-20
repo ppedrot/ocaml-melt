@@ -1,6 +1,8 @@
 TO DO
 =====
 
+* Configuration: Non-interactive mode by default
+
 * Version file
 
 * Configuration: find mlpost directory (and maybe other libs too?)
