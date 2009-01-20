@@ -1,6 +1,8 @@
 TO DO
 =====
 
+* Configuration: find mlpost directory (and maybe other libs too?)
+
 * Protect the name of the verbatim functions when using the pragma.
 
 The pragma
