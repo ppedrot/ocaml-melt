@@ -30,6 +30,16 @@
 
 open Printf
 
+let interactive = ref false
+
+let speclist = [
+  "-i", Arg.Set interactive, "interactive mode";
+]
+let anon_fun x = raise (Arg.Bad (x^": unknown option"))
+let usage_msg = "ocaml configure.ml [-i]"
+
+let () = Arg.parse speclist anon_fun usage_msg
+
 type yes_no =
   | Yes of string
   | No of string
@@ -125,9 +135,14 @@ let rec first ?(name = "") = function
       | y -> y
 
 let query question default =
-  printf "%s [%s]: " question default;
-  let l = read_line () in
-  if l = "" then default else l
+  if !interactive then begin
+    printf "%s [%s]: " question default;
+    let l = read_line () in
+    if l = "" then default else l
+  end else begin
+    printf "%s: %s\n" question default;
+    default
+  end
 
 let check_file f =
   if not (Sys.file_exists f) || Sys.is_directory f then
