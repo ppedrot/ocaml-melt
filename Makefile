@@ -77,7 +77,10 @@ check bench test %.bench %.check %.test:
 	$(OB) $(BYTE) $(BENCHPLUGS)
 	@make -C bench $@
 
-.PHONY: default fast world clean doc all world.10 bench test check
+dist: $(shell darcs query manifest) noob.makefile
+	tar czf melt.tgz $^
+
+.PHONY: default fast world clean doc all world.10 bench test check dist
 
 Config: configure.ml
 	ocaml configure.ml
