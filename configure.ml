@@ -114,7 +114,8 @@ end = struct
     | _ -> v1
 end
 
-let error x = ksprintf (fun s -> eprintf "Error: %s\n%!" s; exit 1) x
+let error x =
+  ksprintf (fun s -> flush stdout; eprintf "Error: %s\n%!" s; exit 1) x
 
 exception Exec_error of int
 
