@@ -154,11 +154,43 @@ let () =
   let ocamllex = require (best_ocaml "ocamllex") in
   let ocamlyacc = require (best_ocaml "ocamlyacc") in
   let ocamldoc = best_ocaml "ocamldoc" in
+
+  let ocamlc_where = exec_line ocamlc ["-where"] in
+  let ocamlfind = find "ocamlfind" in
+  let libdir pkg cm =
+    let result = match ocamlfind with
+      | Yes ocamlfind ->
+          begin try
+            let dir = exec_line ocamlfind ["query"; pkg] in
+            if Sys.file_exists (Filename.concat dir cm) then
+              Some dir
+            else
+              None
+          with Exec_error _ ->
+            None
+          end
+      | No _ ->
+          None
+    in
+    let result = match result with
+      | Some dir -> dir
+      | None ->
+          if Sys.file_exists (Filename.concat ocamlc_where cm) then
+            ocamlc_where
+          else begin
+            let dir = query ("Library directory ("^pkg^")") "" in
+            check_file (Filename.concat dir cm);
+            dir
+          end
+    in
+    printf "Found %s in %s\n" pkg result;
+    if result = ocamlc_where then "" else result
+  in
+
+  let libdir_mlpost = libdir "mlpost" "mlpost.cma" in
   let install_bin = query "Install directory (program binaries)"
     "/usr/local/bin" in
-  let install_lib = query "Install directory (OCaml libraries)"
-    (exec_line ocamlc ["-where"]) in
-
+  let install_lib = query "Install directory (OCaml libraries)" ocamlc_where in
   let out = open_out "Config" in
   let var = fprintf out "%s = %s\n" in
   let ovar x = function No _ -> () | Yes y -> var x y in
@@ -170,5 +202,6 @@ let () =
   ovar "OCAMLDOC" ocamldoc;
   var "INSTALLBIN" install_bin;
   var "INSTALLLIB" install_lib;
+  var "LIBDIRMLPOST" libdir_mlpost;
 
   printf "Configuration successful.\n"
