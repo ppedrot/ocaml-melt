@@ -5,6 +5,8 @@ TO DO
 
 * Configuration: find mlpost directory (and maybe other libs too?)
 
+* Allow compilation without Mlpost
+
 * Protect the name of the verbatim functions when using the pragma.
 
 The pragma

@@ -93,7 +93,7 @@ and the {meltlib} library.
 
 The {latexlib} library provides an {ocaml} interface to {latex}. It allows to
 create {latex} values in text or math mode and to concatenate them. It defines
-basic {latex} commands, such as <#\subset#>, as {ocaml} values.
+basic {latex} commands as {ocaml} values, such as <#subset#>.
 
 It is possible to write an entire document using only the {latexlib} library,
 but the syntax of {ocaml} is awful for this purpose, and the document quickly
@@ -144,7 +144,7 @@ You can compile this file using <#latex#> or <#pdflatex#>.
 
 The <#emit#> function of the {meltlib} library takes a value of type
 <#Latex.t#>. Values of this type describe {latex} abstract syntax trees
-(ASTs), {ie}, {latex} programs. The function writes this AST into the
+(ASTs), {ie}, pieces of {latex} documents. The function writes this AST into the
 file <#hello.tex#>.
 
 What we want to emit is a full {latex} document. The <#document#> function
@@ -195,9 +195,9 @@ This will produce:
 {display $1+2+3 = {latex_of_int (1+2+3)}$}
 The code in code mode is also preprocessed. This means that you can nest
 code, math and text modes arbitrarily. For example:
-{listing "<#"The {emph "code"} mode is emphasized."#>"}
+{listing "<#"This {emph "word"} is emphasized."#>"}
 This will produce:
-{display "The {emph "code"} mode is emphasized."}
+{display "This {emph "word"} is emphasized."}
 
 {paragraph "Verbatim Mode."}
 
@@ -266,14 +266,13 @@ For example, to compile <#hello.ml#> if the library has been installed
 in the <#latex#> subdirectory of the default directory:
 {listing "<#ocamlc -c -I +latex hello.ml#>"}
 
-At  link-time, the  {ocaml} compiler  needs to  know that  the archive
-<#latex.cma#>,   along   with   its   dependencies   <#str.cma#>   and
-<#mlpost.cma#>,  have to  be  linked with  the  program. The  {mlpost}
-archive also depends  on <#unix.cma#>.  Add all these  archives in the
-command line, in the right  order.  Replace <#.cma#> with <#.cmxa#> if
-you use the native compiler. For example, to produce the <#hello#>
-bytecode executable:
-{listing ""}
+At link-time, the {ocaml} compiler also needs to know that the archive
+<#latex.cma#>,  along  with its  dependency  <#str.cma#>,  have to  be
+linked with the program.  Add  all these archives in the command line,
+in the  right order.  Replace <#.cma#>  with <#.cmxa#> if  you use the
+native  compiler.  For  example,  to produce  the  <#hello#>  bytecode
+executable:
+{listing "<#ocamlc -I +latex str.cma latex.cma hello.cmo -o hello#>"}
 
 {subsection "The Kernel"}
 

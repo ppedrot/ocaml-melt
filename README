@@ -44,6 +44,10 @@ previous versions will work too. Version 3.10 is needed if you want to
 compile using  Ocamlbuild. Version  3.11 is needed  if you want  to be
 able to use native plugins for the Melt Preprocessor.
 
+To use  Melt you need a  LaTeX distribution.  To use  Melt with Mlpost
+(default  behavior) you  need  Mlpost and  its  dependencies, such  as
+Metapost and the context package (Debian).
+
 Quick install (OCaml 3.10 or more)
 ==================================
 
@@ -63,7 +67,10 @@ The configuration  tool is automatically  launched the first  time you
 run make. You can rerun it at any time by removing the Config file and
 running make again, or by running:
 
-        ocaml configure.ml
+        ocaml configure.ml -i
+
+The  -i option  activates  interactive  mode.  If  you  don't use  it,
+default values will be used.
 
 You can also edit the Config file by hand.
 
