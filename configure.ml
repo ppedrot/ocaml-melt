@@ -117,6 +117,21 @@ end
 let error x =
   ksprintf (fun s -> flush stdout; eprintf "Error: %s\n%!" s; exit 1) x
 
+let warnings = ref []
+
+let warning x =
+  ksprintf (fun s -> warnings := s :: !warnings) x
+
+let success () =
+  flush stdout;
+  flush stderr;
+  List.iter (eprintf "Warning: %s\n%!") (List.rev !warnings);
+  printf "Configuration successful";
+  match List.length !warnings with
+    | 0 -> printf ".\n%!"
+    | 1 -> printf " (1 warning).\n%!"
+    | c -> printf " (%d warnings).\n%!" c
+
 exception Exec_error of int
 
 let exec_line cmd args =
@@ -165,6 +180,7 @@ let () =
   let ocamlc = query "OCaml compiler" (yes_no (best "ocamlc"))  in
   check_file ocamlc;
   let best_ocaml x = best (dirname ocamlc ^ x) in
+  let ocamlbuild = best_ocaml "ocamlbuild" in
   let ocaml = best_ocaml "ocaml" in
   let ocamlopt = best_ocaml "ocamlopt" in
   let ocamllex = require (best_ocaml "ocamllex") in
@@ -173,7 +189,7 @@ let () =
 
   let ocamlc_where = exec_line ocamlc ["-where"] in
   let ocamlfind = find "ocamlfind" in
-  let libdir pkg cm =
+  let libdir ?fail pkg cm =
     let result = match ocamlfind with
       | Yes ocamlfind ->
           begin try
@@ -195,21 +211,57 @@ let () =
             ocamlc_where
           else begin
             let dir = query ("Library directory ("^pkg^")") "" in
-            check_file (Filename.concat dir cm);
-            dir
+            match fail with
+              | None ->
+                  check_file (Filename.concat dir cm);
+                  dir
+              | Some fail ->
+                  fail ()
           end
     in
     printf "Found %s in %s\n" pkg result;
     if result = ocamlc_where then "" else result
   in
+  let libflags l =
+    let l = List.filter (fun x -> x <> "") l in
+    let l =
+      List.map (fun x -> sprintf "-cflags -I,%s -lflags -I,%s" x x) l in
+    String.concat " " l
+  in
+  let ocaml_includes l =
+    let l = List.filter (fun x -> x <> "") l in
+    let l = List.map (fun x -> sprintf "-I %s" x) l in
+    String.concat " " l
+  in
 
-  let libdir_mlpost = libdir "mlpost" "mlpost.cma" in
   let install_bin = query "Install directory (program binaries)"
     "/usr/local/bin" in
   let install_lib = query "Install directory (OCaml libraries)" ocamlc_where in
+  let mlpost = ref true in
+  let libdir_mlpost =
+    try
+      libdir
+        ~fail: (fun () -> warning "Cannot find Mlpost"; raise Exit)
+        "mlpost"
+        "mlpost.cma"
+    with Exit ->
+      mlpost := false;
+      ""
+  in
+  let libs = [
+    libdir_mlpost;
+    libdir "extlib" "extLib.cma";
+    libdir "pop" "pop.cma";
+  ] in
+
   let out = open_out "Config" in
   let var = fprintf out "%s = %s\n" in
-  let ovar x = function No _ -> () | Yes y -> var x y in
+  let ovar x = function No _ -> var x "NO" | Yes y -> var x y in
+  let bvar x = function true -> var x "YES" | false -> var x "NO" in
+  bvar "MLPOST" !mlpost;
+  var "OCAMLFLAGS" (ocaml_includes libs);
+  var "OCAMLBUILDFLAGS" (libflags libs);
+  ovar "OCAMLBUILD" ocamlbuild;
   var "OCAMLC" ocamlc;
   ovar "OCAML" ocaml;
   ovar "OCAMLOPT" ocamlopt;
@@ -218,6 +270,5 @@ let () =
   ovar "OCAMLDOC" ocamldoc;
   var "INSTALLBIN" install_bin;
   var "INSTALLLIB" install_lib;
-  var "LIBDIRMLPOST" libdir_mlpost;
 
-  printf "Configuration successful.\n"
+  success ()

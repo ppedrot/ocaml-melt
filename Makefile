@@ -31,7 +31,7 @@
 include Config
 
 BUILD := _build
-OB := ocamlbuild -no-links -build-dir $(BUILD) -Is latex,meltpp,melt
+OB := $(OCAMLBUILD) -no-links -build-dir $(BUILD) -Is latex,meltpp,melt
 OBCLASSIC := $(OB) -classic-display
 ifeq ($(TERM), dumb)
 	OB := $(OBCLASSIC)
@@ -44,7 +44,10 @@ NATIVE11 = $(NATIVE) meltpp/main.native
 DOC = latex/latex.docdir/index.html melt/melt.docdir/index.html
 BENCHPLUGS = bench/plugs/quot.cma
 
-default: world.10
+default: check-ocamlbuild world.10
+
+check-ocamlbuild:
+	@if (test $(OCAMLBUILD) = NO); then echo "This makefile cannot be used without Ocamlbuild.\nPlease read the README file."; exit 1; fi
 
 fast:
 	$(OB) $(BYTE)
@@ -80,7 +83,7 @@ check bench test %.bench %.check %.test:
 dist: $(shell darcs query manifest) noob.makefile
 	tar czf melt-`ocaml print_version.ml`.tgz $^
 
-.PHONY: default fast world clean doc all world.10 bench test check dist
+.PHONY: default fast world clean doc all world.10 bench test check dist check-ocamlbuild
 
 Config: configure.ml
 	ocaml configure.ml
