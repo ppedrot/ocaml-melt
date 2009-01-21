@@ -250,16 +250,17 @@ let () =
   in
   let libs = [
     libdir_mlpost;
-    libdir "extlib" "extLib.cma";
-    libdir "pop" "pop.cma";
   ] in
 
   let out = open_out "Config" in
-  let var = fprintf out "%s = %s\n" in
-  let ovar x = function No _ -> var x "NO" | Yes y -> var x y in
+  let var ?a x y =
+    let a = match a with None -> "" | Some a -> " " ^ a in
+    fprintf out "%s = %s%s\n" x y a
+  in
+  let ovar ?a x = function No _ -> var x "NO" | Yes y -> var ?a x y in
   let bvar x = function true -> var x "YES" | false -> var x "NO" in
   bvar "MLPOST" !mlpost;
-  var "OCAMLFLAGS" (ocaml_includes libs);
+  var "OCAMLINCLUDES" (ocaml_includes libs);
   var "OCAMLBUILDFLAGS" (libflags libs);
   ovar "OCAMLBUILD" ocamlbuild;
   var "OCAMLC" ocamlc;

@@ -31,7 +31,7 @@
 include Config
 
 BUILD := _build
-OB := $(OCAMLBUILD) -no-links -build-dir $(BUILD) -Is latex,meltpp,melt
+OB := $(OCAMLBUILD) $(OCAMLBUILDFLAGS) -no-links -build-dir $(BUILD) -Is latex,meltpp,melt
 OBCLASSIC := $(OB) -classic-display
 ifeq ($(TERM), dumb)
 	OB := $(OBCLASSIC)
