@@ -96,7 +96,9 @@ the _melt directory";
 
   "-clean", Arg.Set clean, " Remove the _melt directory and, if not -no-link, \
 all symbolic links of the current directory linking into _melt \
-(cleaning is done before anything else)"
+(cleaning is done before anything else)";
+
+  "-version", Arg.Unit Version.print, " Print version";
 ]
 let anon s =
   main_file := s;

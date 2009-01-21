@@ -78,7 +78,7 @@ check bench test %.bench %.check %.test:
 	@make -C bench $@
 
 dist: $(shell darcs query manifest) noob.makefile
-	tar czf melt.tgz $^
+	tar czf melt-`ocaml print_version.ml`.tgz $^
 
 .PHONY: default fast world clean doc all world.10 bench test check dist
 
