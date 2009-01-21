@@ -1,9 +1,9 @@
 TO DO
 =====
 
-* Configuration: find mlpost directory (and maybe other libs too?)
+* Use OCAMLFLAGS, OCAMLBUILDFLAGS
 
-* Allow compilation without Mlpost
+* Use MLPOST: Allow compilation without Mlpost
 
 * Protect the name of the verbatim functions when using the pragma.
 
