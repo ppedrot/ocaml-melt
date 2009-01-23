@@ -156,7 +156,7 @@ and pragma_plugin = parse
   | _ { lex_error lexbuf "syntax error in pragma plugin" }
 
 and pragma_verbatim = parse
-  | space* '\'' (_ as delim) '\'' space* '=' space* (ident as ident) space* '\n'
+  | space* '\'' (_ as delim) '\'' space* '=' space* ((ident ('.' ident)*) as ident) space* '\n'
       { Hashtbl.add verbatim_delims delim ident }
   | _ { lex_error lexbuf "syntax error in pragma verbatim" }
 
