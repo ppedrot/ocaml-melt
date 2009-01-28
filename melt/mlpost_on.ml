@@ -28,25 +28,37 @@
 (* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.   *)
 (**************************************************************************)
 
-open Melt_common
+module type Signature = sig
+  (** Part of [Melt] which uses [Mlpost]. *)
 
-let emit ?(file = name ^ ".tex") x = Latex.to_file file x
+  (** Convert some LaTeX into a picture. *)
+  val latex: Latex.t -> Mlpost.Picture.t
 
-module Verbatim = struct
-  type latex_verbatim_function = string -> Latex.t
-  type melt_verbatim_function =
-      [ `V of string | `C of Latex.t | `M of Latex.t | `T of Latex.t ] list ->
-        Latex.t
+  (** Emit a figure to use it in a LaTeX document. *)
+  val mlpost: ?pdf: bool -> ?file: string -> Mlpost.Command.t -> Latex.t
+  (**  The default  value  of [~pdf]  is  [true] if  the command  line
+contain  [-pdf], and  [false] otherwise.  It should  be [true]  if the
+figure will be  used in a PDF file, and  [false] otherwise. The [melt]
+tool adds the [-pdf] option automatically if it is himself called with
+the [-pdf] option.
 
-  let convert f l =
-    Latex.concat begin List.map begin function
-      | `V s -> f s
-      | `C a | `M a | `T a -> a
-    end l end
-
-  let verbatim = convert Latex.Verbatim.verbatim
-  let regexps x y = convert (Latex.Verbatim.regexps x y)
-  let keywords ?apply x = convert (Latex.Verbatim.keywords ?apply x)
+The [~file] parameter may be used if you want to specify the file name
+used  for the  figure Metapost  script. Otherwise,  a default  name is
+chosen.  This default name is [base.melt.figureN.ext], where [base] is
+the executable base name (can  be overriden with the [-name] option on
+the  command line),  [N] is  the figure  index and  [ext] is  [mps] if
+[~pdf] is [true] or [1] otherwise. *)
 end
 
-include Mlpost_specific
+open Melt_common
+
+let latex l = Mlpost.Picture.tex (Latex.to_string l)
+
+let mlpost ?(pdf = pdf) ?file f =
+  let file = match file with
+    | None -> next_name ()
+    | Some file -> file
+  in
+  let ext = if pdf then ".mps" else ".1" in
+  Mlpost.Metapost.emit file f;
+  Latex.includegraphics (Latex.text (file ^ ext))

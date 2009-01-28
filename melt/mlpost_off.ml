@@ -28,25 +28,11 @@
 (* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.   *)
 (**************************************************************************)
 
-open Melt_common
+module type Signature = sig
+  (** Part of [Melt] which uses [Mlpost]. *)
 
-let emit ?(file = name ^ ".tex") x = Latex.to_file file x
-
-module Verbatim = struct
-  type latex_verbatim_function = string -> Latex.t
-  type melt_verbatim_function =
-      [ `V of string | `C of Latex.t | `M of Latex.t | `T of Latex.t ] list ->
-        Latex.t
-
-  let convert f l =
-    Latex.concat begin List.map begin function
-      | `V s -> f s
-      | `C a | `M a | `T a -> a
-    end l end
-
-  let verbatim = convert Latex.Verbatim.verbatim
-  let regexps x y = convert (Latex.Verbatim.regexps x y)
-  let keywords ?apply x = convert (Latex.Verbatim.keywords ?apply x)
+  (** The [Melt] library has not been compiled with the [MLPOST] flag on, so
+this file is empty. If you need this part of the [Melt] library, please
+install the [Mlpost] library. Then reconfigure, recompile and reinstall [Melt].
+View the [README] file for more information. *)
 end
-
-include Mlpost_specific

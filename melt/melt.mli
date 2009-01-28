@@ -28,25 +28,7 @@
 (* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.   *)
 (**************************************************************************)
 
-(** Unification of [Mlpost] and [Latex]. *)
-
-(** Convert some LaTeX into a picture. *)
-val latex: Latex.t -> Mlpost.Picture.t
-
-(** Emit a figure to use it in a LaTeX document. *)
-val mlpost: ?pdf: bool -> ?file: string -> Mlpost.Command.t -> Latex.t
-  (**  The default  value  of [~pdf]  is  [true] if  the command  line
-contain  [-pdf], and  [false] otherwise.  It should  be [true]  if the
-figure will be  used in a PDF file, and  [false] otherwise. The [melt]
-tool adds the [-pdf] option automatically if it is himself called with
-the [-pdf] option.
-
-The [~file] parameter may be used if you want to specify the file name
-used  for the  figure Metapost  script. Otherwise,  a default  name is
-chosen.  This default name is [base.melt.figureN.ext], where [base] is
-the executable base name (can  be overriden with the [-name] option on
-the  command line),  [N] is  the figure  index and  [ext] is  [mps] if
-[~pdf] is [true] or [1] otherwise. *)
+(** Unification of [Mlpost], [Latex] and the preprocessor. *)
 
 (** Emit a LaTeX file. *)
 val emit: ?file: string -> Latex.t -> unit
@@ -79,3 +61,5 @@ is concatenated. *)
   val keywords: ?apply: (Latex.t -> Latex.t) -> string list ->
     melt_verbatim_function
 end
+
+include Mlpost_specific.Signature

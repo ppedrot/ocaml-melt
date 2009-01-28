@@ -28,25 +28,31 @@
 (* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.   *)
 (**************************************************************************)
 
-open Melt_common
+(* We don't use the Arg module in order not to force the user to handle
+the -pdf and -name options *)
 
-let emit ?(file = name ^ ".tex") x = Latex.to_file file x
+let pdf =
+  let b = ref false in
+  for i = 1 to Array.length Sys.argv - 1 do
+    if Sys.argv.(i) = "-pdf" then b := true
+  done;
+  !b
 
-module Verbatim = struct
-  type latex_verbatim_function = string -> Latex.t
-  type melt_verbatim_function =
-      [ `V of string | `C of Latex.t | `M of Latex.t | `T of Latex.t ] list ->
-        Latex.t
+let rec no_extension f =
+  try
+    no_extension (Filename.chop_extension f)
+  with Invalid_argument "Filename.chop_extension" -> f
 
-  let convert f l =
-    Latex.concat begin List.map begin function
-      | `V s -> f s
-      | `C a | `M a | `T a -> a
-    end l end
+let name =
+  let name = ref (no_extension (Filename.basename Sys.argv.(0))) in
+  for i = 1 to Array.length Sys.argv - 2 do
+    if Sys.argv.(i) = "-name" then
+      name := Sys.argv.(i+1)
+  done;
+  !name
 
-  let verbatim = convert Latex.Verbatim.verbatim
-  let regexps x y = convert (Latex.Verbatim.regexps x y)
-  let keywords ?apply x = convert (Latex.Verbatim.keywords ?apply x)
-end
-
-include Mlpost_specific
+let next_name =
+  let cnt = ref 0 in
+  fun () ->
+    incr cnt;
+    Printf.sprintf "%s-melt-figure%d" name !cnt
