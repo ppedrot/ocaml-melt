@@ -14,3 +14,15 @@ should become
 and this fresh name should be used instead.
 
 * Find a Unicode lexer. Menhir?
+
+* Syntax errors: write that it is a Melt syntax error
+
+* \" in comments
+
+* \left and \right for other kinds of parentheses
+
+* itemize: newline after => latex error, par after => nothing (no par)
+
+* Problem with make install who doesn't copy all files ?
+
+* configure.ml should read Config
