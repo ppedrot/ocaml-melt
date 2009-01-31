@@ -1,8 +1,6 @@
 TO DO
 =====
 
-* Use OCAMLINCLUDES
-
 * Protect the name of the verbatim functions when using the pragma.
 
 The pragma

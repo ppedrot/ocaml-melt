@@ -38,6 +38,8 @@ let config_yes x = String.uppercase (config x) = "YES"
 
 let () = dispatch begin function
   | After_rules ->
+      flag ["ocaml"; "doc"] (A "-hide-warnings");
+
       let mlpost = config_yes "MLPOST" in
       let mlpost_onoff =
         if mlpost then "melt/mlpost_on.ml" else "melt/mlpost_off.ml" in

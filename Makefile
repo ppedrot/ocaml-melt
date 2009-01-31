@@ -64,7 +64,7 @@ world all:
 
 noob.makefile: clean
 	cat noob.prelude > $@
-	$(OBCLASSIC) $(BYTE) $(NATIVE) $(DOC) | ob2make default >> $@
+	$(OBCLASSIC) $(BYTE) $(NATIVE) $(DOC) | ob2make -Ivar OCAMLINCLUDES default >> $@
 
 install:
 	$(OCAML) install.ml -bin $(INSTALLBIN) -lib $(INSTALLLIB) -build $(BUILD)
