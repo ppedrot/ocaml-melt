@@ -82,8 +82,8 @@ check bench test %.bench %.check %.test:
 	$(OB) $(BYTE) $(BENCHPLUGS)
 	@make -C bench $@
 
-dist: $(shell darcs query manifest) noob.makefile
-	tar czf melt-`ocaml print_version.ml`.tgz $^
+dist: noob.makefile
+	tar czf melt-`ocaml print_version.ml`.tgz $(shell darcs query manifest) $^
 
 .PHONY: default fast world clean doc all world.10 bench test check dist check-ocamlbuild
 
