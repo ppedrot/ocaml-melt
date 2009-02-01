@@ -35,18 +35,24 @@ More information can be found on:
 Pre-requisites
 ==============
 
-You need the Mlpost library to compile Melt. It is available at:
+You  need the  OCaml compiler.   Version  3.09 is  enough, maybe  some
+previous versions will work too. Version 3.10 is needed if you want to
+compile using  Ocamlbuild.  Version 3.11 is  needed if you  want to be
+able to use native plugins for the Melt Preprocessor.
+
+To compile Melt documents you need a LaTeX distribution.
+
+To compile Melt documents which use Mlpost figures you need the Mlpost
+library. Version 0.6 is required. You will also need its dependencies,
+such  as   Metapost  and   the  "context"  package   (Ubuntu,  Debian,
+...). Mlpost can be found at:
 
         http://mlpost.lri.fr
 
-You also need  the OCaml compiler. Version 3.09  is enough, maybe some
-previous versions will work too. Version 3.10 is needed if you want to
-compile using  Ocamlbuild. Version  3.11 is needed  if you want  to be
-able to use native plugins for the Melt Preprocessor.
-
-To use  Melt you need a  LaTeX distribution.  To use  Melt with Mlpost
-(default  behavior) you  need  Mlpost and  its  dependencies, such  as
-Metapost and the context package (Debian).
+You can  compile and  use Melt  without Mlpost, but  you will  need to
+compile your Melt documents using  the -no-mlpost option. If you later
+install Mlpost and want to use it with Melt you will have to recompile
+Melt.
 
 Quick install (OCaml 3.10 or more)
 ==================================

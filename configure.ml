@@ -241,10 +241,31 @@ let () =
   let mlpost = ref true in
   let libdir_mlpost =
     try
-      libdir
-        ~fail: (fun () -> warning "Cannot find Mlpost"; raise Exit)
-        "mlpost"
-        "mlpost.cma"
+      let dir =
+        libdir
+          ~fail: (fun () -> warning "Cannot find Mlpost"; raise Exit)
+          "mlpost"
+          "mlpost.cma"
+      in
+      begin
+        let needed = "0.6" in
+        try
+          let vs = exec_line "mlpost" ["-version"] in
+          let v = Version.of_string vs in
+          if Version.compare v (Version.of_string needed) < 0 then
+            error "Mlpost version (%s) is too old (< %s)" vs needed
+        with err ->
+          mlpost := false;
+          match err with
+            | Exec_error 127 ->
+                warning "Cannot determine Mlpost version (tool not found)"
+            | Exec_error 2 ->
+                warning "Mlpost version is too old (< %s)" needed
+            | Exec_error d ->
+                warning "Cannot determine Mlpost version (error %d)" d
+            | e -> raise e
+      end;
+      dir
     with Exit ->
       mlpost := false;
       ""
