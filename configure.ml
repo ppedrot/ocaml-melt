@@ -179,6 +179,7 @@ let () =
   let best x = first ~name: x [x^".opt"; x] in
   let ocamlc = query "OCaml compiler" (yes_no (best "ocamlc"))  in
   check_file ocamlc;
+  let version = Version.of_string (exec_line ocamlc ["-version"]) in
   let best_ocaml x = best (dirname ocamlc ^ x) in
   let ocamlbuild = best_ocaml "ocamlbuild" in
   let ocaml = best_ocaml "ocaml" in
@@ -252,6 +253,8 @@ let () =
     libdir_mlpost;
   ] in
 
+  let natdynlink = Version.compare version (Version.of_string "3.11") >= 0 in
+
   let out = open_out "Config" in
   let var ?a x y =
     let a = match a with None -> "" | Some a -> " " ^ a in
@@ -260,6 +263,7 @@ let () =
   let ovar ?a x = function No _ -> var x "NO" | Yes y -> var ?a x y in
   let bvar x = function true -> var x "YES" | false -> var x "NO" in
   bvar "MLPOST" !mlpost;
+  bvar "NATDYNLINK" natdynlink;
   var "OCAMLINCLUDES" (ocaml_includes libs);
   var "OCAMLBUILDFLAGS" (libflags libs);
   ovar "OCAMLBUILD" ocamlbuild;

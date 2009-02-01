@@ -39,12 +39,14 @@ endif
 
 #################################################################################
 BYTE = latex/latex.cma melt/melt.cma melt/tool.byte meltpp/main.byte
-NATIVE = latex/latex.cmxa melt/melt.cmxa melt/tool.native
-NATIVE11 = $(NATIVE) meltpp/main.native
+NATIVE := latex/latex.cmxa melt/melt.cmxa melt/tool.native
+ifeq ($(NATDYNLINK), YES)
+	NATIVE := $(NATIVE) meltpp/main.native
+endif
 DOC = latex/latex.docdir/index.html melt/melt.docdir/index.html
 BENCHPLUGS = bench/plugs/quot.cma
 
-default: check-ocamlbuild world.10
+default: check-ocamlbuild world
 
 check-ocamlbuild:
 	@if (test $(OCAMLBUILD) = NO); then echo "This makefile cannot be used without Ocamlbuild.\nPlease read the README file."; exit 1; fi
@@ -55,11 +57,8 @@ fast:
 doc:
 	$(OB) $(DOC)
 
-world.10:
-	$(OB) $(BYTE) $(DOC) $(NATIVE)
-
 world all:
-	$(OB) $(BYTE) $(DOC) $(NATIVE11)
+	$(OB) $(BYTE) $(DOC) $(NATIVE)
 #################################################################################
 
 noob.makefile: clean
