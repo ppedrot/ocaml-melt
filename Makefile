@@ -75,6 +75,9 @@ clean:
 	rm -rf $(BUILD) bench/_melt
 	rm -f noob.makefile *~
 
+dist-clean: clean
+	rm -f Config
+
 check bench test %.bench %.check %.test:
 	$(OB) $(BYTE) $(BENCHPLUGS)
 	@make -C bench $@
