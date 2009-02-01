@@ -1,0 +1,4 @@
+#!/bin/sh
+
+echo "Please read the README file."
+ocaml configure.ml -i
