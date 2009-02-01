@@ -83,7 +83,10 @@ check bench test %.bench %.check %.test:
 	@make -C bench $@
 
 dist: noob.makefile
-	tar czf melt-`ocaml print_version.ml`.tgz $(shell darcs query manifest) $^
+	mkdir melt-`ocaml print_version.ml`
+	cp --parents $(shell darcs query manifest) $^ melt-`ocaml print_version.ml`
+	tar czf melt-`ocaml print_version.ml`.tgz melt-`ocaml print_version.ml`
+	rm -rf melt-`ocaml print_version.ml`
 
 .PHONY: default fast world clean doc all world.10 bench test check dist check-ocamlbuild
 
