@@ -80,14 +80,15 @@ dist-clean: clean
 	rm -f Config
 
 check bench test %.bench %.check %.test:
-	$(OB) $(BYTE) $(BENCHPLUGS)
+	$(OB) $(BYTE) $(NATIVE) $(BENCHPLUGS)
 	@make -C bench $@
 
 dist: noob.makefile
-	mkdir melt-`ocaml print_version.ml`
-	cp --parents $(shell darcs query manifest) $^ melt-`ocaml print_version.ml`
-	tar czf melt-`ocaml print_version.ml`.tgz melt-`ocaml print_version.ml`
-	rm -rf melt-`ocaml print_version.ml`
+	NAME=melt-`ocaml print_version.ml`; \
+	mkdir $$NAME; \
+	cp --parents $(shell darcs query manifest) $^ $$NAME; \
+	tar czf $$NAME.tgz $$NAME; \
+	rm -rf $$NAME
 
 .PHONY: default fast world clean doc all world.10 bench test check dist check-ocamlbuild
 
