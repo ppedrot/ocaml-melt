@@ -73,7 +73,7 @@ uninstall:
 
 clean:
 	rm -rf $(BUILD) bench/_melt
-	rm -f noob.makefile *~
+	rm -f *~
 	rm -f bench/*.bench.log
 
 dist-clean: clean

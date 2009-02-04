@@ -38,7 +38,7 @@ let config_yes x = String.uppercase (config x) = "YES"
 
 let () = dispatch begin function
   | After_rules ->
-      flag ["ocaml"; "doc"] (A "-hide-warnings");
+      flag ["ocaml"; "doc"] (S[A "-hide-warnings"; Sh (config "OCAMLINCLUDES")]);
 
       let mlpost = config_yes "MLPOST" in
       let mlpost_onoff =
