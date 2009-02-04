@@ -276,6 +276,9 @@ let () =
 
   let natdynlink = Version.compare version (Version.of_string "3.11") >= 0 in
 
+  let mlpost_specific =
+    if !mlpost then "melt/mlpost_on.ml" else "melt/mlpost_off.ml" in
+
   let out = open_out "Config" in
   let var ?a x y =
     let a = match a with None -> "" | Some a -> " " ^ a in
@@ -285,6 +288,7 @@ let () =
   let bvar x = function true -> var x "YES" | false -> var x "NO" in
   bvar "MLPOST" !mlpost;
   bvar "NATDYNLINK" natdynlink;
+  var "MLPOSTSPECIFIC" mlpost_specific;
   var "OCAMLINCLUDES" (ocaml_includes libs);
   var "OCAMLBUILDFLAGS" (libflags libs);
   ovar "OCAMLBUILD" ocamlbuild;

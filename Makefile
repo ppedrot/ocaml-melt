@@ -63,7 +63,7 @@ world all:
 
 noob.makefile: clean
 	cat noob.prelude > $@
-	$(OBCLASSIC) $(BYTE) $(NATIVE) $(DOC) | ob2make -Ivar OCAMLINCLUDES default >> $@
+	$(OBCLASSIC) $(BYTE) $(NATIVE) $(DOC) | ob2make -r melt/mlpost_off.ml MLPOSTSPECIFIC -r melt/mlpost_on.ml MLPOSTSPECIFIC -Ivar OCAMLINCLUDES all >> $@
 
 install:
 	$(OCAML) install.ml -bin $(INSTALLBIN) -lib $(INSTALLLIB) -build $(BUILD)

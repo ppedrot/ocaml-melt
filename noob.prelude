@@ -30,8 +30,10 @@
 
 include Config
 
+default: all
+
 Config: configure.ml
-        ocaml configure.ml
+	ocaml configure.ml
 
 install:
 	$(OCAML) install.ml -bin $(INSTALLBIN) -lib $(INSTALLLIB)
