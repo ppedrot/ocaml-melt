@@ -211,13 +211,18 @@ let () =
           if Sys.file_exists (Filename.concat ocamlc_where cm) then
             ocamlc_where
           else begin
-            let dir = query ("Library directory ("^pkg^")") "" in
-            match fail with
-              | None ->
-                  check_file (Filename.concat dir cm);
-                  dir
-              | Some fail ->
-                  fail ()
+            let dir = Filename.concat ocamlc_where pkg in
+            if Sys.file_exists (Filename.concat dir cm) then
+              dir
+            else begin
+              let dir = query ("Library directory ("^pkg^")") "" in
+              match fail with
+                | None ->
+                    check_file (Filename.concat dir cm);
+                    dir
+                | Some fail ->
+                    fail ()
+            end
           end
     in
     printf "Found %s in %s\n" pkg result;
