@@ -1,12 +1,6 @@
 TO DO
 =====
 
-* compilation with:
-
-melt -no-mlpost
-
-still includes mlpost.cmxa. Even if MLPOST=NO
-
 * Protect the name of the verbatim functions when using the pragma.
 
 The pragma
