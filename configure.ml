@@ -134,8 +134,12 @@ let success () =
 
 exception Exec_error of int
 
-let exec_line cmd args =
+let exec_line ?err cmd args =
   let c = String.concat " " (cmd::args) in
+  let c = match err with
+    | None -> c
+    | Some err -> c ^ " 2> " ^ err
+  in
   let tmp = Filename.temp_file "configure_exec_line" ".out" in
   match Sys.command (c ^ " > " ^ tmp) with
     | 0 -> input_line (open_in tmp)
@@ -194,7 +198,7 @@ let () =
     let result = match ocamlfind with
       | Yes ocamlfind ->
           begin try
-            let dir = exec_line ocamlfind ["query"; pkg] in
+            let dir = exec_line ~err: "/dev/null" ocamlfind ["query"; pkg] in
             if Sys.file_exists (Filename.concat dir cm) then
               Some dir
             else
@@ -255,7 +259,7 @@ let () =
       begin
         let needed = "0.6" in
         try
-          let vs = exec_line "mlpost" ["-version"] in
+          let vs = exec_line ~err: "/dev/null" "mlpost" ["-version"] in
           let v = Version.of_string vs in
           if Version.compare v (Version.of_string needed) < 0 then
             error "Mlpost version (%s) is too old (< %s)" vs needed
