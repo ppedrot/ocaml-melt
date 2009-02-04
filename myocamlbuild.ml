@@ -1,4 +1,5 @@
 open Ocamlbuild_plugin
+open Command
 
 let parse_config file =
   let trim s =
