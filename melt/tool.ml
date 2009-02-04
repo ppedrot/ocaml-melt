@@ -138,7 +138,8 @@ let ml_to_tex f =
   let nativeo = if !native then " -native" else "" in
   let latexlibo = libopt "latex" in
   let meltlibo = libopt "melt" in
-  let mlpostlibo = libopt "mlpost" in
+  let mlpostlibo =
+    if Melt.compiled_with_mlpost then libopt "mlpost" else "" in
   let strlibo = libopt "str" in
   let unixlibo = libopt "unix" in
   let ext = if !native then "native" else "byte" in

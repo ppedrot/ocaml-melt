@@ -1,2 +1,2 @@
-<melt/tool.*>: use_unix
+<melt/tool.*>: use_unix, use_str, use_mlpost
 <meltpp/*.*>: use_dynlink, use_str

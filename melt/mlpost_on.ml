@@ -31,6 +31,9 @@
 module type Signature = sig
   (** Part of [Melt] which uses [Mlpost]. *)
 
+  val compiled_with_mlpost: bool
+    (** The value of [compiled_with_mlpost] is [true]. *)
+
   (** Convert some LaTeX into a picture. *)
   val latex: Latex.t -> Mlpost.Picture.t
 
@@ -49,6 +52,8 @@ the executable base name (can  be overriden with the [-name] option on
 the  command line),  [N] is  the figure  index and  [ext] is  [mps] if
 [~pdf] is [true] or [1] otherwise. *)
 end
+
+let compiled_with_mlpost = true
 
 open Melt_common
 

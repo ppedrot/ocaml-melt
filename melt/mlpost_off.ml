@@ -35,4 +35,9 @@ module type Signature = sig
 this file is empty. If you need this part of the [Melt] library, please
 install the [Mlpost] library. Then reconfigure, recompile and reinstall [Melt].
 View the [README] file for more information. *)
+
+  val compiled_with_mlpost: bool
+    (** The value of [compiled_with_mlpost] is [false]. *)
 end
+
+let compiled_with_mlpost = false

@@ -40,6 +40,8 @@ let () = dispatch begin function
   | After_rules ->
       flag ["ocaml"; "doc"] (S[A "-hide-warnings"; Sh (config "OCAMLINCLUDES")]);
 
+      ocaml_lib ~extern: true "mlpost";
+
       let mlpost = config_yes "MLPOST" in
       let mlpost_onoff =
         if mlpost then "melt/mlpost_on.ml" else "melt/mlpost_off.ml" in
