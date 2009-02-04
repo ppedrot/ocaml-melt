@@ -126,7 +126,7 @@ let libopt lib =
   let dot_cma = if !native then ".cmxa" else ".cma" in
   if !mlpost then
     " -ccopt " ^ if !ocamlbuild then "\"-lib " ^ lib ^ "\"" else lib ^ dot_cma
-  else if !ocamlbuild then " -lib \"" ^ lib ^ "\"" else " -cclib "^lib^dot_cma
+  else if !ocamlbuild then " -lib \"" ^ lib ^ "\"" else " "^lib^dot_cma
 
 let ml_to_tex f =
   let bf = Filename.chop_extension f in
