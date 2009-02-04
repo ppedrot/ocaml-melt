@@ -206,7 +206,7 @@ that should not be parsed, such as code listing{footnote
 "It is {emph "heavily"} used in the source
 of this document, which is of course written using {melt}."}.
 Here is an example:
-{listing "<#"Code: <<printf "Toto has $%d to spare." 42>>"#>"}
+{listing "<#"Here is some code: <<printf "Toto has $%d to spare." 42>>"#>"}
 This will produce:
 {display "Here is some code: <<printf "Toto has $%d to spare." 42>>"}
 As you can see, the code between the <#<<#{cdots}#>>#> delimiters is not
