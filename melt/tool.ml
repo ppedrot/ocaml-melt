@@ -123,9 +123,10 @@ let melt_to_ml f =
   o
 
 let libopt lib =
+  let dot_cma = if !native then ".cmxa" else ".cma" in
   if !mlpost then
-    " -ccopt " ^ if !ocamlbuild then "\"-lib " ^ lib ^ "\"" else lib ^ ".cma"
-  else if !ocamlbuild then " -lib \"" ^ lib ^ "\"" else " -cclib "^lib^".cma"
+    " -ccopt " ^ if !ocamlbuild then "\"-lib " ^ lib ^ "\"" else lib ^ dot_cma
+  else if !ocamlbuild then " -lib \"" ^ lib ^ "\"" else " -cclib "^lib^dot_cma
 
 let ml_to_tex f =
   let bf = Filename.chop_extension f in
@@ -159,7 +160,7 @@ let ml_to_tex f =
         ^ "\""
   in
   if !mlpost then
-    cmd "mlpost%s%s%s%s%s%s%s%s%s %s"
+    cmd "mlpost -v%s%s%s%s%s%s%s%s%s %s"
       mlpost_includes
       pdfo pdfeo ocamlbuildo nativeo
       strlibo latexlibo meltlibo nameeo f
