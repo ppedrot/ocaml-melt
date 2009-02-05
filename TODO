@@ -9,7 +9,7 @@ should become
   let __meltpp_verbatim_delimiter_0 = test
 and this fresh name should be used instead.
 
-* Find a Unicode lexer. Menhir?
+* Find a Unicode lexer. Menhir? Ulex of Alain Frisch?
 
 * Syntax errors: write that it is a Melt syntax error
 
