@@ -15,7 +15,7 @@ let id x = x
 let indented x =
   fun y ->
     x * y
-let toto = indented x y
+let funny = indented x y
 #>"}
 "
 
