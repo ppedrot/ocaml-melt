@@ -33,7 +33,7 @@ open Printf
 let files = Queue.create ()
 let main_file = ref ""
 
-let mlpost = ref true
+let mlpost = ref Melt.compiled_with_mlpost
 let ocamlbuild = ref true
 let native = ref true
 let final = ref true

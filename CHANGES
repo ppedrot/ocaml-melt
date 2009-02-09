@@ -1,7 +1,10 @@
+Changes that may break existing programs are marked using a star *.
+
 Version 1.0.1
 =============
 
-* Melt compiles with Ocamlbuild 3.10.0 even with the main Makefile.
-* All combinations of -no-mlpost or -no-ocamlbuild options should work.
+- Melt compiles with Ocamlbuild 3.10.0 even with the main Makefile.
+- All combinations of -no-mlpost or -no-ocamlbuild options should work.
 You still have to add "-I +mlpost" yourself if you compiled Melt with Mlpost
 but use the -no-mlpost option.
+- The -no-mlpost option is set by default if Melt was compiled without Mlpost.

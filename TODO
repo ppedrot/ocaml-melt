@@ -24,3 +24,20 @@ and this fresh name should be used instead.
 * configure.ml should read Config
 
 * Ocamlfind for install
+
+* Default <# ... #> using texttt
+
+* Really find out about the spaces at the beginning of lines in verbatim
+mode, with or without Beamer
+
+* Try to build a pseudocode verbatim with some keywords and some things
+that are not keywords. Check that the in "lettuce", "let" is not bold.
+Try to do something where in "let x = toto", "let" is in bold, "x" is in italic,
+the rest is normal. Finally, see if this really is easy to do.
+
+* Definitely get rid of textbf/mathbf and add "bf" (with a parameter, not like
+the LaTeX \bf). The CMT mechanism should be able to handle this. Do the same
+for it, sc, and so on.
+
+* Better integration with Ocamlbuid. Maybe a symbolic link from _melt/toto to
+the current directory, adding -I toto to the Ocamlbuild command?
