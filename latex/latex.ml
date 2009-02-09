@@ -398,6 +398,7 @@ let displaymath x =
 let emph x = command "emph" [T, x] T
 let texttt x = command "texttt" [T, x] T
 let textsc x = command "textsc" [T, x] T
+let textit x = command "textit" [T, x] T
 let textbf x = command "textbf" [T, x] T
 let mathit x = command "mathit" [M, x] M
 let mathbf x = command "mathbf" [M, x] M
@@ -836,6 +837,7 @@ module Verbatim = struct
   open Str
 
   let alphanumplus = regexp "[a-zA-Z0-9]+"
+  let ident = regexp "[a-zA-Z_][a-zA-Z0-9_]*"
 
   let verbatim s =
     concat begin List.flatten begin List.map begin function
@@ -863,6 +865,18 @@ module Verbatim = struct
             | Delim s -> a s
             | Text s -> regexps rem remapp s
           end (full_split r s) end
+
+  let pseudocode ?(id_regexp = ident) ?(kw_apply = textbf)
+      ?(id_apply = textit) ?(sym_apply = fun x -> x) ?(rem_apply = verbatim)
+      keywords symbols s =
+    let ident_regexp =
+      (ident,
+       fun s ->
+         if List.mem s keywords then kw_apply (text s) else id_apply (text s))
+    in
+    let symbol_regexps =
+      List.map (fun (s, l) -> regexp_string s, fun _ -> sym_apply l) symbols in
+    regexps (ident_regexp :: symbol_regexps) rem_apply s
 
   let keywords ?(apply = textbf) k s =
     regexps [regexp (String.concat "\\|" k), fun x -> apply (verbatim x)]

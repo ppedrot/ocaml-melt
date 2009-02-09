@@ -47,6 +47,9 @@ module Verbatim = struct
   let verbatim = convert Latex.Verbatim.verbatim
   let regexps x y = convert (Latex.Verbatim.regexps x y)
   let keywords ?apply x = convert (Latex.Verbatim.keywords ?apply x)
+  let pseudocode ?id_regexp ?kw_apply ?id_apply ?sym_apply ?rem_apply x y =
+    convert (Latex.Verbatim.pseudocode ?id_regexp ?kw_apply ?id_apply
+               ?sym_apply ?rem_apply x y)
 end
 
 include Mlpost_specific

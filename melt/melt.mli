@@ -60,6 +60,13 @@ is concatenated. *)
     melt_verbatim_function
   val keywords: ?apply: (Latex.t -> Latex.t) -> string list ->
     melt_verbatim_function
+  val pseudocode : ?id_regexp: Str.regexp ->
+    ?kw_apply: (Latex.t -> Latex.t) ->
+    ?id_apply: (Latex.t -> Latex.t) ->
+    ?sym_apply: (Latex.t -> Latex.t) ->
+    ?rem_apply: (string -> Latex.t) ->
+    string list -> (string * Latex.t) list ->
+    melt_verbatim_function
 end
 
 include Mlpost_specific.Signature

@@ -1,0 +1,22 @@
+let textwidth = command \"textwidth\" [] A
+let parbox x = command \"parbox\" [A, textwidth; T, x] T
+
+let pseudocode =
+  Verbatim.pseudocode
+    [\"let\"; \"in\"; \"fun\"]
+    [\"->\", rightarrow;
+     \"*\", times]
+
+let body = "
+Here is a pseudocode example.
+
+{parbox "<:pseudocode:#let square = fun x -> x * x
+let id x = x
+let indented x =
+  fun y ->
+    x * y
+let toto = indented x y
+#>"}
+"
+
+let () = emit (document ~title: "Latex.Verbatim.pseudocode" body)
