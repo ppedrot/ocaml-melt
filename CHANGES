@@ -3,6 +3,9 @@ Changes that may break existing programs are marked using a star *.
 Version 1.1.0
 =============
 
+Configuration:
+- Replaced the configuration tool by a more powerful one using Totoconf.
+
 Preprocessor:
 - \" in comments become " to stop the OCaml compiler from complaining about
 a string litteral not terminated in a comment.
