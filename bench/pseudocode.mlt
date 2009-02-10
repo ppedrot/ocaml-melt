@@ -9,7 +9,8 @@ let pseudocode =
 let body = "
 Here is a pseudocode example.
 
-{parbox "<:pseudocode:#let square = fun x -> x * x
+{parbox "<:pseudocode:#
+let square = fun x -> x * x
 let id x = x
 let indented x =
   fun y ->
