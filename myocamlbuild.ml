@@ -32,8 +32,9 @@ let parse_config file =
     List.fold_left parse_config_line [] !lines
 
 let config =
-  let config = parse_config "Config" in
-  fun value -> List.assoc (String.uppercase value) config
+  let config = try parse_config "Config" with _ -> [] in
+  fun value ->
+    try List.assoc (String.uppercase value) config with Not_found -> ""
 
 let config_yes x = String.uppercase (config x) = "YES"
 

@@ -146,7 +146,8 @@ let exec_line ?err cmd args =
     | n -> raise (Exec_error n)
 
 let find s =
-  try Yes(exec_line "which" [s]) with Exec_error _ -> No s
+  if s = "" then No s else
+    try Yes(exec_line "which" [s]) with Exec_error _ -> No s
 
 let rec first ?(name = "") = function
   | [] -> No name
