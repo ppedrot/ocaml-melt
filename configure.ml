@@ -28,287 +28,100 @@
 (* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.   *)
 (**************************************************************************)
 
-open Printf
+open Format
+#use "totoconf.ml"
 
-let interactive = ref false
-
-let speclist = [
-  "-i", Arg.Set interactive, "interactive mode";
-]
-let anon_fun x = raise (Arg.Bad (x^": unknown option"))
-let usage_msg = "ocaml configure.ml [-i]"
-
-let () = Arg.parse speclist anon_fun usage_msg
-
-type yes_no =
-  | Yes of string
-  | No of string
-
-module Version: sig
-  type t = int list * string
-  exception Uncomparable_versions of t * t
-  val of_string: string -> t
-  val to_string: t -> string
-  val compare: t -> t -> int
-  val max: t -> t -> t
-end = struct
-  type t = int list * string
-
-  exception Uncomparable_versions of t * t
-
-  let of_string s =
-    let rec first_not_digit p =
-      if p < String.length s then
-	match s.[p] with
-	  | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '.' ->
-	      first_not_digit (p + 1)
-	  | _ -> p
-      else raise Not_found
-    in
-    let num_part, suffix_part =
-      try
-	let i = first_not_digit 0 in
-	String.sub s 0 i, String.sub s i (String.length s - i)
-      with Not_found -> s, ""
-    in
-    let rec split s p =
-      try
-	let i = String.index_from s p '.' in
-	String.sub s p (i-p) :: (split s (i+1))
-      with Not_found ->
-	if s = "" then [] else [String.sub s p (String.length s - p)]
-    in
-    List.map int_of_string (split num_part 0), suffix_part
-
-  let to_string (v, s) =
-    String.concat "." (List.map string_of_int v) ^ s
-
-  let prefix s1 s2 =
-    let l1 = String.length s1 in
-    String.length s2 >= l1 &&
-      String.sub s2 0 l1 = s1
-
-  let rec compare_vnums a b = match a, b with
-    | [], [] -> 0
-    | [], _ -> -1
-    | _, [] -> 1
-    | x1::r1, x2::r2 ->
-	match x1 - x2 with
-	  | 0 -> compare_vnums r1 r2
-	  | c -> c
-
-  let compare (v1, s1) (v2, s2) =
-    match compare_vnums v1 v2 with
-      | 0 ->
-	  begin match prefix s1 s2, prefix s2 s1 with
-	    | true, true -> 0
-	    | true, false -> -1
-	    | false, true -> 1
-	    | false, false ->
-		raise (Uncomparable_versions(([], s1), ([], s2)))
-	  end
-      | c -> c
-
-  let max v1 v2 = match compare v1 v2 with
-    | 1 -> v2
-    | _ -> v1
-end
-
-let error x =
-  ksprintf (fun s -> flush stdout; eprintf "Error: %s\n%!" s; exit 1) x
-
-let warnings = ref []
-
-let warning x =
-  ksprintf (fun s -> warnings := s :: !warnings) x
-
-let success () =
-  flush stdout;
-  flush stderr;
-  List.iter (eprintf "Warning: %s\n%!") (List.rev !warnings);
-  printf "Configuration successful";
-  match List.length !warnings with
-    | 0 -> printf ".\n%!"
-    | 1 -> printf " (1 warning).\n%!"
-    | c -> printf " (%d warnings).\n%!" c
-
-exception Exec_error of int
-
-let exec_line ?err cmd args =
-  let c = String.concat " " (cmd::args) in
-  let c = match err with
-    | None -> c
-    | Some err -> c ^ " 2> " ^ err
-  in
-  let tmp = Filename.temp_file "configure_exec_line" ".out" in
-  match Sys.command (c ^ " > " ^ tmp) with
-    | 0 -> input_line (open_in tmp)
-    | n -> raise (Exec_error n)
-
-let find s =
-  if s = "" then No s else
-    try Yes(exec_line "which" [s]) with Exec_error _ -> No s
-
-let rec first ?(name = "") = function
-  | [] -> No name
-  | x::r -> match find x with
-      | No _ -> first ~name: (if name = "" then x else name) r
-      | y -> y
-
-let query question default =
-  if !interactive then begin
-    printf "%s [%s]: " question default;
-    let l = read_line () in
-    if l = "" then default else l
-  end else begin
-    printf "%s: %s\n" question default;
-    default
-  end
-
-let check_file f =
-  if not (Sys.file_exists f) || Sys.is_directory f then
-    error "Could not find %s." f
-
-let require = function
-  | Yes s -> s
-  | No s -> error "Could not find %s." s
-
-let yes_no = function Yes s | No s -> s
-
-let dirname x =
-  let r = Filename.dirname x in
-  if x = "" || x.[String.length x - 1] <> '/' then r ^ "/" else r
-(******************************************************************************)
+let (!!) = SVar.get
 
 let () =
-  let best x = first ~name: x [x^".opt"; x] in
-  let ocamlc = query "OCaml compiler" (yes_no (best "ocamlc"))  in
-  check_file ocamlc;
-  let version = Version.of_string (exec_line ocamlc ["-version"]) in
-  let best_ocaml x = best (dirname ocamlc ^ x) in
-  let ocamlbuild = best_ocaml "ocamlbuild" in
-  let ocaml = best_ocaml "ocaml" in
-  let ocamlopt = best_ocaml "ocamlopt" in
-  let ocamllex = require (best_ocaml "ocamllex") in
-  let ocamlyacc = require (best_ocaml "ocamlyacc") in
-  let ocamldoc = best_ocaml "ocamldoc" in
+  init ~file: "Config" ();
 
-  let ocamlc_where = exec_line ocamlc ["-where"] in
-  let ocamlfind = find "ocamlfind" in
-  let libdir ?fail pkg cm =
-    let result = match ocamlfind with
-      | Yes ocamlfind ->
-          begin try
-            let dir = exec_line ~err: "/dev/null" ocamlfind ["query"; pkg] in
-            if Sys.file_exists (Filename.concat dir cm) then
-              Some dir
-            else
-              None
-          with Exec_error _ ->
-            None
-          end
-      | No _ ->
-          None
-    in
-    let result = match result with
-      | Some dir -> dir
-      | None ->
-          if Sys.file_exists (Filename.concat ocamlc_where cm) then
-            ocamlc_where
-          else begin
-            let dir = Filename.concat ocamlc_where pkg in
-            if Sys.file_exists (Filename.concat dir cm) then
-              dir
-            else begin
-              let dir = query ("Library directory ("^pkg^")") "" in
-              match fail with
-                | None ->
-                    check_file (Filename.concat dir cm);
-                    dir
-                | Some fail ->
-                    fail ()
-            end
-          end
-    in
-    printf "Found %s in %s\n" pkg result;
-    if result = ocamlc_where then "" else result
+  let ocamlc = SVar.make
+    ~query: "OCaml bytecode compiler"
+    ~guess: (guess_bins ["ocamlc.opt"; "ocamlc"])
+    "OCAMLC"
   in
-  let libflags l =
-    let l = List.filter (fun x -> x <> "") l in
-    let l =
-      List.map (fun x -> sprintf "-cflags -I,%s -lflags -I,%s" x x) l in
-    String.concat " " l
+
+  let ocaml_dir = Filename.dirname !!ocamlc in
+  let ocaml_version = exec_line !!ocamlc ["-version"] in
+  echo "OCaml version: %s" ocaml_version;
+  let ocaml_where = exec_line !!ocamlc ["-where"] in
+
+  let ocaml_var name =
+    SVar.umake
+      ~guess: (guess_bins [
+                 Filename.concat ocaml_dir (name ^ ".opt");
+                 Filename.concat ocaml_dir name;
+                 name ^ ".opt";
+                 name
+               ])
+      ~check: (fun s ->
+                 let v = Str.last_word (exec_line s ["-version"]) in
+                 if not (Version.eq ocaml_version v) then
+                   warning "Version of %s (%s) do not match \
+compiler version (%s)" s v ocaml_version;
+                 true)
+      (String.uppercase name)
   in
+
+  ocaml_var "ocamlopt";
+  ocaml_var "ocamlbuild";
+  ocaml_var "ocaml";
+  ocaml_var "ocamllex";
+  ocaml_var "ocamlyacc";
+  ocaml_var "ocamldoc";
+
+  BVar.usimple "NATDYNLINK" (Version.ge ocaml_version "3.11");
+
+  let cm_dir pkg cm = SVar.make
+    ~guess: (fun s ->
+               let l = [
+                 Filename.concat ocaml_where pkg;
+                 ocaml_where;
+                 Filename.concat ocaml_dir pkg;
+                 ocaml_dir;
+               ] in
+               try
+                 exec_line "ocamlfind" ["query"; "mlpost"; "2> /dev/null"] :: l
+               with Exec_error _ -> l)
+    ~check: (fun s -> Sys.file_exists (Filename.concat s cm))
+  in
+
+  let mlpost_cm_dir =
+    cm_dir "mlpost" "mlpost.cma"
+      ~query: "Mlpost library directory"
+      ~fail: (fun () -> warning "Mlpost not found"; "") "MLPOST" in
+
+  let mlpost = !!mlpost_cm_dir <> "" in
+  BVar.usimple "MLPOST" mlpost;
+  SVar.usimple "MLPOSTSPECIFIC"
+    (if mlpost then "melt/mlpost_on.ml" else "melt/mlpost_off.ml");
+
+  SVar.umake
+    ~query: "Install directory (tool binaries)"
+    ~guess: (fun () -> ["/usr/local/bin"])
+    "INSTALLBIN";
+
+  SVar.umake
+    ~query: "Install directory (OCaml libraries)"
+    ~guess: (fun () -> [ocaml_where])
+    "INSTALLLIB";
+
   let ocaml_includes l =
-    let l = List.filter (fun x -> x <> "") l in
-    let l = List.map (fun x -> sprintf "-I %s" x) l in
+    let l = List.filter (fun s -> s <> "" && s <> ocaml_where) l in
+    let l = List.map (sprintf "-I %s") l in
     String.concat " " l
   in
 
-  let install_bin = query "Install directory (program binaries)"
-    "/usr/local/bin" in
-  let install_lib = query "Install directory (OCaml libraries)" ocamlc_where in
-  let mlpost = ref true in
-  let libdir_mlpost =
-    try
-      let dir =
-        libdir
-          ~fail: (fun () -> warning "Cannot find Mlpost"; raise Exit)
-          "mlpost"
-          "mlpost.cma"
-      in
-      begin
-        let needed = "0.6" in
-        try
-          let vs = exec_line ~err: "/dev/null" "mlpost" ["-version"] in
-          let v = Version.of_string vs in
-          if Version.compare v (Version.of_string needed) < 0 then
-            error "Mlpost version (%s) is too old (< %s)" vs needed
-        with err ->
-          mlpost := false;
-          match err with
-            | Exec_error 127 ->
-                warning "Cannot determine Mlpost version (tool not found)"
-            | Exec_error 2 ->
-                warning "Mlpost version is too old (< %s)" needed
-            | Exec_error d ->
-                warning "Cannot determine Mlpost version (error %d)" d
-            | e -> raise e
-      end;
-      dir
-    with Exit ->
-      mlpost := false;
-      ""
+  let ocaml_includes =
+    SVar.simple "OCAMLINCLUDES" (ocaml_includes [!!mlpost_cm_dir]) in
+
+  let ocamlbuild_flags l =
+    let l = String.concat " " l in
+    let l = Str.replace_char l ' ' ',' in
+    if l <> "" then sprintf "-cflags %s -lflags %s" l l else ""
   in
-  let libs = [
-    libdir_mlpost;
-  ] in
 
-  let natdynlink = Version.compare version (Version.of_string "3.11") >= 0 in
+  SVar.usimple "OCAMLBUILDFLAGS" (ocamlbuild_flags [!!ocaml_includes]);
 
-  let mlpost_specific =
-    if !mlpost then "melt/mlpost_on.ml" else "melt/mlpost_off.ml" in
-
-  let out = open_out "Config" in
-  let var ?a x y =
-    let a = match a with None -> "" | Some a -> " " ^ a in
-    fprintf out "%s = %s%s\n" x y a
-  in
-  let ovar ?a x = function No _ -> var x "NO" | Yes y -> var ?a x y in
-  let bvar x = function true -> var x "YES" | false -> var x "NO" in
-  bvar "MLPOST" !mlpost;
-  bvar "NATDYNLINK" natdynlink;
-  var "MLPOSTSPECIFIC" mlpost_specific;
-  var "OCAMLINCLUDES" (ocaml_includes libs);
-  var "OCAMLBUILDFLAGS" (libflags libs);
-  ovar "OCAMLBUILD" ocamlbuild;
-  var "OCAMLC" ocamlc;
-  ovar "OCAML" ocaml;
-  ovar "OCAMLOPT" ocamlopt;
-  var "OCAMLLEX" ocamllex;
-  var "OCAMLYACC" ocamlyacc;
-  ovar "OCAMLDOC" ocamldoc;
-  var "INSTALLBIN" install_bin;
-  var "INSTALLLIB" install_lib;
-
-  success ()
+  finish ()

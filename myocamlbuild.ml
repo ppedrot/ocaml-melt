@@ -14,12 +14,14 @@ let parse_config file =
     if left < right then String.sub s left (right-left+1) else ""
   in
   let parse_config_line acc line =
-    try
-      let i = String.index line '=' in
-      let left = String.sub line 0 i in
-      let right = String.sub line (i + 1) (String.length line - i - 1) in
-      (String.uppercase (trim left), trim right) :: acc
-    with Not_found -> acc
+    let line = trim line in
+    if line = "" || line.[0] = '#' then acc else
+      try
+        let i = String.index line '=' in
+        let left = String.sub line 0 i in
+        let right = String.sub line (i + 1) (String.length line - i - 1) in
+        (String.uppercase (trim left), trim right) :: acc
+      with Not_found -> acc
   in
   let f = open_in file in
   let lines = ref [] in
