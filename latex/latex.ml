@@ -870,6 +870,18 @@ module Verbatim = struct
             | Text s -> regexps rem remapp s
           end (full_split r s) end
 
+  let trim_begin chars s =
+    let len = String.length s in
+    let b = ref 0 in
+    while !b < len && List.mem s.[!b] chars do incr b done;
+    if !b < len then String.sub s !b (len - !b) else ""
+
+  let trim_end chars s =
+    let len = String.length s in
+    let e = ref (len-1) in
+    while !e >= 0 && List.mem s.[!e] chars do decr e done;
+    if 0 <= !e then String.sub s 0 (!e + 1) else ""
+
   let trim chars s =
     let len = String.length s in
     let b = ref 0 in

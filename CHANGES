@@ -9,7 +9,7 @@ a string litteral not terminated in a comment.
 
 Latex library:
 - Latex.Verbatim.pseudocode (and Melt.Verbatim.pseudocode)
-- Latex.Verbatim.trim (and Melt.Verbatim.trim)
+- Latex.Verbatim.trim, trim_end and trim_begin (and Melt.Verbatim.trim)
 
 Latex library (smaller features):
 - Latex.parbox

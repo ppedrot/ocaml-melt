@@ -46,3 +46,5 @@ the current directory, adding -I toto to the Ocamlbuild command?
 * ##verbatim '$' should raise an error (same for '{' and '"')
 
 * Better compilation of new lines: prevent the "no line to end" error
+
+* Melt.Verbatim.trim_end and trim_begin

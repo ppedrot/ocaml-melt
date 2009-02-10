@@ -61,22 +61,15 @@ module Verbatim = struct
     let middle, last = split_verbs_end rem in
     first, middle, last
 
-  let trim_begin chars s =
-    let len = String.length s in
-    let b = ref 0 in
-    while !b < len && List.mem s.[!b] chars do incr b done;
-    if !b < len then String.sub s !b (len - !b) else ""
-
-  let trim_end chars s =
-    let len = String.length s in
-    let e = ref (len-1) in
-    while !e >= 0 && List.mem s.[!e] chars do decr e done;
-    if 0 <= !e then String.sub s 0 (!e + 1) else ""
-
   let trim chars l =
     let first, middle, last = split_verbs l in
-    let first = `V (trim_begin chars first) in
-    let last = `V (trim_end chars last) in
+    let first =
+      if middle = [] then
+        `V (Latex.Verbatim.trim chars first)
+      else
+        `V (Latex.Verbatim.trim_begin chars first)
+    in
+    let last = `V (Latex.Verbatim.trim_end chars last) in
     first :: middle @ [last]
 
   let verbatim = convert Latex.Verbatim.verbatim

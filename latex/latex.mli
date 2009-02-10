@@ -535,4 +535,14 @@ followed by any number of letter, underscore or digit)
     (** Delete characters at the beginning and at the end of a string.
         [trim [' '; '\n'] s] will return a copy of s without spaces and
 new lines at the beginning and at the end. *)
+
+  val trim_begin: char list -> string -> string
+    (** Delete characters at the beginning of a string.
+        [trim [' '; '\n'] s] will return a copy of s without spaces and
+new lines at the beginning. *)
+
+  val trim_end: char list -> string -> string
+    (** Delete characters at the end of a string.
+        [trim [' '; '\n'] s] will return a copy of s without spaces and
+new lines at the end. *)
 end
