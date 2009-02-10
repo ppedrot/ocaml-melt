@@ -42,10 +42,10 @@ module Verbatim: sig
   (** These modes are the same as the ones in the [Latex.Verbatim] module,
 except that they work with the Melt pre-processor. *)
 
+  type melt_verbatim_string =
+      [ `V of string | `C of Latex.t | `M of Latex.t | `T of Latex.t ] list
   type latex_verbatim_function = string -> Latex.t
-  type melt_verbatim_function =
-      [ `V of string | `C of Latex.t | `M of Latex.t | `T of Latex.t ] list ->
-        Latex.t
+  type melt_verbatim_function = melt_verbatim_string -> Latex.t
 
   val convert: latex_verbatim_function -> melt_verbatim_function
     (** Convert a verbatim function of the [Latex] module to a function
@@ -55,12 +55,17 @@ is concatenated. *)
 
   (** The following functions are converted from the [Latex.Verbatim] module. *)
 
+  val trim: char list -> melt_verbatim_string -> melt_verbatim_string
+    (** The [trim] function will only be applied at the beginning
+of the first [`V] item and at the end of the last [`V] item. *)
+
   val verbatim: melt_verbatim_function
   val regexps: (Str.regexp * (string -> Latex.t)) list -> (string -> Latex.t) ->
     melt_verbatim_function
   val keywords: ?apply: (Latex.t -> Latex.t) -> string list ->
     melt_verbatim_function
-  val pseudocode : ?id_regexp: Str.regexp ->
+  val pseudocode : ?trim: (melt_verbatim_string -> melt_verbatim_string) ->
+    ?id_regexp: Str.regexp ->
     ?kw_apply: (Latex.t -> Latex.t) ->
     ?id_apply: (Latex.t -> Latex.t) ->
     ?sym_apply: (Latex.t -> Latex.t) ->

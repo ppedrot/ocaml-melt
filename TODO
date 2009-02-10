@@ -37,4 +37,12 @@ for it, sc, and so on.
 * Better integration with Ocamlbuid. Maybe a symbolic link from _melt/toto to
 the current directory, adding -I toto to the Ocamlbuild command?
 
-* "display" command (and also parbox, textwidth and so on)
+* "display" command
+
+* \addvspace bug: LaTeX complains about "perhaps a missing \item"
+
+* _ and ^ support?
+
+* ##verbatim '$' should raise an error (same for '{' and '"')
+
+* Better compilation of new lines: prevent the "no line to end" error

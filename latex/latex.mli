@@ -508,6 +508,7 @@ regular expressions. *)
   [regexps [Str.regexp "let\\|in", fun x -> textbf (verbatim x)] verbatim]. *)
 
   val pseudocode:
+    ?trim: (string -> string) ->
     ?id_regexp: Str.regexp ->
     ?kw_apply: (t -> t) ->
     ?id_apply: (t -> t) ->
@@ -519,6 +520,7 @@ regular expressions. *)
 apply [kw_apply] to keywords, [id_apply] to identifiers which are now keywords,
 replace symbols by LaTeX values and then apply [sym_apply] to them, and
 finally apply [rem_apply] to the remaining parts.
+        @param trim apply this function first (default is [trim ['\n']])
         @param id_regexp the regular expression used to parse identifiers,
 including keywords (default is words starting with a letter or an underscore
 followed by any number of letter, underscore or digit)
@@ -526,4 +528,11 @@ followed by any number of letter, underscore or digit)
         @param id_apply applied to identifiers (default is [textit])
         @param sym_apply applied to symbols (default is identity)
         @param rem_apply applied to remaining parts (default is [verbatim]) *)
+
+  (** {2 Tools to Build Modes} *)
+
+  val trim: char list -> string -> string
+    (** Delete characters at the beginning and at the end of a string.
+        [trim [' '; '\n'] s] will return a copy of s without spaces and
+new lines at the beginning and at the end. *)
 end

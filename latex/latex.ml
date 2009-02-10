@@ -870,9 +870,19 @@ module Verbatim = struct
             | Text s -> regexps rem remapp s
           end (full_split r s) end
 
-  let pseudocode ?(id_regexp = ident) ?(kw_apply = textbf)
+  let trim chars s =
+    let len = String.length s in
+    let b = ref 0 in
+    while !b < len && List.mem s.[!b] chars do incr b done;
+    let e = ref (len-1) in
+    while !e >= 0 && List.mem s.[!e] chars do decr e done;
+    if !b < !e then String.sub s !b (!e - !b + 1) else ""
+
+  let pseudocode ?(trim = trim ['\n']) ?(id_regexp = ident)
+      ?(kw_apply = textbf)
       ?(id_apply = textit) ?(sym_apply = fun x -> x) ?(rem_apply = verbatim)
       keywords symbols s =
+    let s = trim s in
     let ident_regexp =
       (ident,
        fun s ->

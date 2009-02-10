@@ -33,10 +33,10 @@ open Melt_common
 let emit ?(file = name ^ ".tex") x = Latex.to_file file x
 
 module Verbatim = struct
+  type melt_verbatim_string =
+      [ `V of string | `C of Latex.t | `M of Latex.t | `T of Latex.t ] list
   type latex_verbatim_function = string -> Latex.t
-  type melt_verbatim_function =
-      [ `V of string | `C of Latex.t | `M of Latex.t | `T of Latex.t ] list ->
-        Latex.t
+  type melt_verbatim_function = melt_verbatim_string -> Latex.t
 
   let convert f l =
     Latex.concat begin List.map begin function
@@ -44,12 +44,49 @@ module Verbatim = struct
       | `C a | `M a | `T a -> a
     end l end
 
+  let rec split_verbs_begin first = function
+    | [] -> first, []
+    | (`V v)::rem -> split_verbs_begin (first^v) rem
+    | x -> first, x
+  let split_verbs_begin = split_verbs_begin ""
+
+  let rec split_verbs_end last = function
+    | [] -> [], last
+    | (`V v)::rem -> split_verbs_end (v^last) rem
+    | x -> List.rev x, last
+  let split_verbs_end l = split_verbs_end "" (List.rev l)
+
+  let split_verbs l =
+    let first, rem = split_verbs_begin l in
+    let middle, last = split_verbs_end rem in
+    first, middle, last
+
+  let trim_begin chars s =
+    let len = String.length s in
+    let b = ref 0 in
+    while !b < len && List.mem s.[!b] chars do incr b done;
+    if !b < len then String.sub s !b (len - !b) else ""
+
+  let trim_end chars s =
+    let len = String.length s in
+    let e = ref (len-1) in
+    while !e >= 0 && List.mem s.[!e] chars do decr e done;
+    if 0 <= !e then String.sub s 0 (!e + 1) else ""
+
+  let trim chars l =
+    let first, middle, last = split_verbs l in
+    let first = `V (trim_begin chars first) in
+    let last = `V (trim_end chars last) in
+    first :: middle @ [last]
+
   let verbatim = convert Latex.Verbatim.verbatim
   let regexps x y = convert (Latex.Verbatim.regexps x y)
   let keywords ?apply x = convert (Latex.Verbatim.keywords ?apply x)
-  let pseudocode ?id_regexp ?kw_apply ?id_apply ?sym_apply ?rem_apply x y =
-    convert (Latex.Verbatim.pseudocode ?id_regexp ?kw_apply ?id_apply
-               ?sym_apply ?rem_apply x y)
+  let pseudocode ?(trim = trim ['\n']) ?id_regexp
+      ?kw_apply ?id_apply ?sym_apply ?rem_apply x y s =
+    let s = trim s in
+    convert (Latex.Verbatim.pseudocode ~trim: (fun x -> x) ?id_regexp
+               ?kw_apply ?id_apply ?sym_apply ?rem_apply x y) s
 end
 
 include Mlpost_specific
