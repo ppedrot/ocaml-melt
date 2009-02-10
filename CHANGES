@@ -6,6 +6,8 @@ Version 1.1.0
 Preprocessor:
 - \" in comments become " to stop the OCaml compiler from complaining about
 a string litteral not terminated in a comment.
+- $, " and { didn't work as verbatim delimiters and now a parse error is printed
+- Errors are now printed as "Melt parse error" instead of just "Parse error"
 
 Latex library:
 - Latex.Verbatim.pseudocode (and Melt.Verbatim.pseudocode)

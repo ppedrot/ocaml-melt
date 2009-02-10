@@ -11,10 +11,6 @@ and this fresh name should be used instead.
 
 * Find a Unicode lexer. Menhir? Ulex of Alain Frisch?
 
-* Syntax errors: write that it is a Melt syntax error
-
-* \" in comments
-
 * \left and \right for other kinds of parentheses
 
 * itemize: newline after => latex error, par after => nothing (no par)
@@ -43,10 +39,10 @@ the current directory, adding -I toto to the Ocamlbuild command?
 
 * _ and ^ support?
 
-* ##verbatim '$' should raise an error (same for '{' and '"')
-
 * Better compilation of new lines: prevent the "no line to end" error
 
 * Melt.Verbatim.trim_end and trim_begin
 
-* pseudocode: what if I want p' to be p' in math mode
+* Prettier LaTeX pretty-printing
+
+* Better error locations

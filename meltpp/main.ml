@@ -59,7 +59,7 @@ let parse_file f =
   try
     file token l
   with Lexer.Lexical_error(loc, s) ->
-    locate_error loc "Parse error: %s" s
+    locate_error loc "Melt parse error: %s" s
 
 let rec interp code = function
   | String s ->

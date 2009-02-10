@@ -37,7 +37,7 @@
   let loc lexbuf = (lexeme_start_p lexbuf, lexeme_end_p lexbuf)
 
   let lex_error lexbuf s =
-    raise (Lexical_error(loc lexbuf, s))
+    Printf.ksprintf (fun s -> raise (Lexical_error(loc lexbuf, s))) s
 
   let newline lexbuf =
     let pos = lexbuf.lex_curr_p in
@@ -109,6 +109,14 @@
     STRING "\n" (* to keep the line count correct *)
 
   let verbatim_delims = Hashtbl.create 7
+
+  let add_verb_delim lexbuf delim ident =
+    match delim with
+      | '$' | '"' | '{' ->
+          lex_error lexbuf
+            "Character '%c' is not allowed as a verbatim delimiter." delim
+      | _ ->
+          Hashtbl.add verbatim_delims delim ident
 }
 
 let space = [' ' '\t']
@@ -157,7 +165,7 @@ and pragma_plugin = parse
 
 and pragma_verbatim = parse
   | space* '\'' (_ as delim) '\'' space* '=' space* ((ident ('.' ident)*) as ident) space* '\n'
-      { Hashtbl.add verbatim_delims delim ident }
+      { add_verb_delim lexbuf delim ident }
   | _ { lex_error lexbuf "syntax error in pragma verbatim" }
 
 and comment = parse
