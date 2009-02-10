@@ -164,6 +164,7 @@ and comment = parse
   | "*)" { try end_comment () with Exit -> comment lexbuf }
   | "(*" { start_comment (); comment lexbuf }
   | '\n' { newline lexbuf; Buffer.add_char comment_buf '\n'; comment lexbuf }
+  | "\\\"" { Buffer.add_char comment_buf '"'; comment lexbuf }
   | (_ as c) { Buffer.add_char comment_buf c; comment lexbuf }
   | eof { lex_error lexbuf "unexpected end of file in comment" }
 

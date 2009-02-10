@@ -3,9 +3,14 @@ Changes that may break existing programs are marked using a star *.
 Version 1.1.0
 =============
 
+Preprocessor:
+- \" in comments become " to stop the OCaml compiler from complaining about
+a string litteral not terminated in a comment.
+
+Latex library:
 - Latex.Verbatim.pseudocode (and Melt.Verbatim.pseudocode)
 
-Smaller LaTeX features:
+Latex library (smaller features):
 - Latex.parbox
 - Latex.size: `Textwidth and `Linewidth
 
