@@ -253,10 +253,12 @@ let make_option ?(sep = ",") mode f o =
     let o = list_insert (text sep) (List.map (fun x -> text x) (List.map f o)) in
     Some(mode, concat o)
 
-type size = [ `Cm of float ]
+type size = [ `Cm of float | `Textwidth of float | `Linewidth of float ]
 let string_of_size size =
   match size with
     | `Cm x -> sprintf "%fcm" x
+    | `Textwidth x -> sprintf "%f\\textwidth" x
+    | `Linewidth x -> sprintf "%f\\linewidth" x
 let latex_of_size size = text (string_of_size size)
 
 let latex_of_int x = text (string_of_int x)
@@ -488,6 +490,8 @@ let smallskip = command "smallskip" [] T
 let medskip = command "medskip" [] T
 let bigskip = command "bigskip" [] T
 let nointerlineskip = command "nointerlineskip" [] T
+
+let parbox x y = command "parbox" [A, latex_of_size x; T, y] T
 
 let noindent = command "noindent" [] T
 

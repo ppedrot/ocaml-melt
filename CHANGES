@@ -5,6 +5,10 @@ Version 1.1.0
 
 - Latex.Verbatim.pseudocode (and Melt.Verbatim.pseudocode)
 
+Smaller LaTeX features:
+- Latex.parbox
+- Latex.size: `Textwidth and `Linewidth
+
 Version 1.0.1
 =============
 

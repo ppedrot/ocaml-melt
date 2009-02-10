@@ -121,7 +121,7 @@ val to_string: ?mode: mode -> t -> string
 
 type documentclass = [ `Article | `Report | `Book | `Letter | `Slides | `Beamer ]
 type documentoptions = [ `Landscape | `A4paper ]
-type size = [ `Cm of float ]
+type size = [ `Cm of float | `Textwidth of float | `Linewidth of float ]
 
 val usepackage: ?opt: t -> t -> t
 val input: t -> t
@@ -192,6 +192,10 @@ val smallskip: t (** A small [vspace]. *)
 val medskip: t (** A medium [vspace]. *)
 val bigskip: t (** A big [vspace]. *)
 val nointerlineskip: t (** Delete the interline vertical space. *)
+
+val parbox: size -> t -> t
+  (** A box in which new lines and paragraphs may be used. Useful to display
+      code listings, for instance. *)
 
 type array_column = [ `L | `C | `R ]
 type array_line

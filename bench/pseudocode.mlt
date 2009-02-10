@@ -1,5 +1,4 @@
-let textwidth = command \"textwidth\" [] A
-let parbox x = command \"parbox\" [A, textwidth; T, x] T
+let parbox = parbox (`Textwidth 1.)
 
 let pseudocode =
   Verbatim.pseudocode
