@@ -512,22 +512,23 @@ regular expressions. *)
     ?id_regexp: Str.regexp ->
     ?kw_apply: (t -> t) ->
     ?id_apply: (t -> t) ->
-    ?sym_apply: (t -> t) ->
     ?rem_apply: (string -> t) ->
-    string list -> (string * t) list -> string -> t
+    ?keywords: string list ->
+    ?symbols: (string * t) list ->
+    ?keyword_symbols: (string * t) list ->
+    string -> t
     (** Pseudocode parsing.
-        [pseudocode keywords symbols s]: given a list of keywords and symbols,
-apply [kw_apply] to keywords, [id_apply] to identifiers which are now keywords,
-replace symbols by LaTeX values and then apply [sym_apply] to them, and
-finally apply [rem_apply] to the remaining parts.
         @param trim apply this function first (default is [trim ['\n']])
         @param id_regexp the regular expression used to parse identifiers,
 including keywords (default is words starting with a letter or an underscore
 followed by any number of letter, underscore or digit)
         @param kw_apply applied to keywords (default is [textbf])
         @param id_apply applied to identifiers (default is [textit])
-        @param sym_apply applied to symbols (default is identity)
-        @param rem_apply applied to remaining parts (default is [verbatim]) *)
+        @param rem_apply applied to remaining parts (default is [verbatim])
+        @param keywords keyword list 
+        @param symbols symbol list and the way they are printed
+        @param keyword_symbols keyword list that should be printed in a special
+way, as symbols, but parsed as identifiers *)
 
   (** {2 Tools to Build Modes} *)
 

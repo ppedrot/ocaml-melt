@@ -2,9 +2,12 @@ let parbox = parbox (`Textwidth 1.)
 
 let pseudocode =
   Verbatim.pseudocode
-    [\"let\"; \"in\"; \"fun\"]
-    [\"->\", rightarrow;
-     \"*\", times]
+    ~keywords: [ \"let\"; \"in\" ]
+    ~symbols: [
+      \"->\", rightarrow;
+      \"*\", times
+    ]
+    ~keyword_symbols: [ \"fun\", lambda ]
 
 let body = "
 Here is a pseudocode example.

@@ -48,3 +48,5 @@ the current directory, adding -I toto to the Ocamlbuild command?
 * Better compilation of new lines: prevent the "no line to end" error
 
 * Melt.Verbatim.trim_end and trim_begin
+
+* pseudocode: what if I want p' to be p' in math mode

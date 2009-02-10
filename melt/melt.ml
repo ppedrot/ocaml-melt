@@ -76,10 +76,11 @@ module Verbatim = struct
   let regexps x y = convert (Latex.Verbatim.regexps x y)
   let keywords ?apply x = convert (Latex.Verbatim.keywords ?apply x)
   let pseudocode ?(trim = trim ['\n']) ?id_regexp
-      ?kw_apply ?id_apply ?sym_apply ?rem_apply x y s =
+      ?kw_apply ?id_apply ?rem_apply ?keywords ?symbols ?keyword_symbols s =
     let s = trim s in
     convert (Latex.Verbatim.pseudocode ~trim: (fun x -> x) ?id_regexp
-               ?kw_apply ?id_apply ?sym_apply ?rem_apply x y) s
+               ?kw_apply ?id_apply ?rem_apply ?keywords ?symbols
+               ?keyword_symbols) s
 end
 
 include Mlpost_specific

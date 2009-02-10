@@ -68,9 +68,10 @@ of the first [`V] item and at the end of the last [`V] item. *)
     ?id_regexp: Str.regexp ->
     ?kw_apply: (Latex.t -> Latex.t) ->
     ?id_apply: (Latex.t -> Latex.t) ->
-    ?sym_apply: (Latex.t -> Latex.t) ->
     ?rem_apply: (string -> Latex.t) ->
-    string list -> (string * Latex.t) list ->
+    ?keywords: string list ->
+    ?symbols: (string * Latex.t) list ->
+    ?keyword_symbols: (string * Latex.t) list ->
     melt_verbatim_function
 end
 

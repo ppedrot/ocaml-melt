@@ -892,16 +892,22 @@ module Verbatim = struct
 
   let pseudocode ?(trim = trim ['\n']) ?(id_regexp = ident)
       ?(kw_apply = textbf)
-      ?(id_apply = textit) ?(sym_apply = fun x -> x) ?(rem_apply = verbatim)
-      keywords symbols s =
+      ?(id_apply = textit)
+      ?(rem_apply = verbatim)
+      ?(keywords = [])
+      ?(symbols = [])
+      ?(keyword_symbols = [])
+      s =
     let s = trim s in
     let ident_regexp =
       (ident,
        fun s ->
-         if List.mem s keywords then kw_apply (text s) else id_apply (text s))
+         try List.assoc s keyword_symbols with Not_found ->
+           if List.mem s keywords then kw_apply (text s) else
+             id_apply (text s))
     in
     let symbol_regexps =
-      List.map (fun (s, l) -> regexp_string s, fun _ -> sym_apply l) symbols in
+      List.map (fun (s, l) -> regexp_string s, fun _ -> l) symbols in
     regexps (ident_regexp :: symbol_regexps) rem_apply s
 
   let keywords ?(apply = textbf) k s =
