@@ -71,13 +71,13 @@ let install_lib l =
   let base = Filename.basename l in
   try
     let l = first base [l] in
-    Queue.add (sprintf "install -m 644 %s %s/%s" l !lib base) script
+    Queue.add (sprintf "install -D -m 644 %s %s/%s" l !lib base) script
   with Not_found -> ()
 
 let install_bin b final =
   try
     let b = first final b in
-    Queue.add (sprintf "install %s %s/%s" b !bin final) script
+    Queue.add (sprintf "install -D %s %s/%s" b !bin final) script
   with Not_found -> ()
 
 let rm f =
