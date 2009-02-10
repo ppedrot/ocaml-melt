@@ -254,6 +254,8 @@ type 'a var = {
   value: 'a;
 }
 
+let (!!) x = x.value
+
 let vars = ref []
 
 module type STRINGABLE = sig

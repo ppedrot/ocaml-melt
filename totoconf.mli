@@ -90,6 +90,8 @@ val config_file: string ref
 
 type 'a var
 
+val (!!): 'a var -> 'a
+
 module type STRINGABLE = sig
   type t
   val to_string: t -> string

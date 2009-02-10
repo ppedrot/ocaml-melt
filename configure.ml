@@ -31,8 +31,6 @@
 open Format
 #use "totoconf.ml"
 
-let (!!) = SVar.get
-
 let () =
   init ~file: "Config" ();
 
