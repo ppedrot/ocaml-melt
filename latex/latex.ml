@@ -888,7 +888,7 @@ module Verbatim = struct
     while !b < len && List.mem s.[!b] chars do incr b done;
     let e = ref (len-1) in
     while !e >= 0 && List.mem s.[!e] chars do decr e done;
-    if !b < !e then String.sub s !b (!e - !b + 1) else ""
+    if !b <= !e then String.sub s !b (!e - !b + 1) else ""
 
   let pseudocode ?(trim = trim ['\n']) ?(id_regexp = ident)
       ?(kw_apply = textbf)
