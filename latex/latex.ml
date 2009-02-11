@@ -485,6 +485,7 @@ let itemize l = list_env l "itemize"
 let enumerate l = list_env l "enumerate"
 
 let vspace s = command "vspace" [T, latex_of_size s] T
+let hspace s = command "hspace" [T, latex_of_size s] T
 let addvspace s = command "addvspace" [T, latex_of_size s] T
 let smallskip = command "smallskip" [] T
 let medskip = command "medskip" [] T

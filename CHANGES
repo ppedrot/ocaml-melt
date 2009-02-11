@@ -19,6 +19,7 @@ Latex library:
 Latex library (smaller features):
 - Latex.parbox
 - Latex.size: `Textwidth and `Linewidth
+- Latex.hspace
 
 Version 1.0.1
 =============

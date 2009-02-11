@@ -185,6 +185,8 @@ val stackrel: t -> t -> t
 
 val vspace: size -> t
   (** A vertical space. *)
+val hspace: size -> t
+  (** An horizontal, possibly negative space. *)
 val addvspace: size -> t
   (** Similar to [vspace], but an [addvspace x] followed by an [addvspace y]
 will produce an [addvspace] of [max x y]. *)
