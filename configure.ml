@@ -55,8 +55,9 @@ let () =
                ])
       ~check: (fun s ->
                  let v = Str.last_word (exec_line s ["-version"]) in
-                 if not (Version.eq ocaml_version v) then
-                   warning "Version of %s (%s) do not match \
+                 if name <> "ocamlbuild" || Version.ge ocaml_version "3.11" then
+                   if not (Version.eq ocaml_version v) then
+                     warning "Version of %s (%s) do not match \
 compiler version (%s)" s v ocaml_version;
                  true)
       (String.uppercase name)
