@@ -1,3 +1,4 @@
+
 (**************************************************************************)
 (* Copyright (c) 2009, Romain BARDOU                                      *)
 (* All rights reserved.                                                   *)
@@ -91,7 +92,26 @@ compiler version (%s)" s v ocaml_version;
       ~query: "Mlpost library directory"
       ~fail: (fun () -> warning "Mlpost not found"; "") "MLPOST" in
 
-  let mlpost = !!mlpost_cm_dir <> "" in
+  let check_mlpost_version () =
+    try
+      let v = exec_line (which "mlpost") ["-version"; "2> /dev/null"] in
+      if Version.ge v "0.6" then begin
+        echo "Mlpost version: %s" v;
+        true
+      end else begin
+        echo "Mlpost version too old (%s)" v;
+        false
+      end
+    with
+      | Not_found ->
+          warning "Mlpost tool not found.";
+          false
+      | Exec_error 2 ->
+          warning "Mlpost version too old (<0.6).";
+          false
+  in
+
+  let mlpost = !!mlpost_cm_dir <> "" && check_mlpost_version () in
   BVar.usimple "MLPOST" mlpost;
   SVar.usimple "MLPOSTSPECIFIC"
     (if mlpost then "melt/mlpost_on.ml" else "melt/mlpost_off.ml");
@@ -113,7 +133,8 @@ compiler version (%s)" s v ocaml_version;
   in
 
   let ocaml_includes =
-    SVar.simple "OCAMLINCLUDES" (ocaml_includes [!!mlpost_cm_dir]) in
+    let includes = if mlpost then [!!mlpost_cm_dir] else [] in
+    SVar.simple "OCAMLINCLUDES" (ocaml_includes includes) in
 
   let ocamlbuild_flags l =
     let l = String.concat " " l in
