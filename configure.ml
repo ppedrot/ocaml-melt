@@ -90,7 +90,7 @@ compiler version (%s)" s v ocaml_version;
   let mlpost_cm_dir =
     cm_dir "mlpost" "mlpost.cma"
       ~query: "Mlpost library directory"
-      ~fail: (fun () -> warning "Mlpost not found"; "") "MLPOST" in
+      ~fail: (fun () -> warning "Mlpost not found"; "") "MLPOSTLIBDIR" in
 
   let check_mlpost_version () =
     try

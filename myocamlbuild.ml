@@ -46,9 +46,7 @@ let () = dispatch begin function
 
       ocaml_lib ~extern: true "mlpost";
 
-      let mlpost = config_yes "MLPOST" in
-      let mlpost_onoff =
-        if mlpost then "melt/mlpost_on.ml" else "melt/mlpost_off.ml" in
+      let mlpost_onoff = config "MLPOSTSPECIFIC" in
       let mlpost_specific = "melt/mlpost_specific.ml" in
       rule
         mlpost_specific
