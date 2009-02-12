@@ -258,6 +258,10 @@ let (!!) x = x.value
 
 let vars = ref []
 
+let var_exists name =
+  let name = String.uppercase name in
+  List.exists (fun v -> String.uppercase v.iv_name = name) !vars
+
 module type STRINGABLE = sig
   type t
   val to_string: t -> string
@@ -301,6 +305,9 @@ module Var(T: STRINGABLE) = struct
         if check x then Some x else find_guess check rem
 
   let make ?query ?(check = check) ?(guess = guess) ?fail name =
+    if var_exists name then
+      warning "Variable %s has already been defined." name;
+
     let check_option = function
       | None -> false
       | Some x -> check x

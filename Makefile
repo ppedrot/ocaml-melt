@@ -92,5 +92,5 @@ dist: noob.makefile
 
 .PHONY: default fast world clean doc all world.10 bench test check dist check-ocamlbuild
 
-Config: configure.ml
+Config: configure.ml totoconf.ml
 	ocaml configure.ml
