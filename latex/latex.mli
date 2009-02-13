@@ -421,6 +421,7 @@ val forall: t
 val exists: t
 
 val top : t
+val bot : t
 
 val sharp : t
 

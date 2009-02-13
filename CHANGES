@@ -20,6 +20,7 @@ Latex library (smaller features):
 - Latex.parbox
 - Latex.size: `Textwidth and `Linewidth
 - Latex.hspace
+- Latex.bot
 
 Version 1.0.1
 =============

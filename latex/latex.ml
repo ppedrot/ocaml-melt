@@ -514,6 +514,7 @@ let forall = command "forall" [] M
 let exists = command "exists" [] M
 
 let top = command "top" [] M
+let bot = command "bot" [] M
 let cdots = command "cdots" [] M
 
 let sharp  =command "sharp" [] M
