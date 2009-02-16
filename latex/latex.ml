@@ -418,6 +418,7 @@ let textit x = command "textit" [T, x] T
 let textbf x = command "textbf" [T, x] T
 let mathit x = command "mathit" [M, x] M
 let mathbf x = command "mathbf" [M, x] M
+let mathcal x = command "mathcal" [M, x] M
 let tiny x = command "tiny" [T, x] T
 
 let hfill = command "hfill" [] T

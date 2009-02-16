@@ -179,6 +179,7 @@ val textit: t -> t
 val textbf: t -> t
 val mathit: t -> t
 val mathbf: t -> t
+val mathcal: t -> t
 val tiny: t -> t
 
 val stackrel: t -> t -> t

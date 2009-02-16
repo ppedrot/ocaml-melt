@@ -23,6 +23,7 @@ Latex library (smaller features):
 - Latex.size: `Textwidth and `Linewidth
 - Latex.hspace
 - Latex.bot
+- Latex.mathcal
 
 Version 1.0.1
 =============
