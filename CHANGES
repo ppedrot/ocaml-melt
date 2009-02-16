@@ -20,6 +20,7 @@ even if the command is used deep inside the AST.
 - Latex.size type enhanced with more sizes
 
 Latex library (smaller features):
+* Latex.inferrule_ replaced by Latex.inferrule, which has many new options
 - Latex.parbox
 - Latex.size: `Textwidth and `Linewidth
 - Latex.hspace

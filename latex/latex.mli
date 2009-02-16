@@ -463,7 +463,19 @@ val twoheadrightarrow : t (** ->> *)
 (** {4 Mathpartir} *)
 
 val mathpar : t list -> t
-val inferrule_ : t list -> t list -> t
+  (** Math paragraph.
+This function inserts [and] commands between each item to split them. *)
+
+val inferrule : ?lab: t -> ?left: t -> ?right: t -> ?vdots: size ->
+  ?width: size -> ?leftskip: size -> ?rightskip: size -> t list -> t list -> t
+  (** Inference rule.
+[inferrule pre post] builds an inference rule with [pre] at the top and [post]
+at the bottom. If [pre] or [post] is empty, the bar is not drawn.
+    @param lab label to put above the rule
+    @param left label to put on the left of the rule
+    @param right label to put on the right of the rule
+    @param vdots raise the rule and draw vertical dots ; the length argument
+is translated to a number of line-skips *)
 
 (** {3 Slide Document Class} *)
 

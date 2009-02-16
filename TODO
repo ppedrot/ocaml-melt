@@ -30,7 +30,7 @@ mode, with or without Beamer
 the LaTeX \bf). The CMT mechanism should be able to handle this. Do the same
 for it, sc, and so on.
 
-* Better integration with Ocamlbuid. Maybe a symbolic link from _melt/toto to
+* Better integration with Ocamlbuild. Maybe a symbolic link from _melt/toto to
 the current directory, adding -I toto to the Ocamlbuild command?
 
 * "display" command
@@ -46,3 +46,6 @@ the current directory, adding -I toto to the Ocamlbuild command?
 * Prettier LaTeX pretty-printing
 
 * Better error locations
+
+* pseudocode option to manage identifiers such as T1, T2, T3 (for exemple:
+give a function (t -> t -> t), default being the index function)

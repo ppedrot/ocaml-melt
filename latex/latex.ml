@@ -248,6 +248,12 @@ let list_insert sep = function
   | [] | [_] as x -> x
   | x::rem -> List.flatten ([x]::(List.map (fun x -> [sep; x]) rem))
 
+let rec list_filter_options acc = function
+  | [] -> List.rev acc
+  | None :: rem -> list_filter_options acc rem
+  | Some x :: rem -> list_filter_options (x :: acc) rem
+let list_filter_options = list_filter_options []
+
 let make_option ?(sep = ",") mode f o =
   if o = [] then None else
     let o = list_insert (text sep) (List.map (fun x -> text x) (List.map f o)) in
@@ -790,10 +796,27 @@ let mathpar l =
     concat (list_insert (command ~packages: ["mathpartir", ""] "and" [] M) l) in
   environment ~packages: ["mathpartir", ""] "mathpar" content  T
 
-let inferrule_ lx ly = 
+let inferrule ?lab ?left ?right ?vdots ?width ?leftskip ?rightskip lx ly = 
+  let lx, ly = match lx, ly with
+    | [], [] -> [text "~"], []
+    | _, _ -> lx, ly
+  in
   let cx = concat (list_insert newline lx) in
   let cy = concat (list_insert newline ly) in
-  command ~packages: ["mathpartir", ""] "inferrule*" [M,cx; M,cy] M
+  let left = Opt.map (fun x -> text "left=" ^^ x) left in
+  let right = Opt.map (fun x -> text "right=" ^^ x) right in
+  let lab = Opt.map (fun x -> text "lab=" ^^ x) lab in
+  let vdots = Opt.map (fun x -> text "vdots=" ^^ latex_of_size x) vdots in
+  let width = Opt.map (fun x -> text "width=" ^^ latex_of_size x) width in
+  let leftskip =
+    Opt.map (fun x -> text "leftskip=" ^^ latex_of_size x) leftskip in
+  let rightskip =
+    Opt.map (fun x -> text "rightskip=" ^^ latex_of_size x) rightskip in
+  let option_list = [ left; right; lab; vdots; width; leftskip; rightskip ] in
+  let opt =
+    concat (list_insert (text ",") (list_filter_options option_list)) in
+  command ~packages: ["mathpartir", ""] ~opt: (A, opt)
+    "inferrule*" [M, cx; M, cy] M
 
 (*******************************************************************************)
 
