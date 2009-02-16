@@ -33,7 +33,7 @@ for it, sc, and so on.
 * Better integration with Ocamlbuild. Maybe a symbolic link from _melt/toto to
 the current directory, adding -I toto to the Ocamlbuild command?
 
-* "display" command
+* "display" command, replacing displaymath maybe, with options (center? ...)
 
 * \addvspace bug: LaTeX complains about "perhaps a missing \item"
 

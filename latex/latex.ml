@@ -266,8 +266,23 @@ type size = [
 | `Pt of float
 | `Em of float
 | `Ex of float
+
+| `Pc of float
+| `Bp of float
+| `Dd of float
+| `Cc of float
+| `Sp of float
+
+| `Parindent of float
+| `Baselineskip of float
+| `Baselinestretch of float
+| `Parskip of float
 | `Textwidth of float
 | `Linewidth of float
+| `Textheight of float
+| `Unitlength of float
+
+| `Fill
 ]
 
 let string_of_size size =
@@ -278,8 +293,24 @@ let string_of_size size =
     | `Pt x -> sprintf "%fpt" x
     | `Em x -> sprintf "%fem" x
     | `Ex x -> sprintf "%fex" x
+
+    | `Pc x -> sprintf "%fpc" x
+    | `Bp x -> sprintf "%fbp" x
+    | `Dd x -> sprintf "%fdd" x
+    | `Cc x -> sprintf "%fcc" x
+    | `Sp x -> sprintf "%fsp" x
+
+    | `Parindent x -> sprintf "%f\\parindent" x
+    | `Baselineskip x -> sprintf "%f\\baselineskip" x
+    | `Baselinestretch x -> sprintf "%f\\baselinestretch" x
+    | `Parskip x -> sprintf "%f\\parskip" x
     | `Textwidth x -> sprintf "%f\\textwidth" x
     | `Linewidth x -> sprintf "%f\\linewidth" x
+    | `Textheight x -> sprintf "%f\\textheight" x
+    | `Unitlength x -> sprintf "%f\\unitlength" x
+
+    | `Fill -> sprintf "\\fill"
+
 let latex_of_size size = text (string_of_size size)
 
 let latex_of_int x = text (string_of_int x)

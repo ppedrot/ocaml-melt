@@ -123,15 +123,55 @@ type documentclass = [ `Article | `Report | `Book | `Letter | `Slides | `Beamer 
 type documentoptions = [ `Landscape | `A4paper ]
 
 type size = [
-| `In of float (** inches *)
-| `Mm of float (** millimeters *)
-| `Cm of float (** centimeters *)
-| `Pt of float (** points (about 1/72 inch) *)
-| `Em of float (** approximately the width of an "M" in the current font *)
-| `Ex of float (** approximately the width of an "x" in the current font *)
+| `In of float
+| `Mm of float
+| `Cm of float
+| `Pt of float
+| `Em of float
+| `Ex of float
+
+| `Pc of float
+| `Bp of float
+| `Dd of float
+| `Cc of float
+| `Sp of float
+
+| `Parindent of float
+| `Baselineskip of float
+| `Baselinestretch of float
+| `Parskip of float
 | `Textwidth of float
 | `Linewidth of float
+| `Textheight of float
+| `Unitlength of float
+
+| `Fill
 ]
+  (** The type of LaTeX sizes.
+- [`In]: inches
+- [`Mm]: millimeters
+- [`Cm]: centimeters
+- [`Pt]: points (about 1/72 inch)
+- [`Em]: approximately the width of an "M" in the current font
+- [`Ex]: approximately the width of an "x" in the current font
+
+- [`Pc]: pica (12pt/pc)
+- [`Bp]: big pt (72bp/in)
+- [`Dd]: didot (1157dd=1238pt)
+- [`Cc]: cicero (12dd/cc)
+- [`Sp]: scaled point (65536sp/pt)
+
+- [`Parindent]: normal paragraph indentation
+- [`Baselineskip]: normal vertical distance between lines in a paragraph
+- [`Baselinestretch]: multiplies [`Baselineskip]
+- [`Parskip]: the extra vertical space between paragraphs
+- [`Textwidth]: the width of text on the page
+- [`Linewidth]: width of a line in the local environment
+- [`Textheight]: the height of text on the page
+- [`Unitlength]: units of length in picture environment
+
+- [`Fill]: rubber length; take as much space as possible
+*)
 
 val usepackage: ?opt: t -> t -> t
 val input: t -> t
