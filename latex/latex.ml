@@ -930,7 +930,8 @@ module Verbatim = struct
   open Str
 
   let alphanumplus = regexp "[a-zA-Z0-9]+"
-  let ident = regexp "[a-zA-Z_][a-zA-Z0-9_]*"
+  let ident = regexp "[a-zA-Z][a-zA-Z0-9]*\\(_[a-zA-Z0-9]+\\)*"
+  let underscore = regexp "_"
 
   let verbatim s =
     concat begin List.flatten begin List.map begin function
@@ -979,6 +980,12 @@ module Verbatim = struct
     while !e >= 0 && List.mem s.[!e] chars do decr e done;
     if !b <= !e then String.sub s !b (!e - !b + 1) else ""
 
+  let indexify_identifier id = function
+    | [] -> id
+    | indexes ->
+        let indexes = List.map text indexes in
+        index id (concat (list_insert (text ",") indexes))
+
   let pseudocode ?(trim = trim ['\n']) ?(id_regexp = ident)
       ?(kw_apply = textbf)
       ?(id_apply = textit)
@@ -991,9 +998,16 @@ module Verbatim = struct
     let ident_regexp =
       (ident,
        fun s ->
-         try List.assoc s keyword_symbols with Not_found ->
-           if List.mem s keywords then kw_apply (text s) else
-             id_apply (text s))
+         let us_split = split underscore s in
+         match us_split with
+           | [] -> empty
+           | kw::rem ->
+               let kw =
+                 try List.assoc kw keyword_symbols with Not_found ->
+                   if List.mem kw keywords then kw_apply (text kw) else
+                     id_apply (text kw)
+               in
+               indexify_identifier kw rem)
     in
     let symbol_regexps =
       List.map (fun (s, l) -> regexp_string s, fun _ -> l) symbols in

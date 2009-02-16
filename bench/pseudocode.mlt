@@ -15,9 +15,9 @@ Here is a pseudocode example.
 {parbox "<:pseudocode:#
 let square = fun x -> x * x
 let id x = x
-let indented x =
+let indented_and_weird_indexes x =
   fun y ->
-    x * y
+    x * y * x_1 * x_123 * fun_1_2_3 * let_42_69_z_plop_arf
 let funny = indented x y
 #>"}
 "

@@ -22,7 +22,6 @@ even if the command is used deep inside the AST.
 Latex library (smaller features):
 * Latex.inferrule_ replaced by Latex.inferrule, which has many new options
 - Latex.parbox
-- Latex.size: `Textwidth and `Linewidth
 - Latex.hspace
 - Latex.bot
 - Latex.mathcal

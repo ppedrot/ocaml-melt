@@ -587,15 +587,21 @@ regular expressions. *)
     (** Pseudocode parsing.
         @param trim apply this function first (default is [trim ['\n']])
         @param id_regexp the regular expression used to parse identifiers,
-including keywords (default is words starting with a letter or an underscore
-followed by any number of letter, underscore or digit)
+including keywords (default is words starting with a letter
+followed by any number of letter or digit, followed by any number
+of groups of underscore followed by at least one letter or digit:
+[Str.regexp "[a-zA-Z][a-zA-Z0-9]*\\(_[a-zA-Z0-9]+\\)*"])
         @param kw_apply applied to keywords (default is [textbf])
         @param id_apply applied to identifiers (default is [textit])
         @param rem_apply applied to remaining parts (default is [verbatim])
         @param keywords keyword list 
         @param symbols symbol list and the way they are printed
         @param keyword_symbols keyword list that should be printed in a special
-way, as symbols, but parsed as identifiers *)
+way, as symbols, but parsed as identifiers
+
+Keywords, keyword symbols and identifiers are split using underscore (['_'])
+as delimiter. The first part is replaced by the corresponding [Latex.t].
+The other parts are displayed as indexes separated by commas ([',']). *)
 
   (** {2 Tools to Build Modes} *)
 
