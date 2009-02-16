@@ -450,6 +450,7 @@ val proof : ?opt:t -> t -> t
 val twoheadrightarrow : t (** ->> *)
 
 (** {4 Mathpartir} *)
+
 val mathpar : t list -> t
 val inferrule_ : t list -> t list -> t
 

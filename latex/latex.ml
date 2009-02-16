@@ -313,10 +313,24 @@ let packageset_of_list ?(acc = PackageSet.empty) =
 let rec packages_used acc = function
   | Text _ ->
       acc
-  | Command(packs, _, _, _, _)
-  | Environment(packs, _, _, _, _, _) ->
+  | Command(packs, _, Some(_, opt), params, _) ->
       let packs = List.map (fun (x, y) -> text x, text y) packs in
-      packageset_of_list ~acc packs
+      let acc = packageset_of_list ~acc packs in
+      List.fold_left packages_used (packages_used acc opt) (List.map snd params)
+  | Command(packs, _, None, params, _) ->
+      let packs = List.map (fun (x, y) -> text x, text y) packs in
+      let acc = packageset_of_list ~acc packs in
+      List.fold_left packages_used acc (List.map snd params)
+  | Environment(packs, _, Some(_, opt), params, body, _) ->
+      let packs = List.map (fun (x, y) -> text x, text y) packs in
+      let acc = packageset_of_list ~acc packs in
+      let params = body::params in
+      List.fold_left packages_used (packages_used acc opt) (List.map snd params)
+  | Environment(packs, _, None, params, body, _) ->
+      let packs = List.map (fun (x, y) -> text x, text y) packs in
+      let acc = packageset_of_list ~acc packs in
+      let params = body::params in
+      List.fold_left packages_used acc (List.map snd params)
   | Concat l ->
       List.fold_left packages_used acc l
   | Mode(_, x) ->
@@ -755,12 +769,15 @@ let twoheadrightarrow = command "twoheadrightarrow" [] M
 (*******************************************************************************)
 
 let mathpar l = 
-  let content = M, concat (list_insert (command "and" [] M) l) in
-    environment "mathpar" content  T
+  let content =
+    M,
+    concat (list_insert (command ~packages: ["mathpartir", ""] "and" [] M) l) in
+  environment ~packages: ["mathpartir", ""] "mathpar" content  T
+
 let inferrule_ lx ly = 
   let cx = concat (list_insert newline lx) in
   let cy = concat (list_insert newline ly) in
-    command "inferrule*" [M,cx; M,cy] M
+  command ~packages: ["mathpartir", ""] "inferrule*" [M,cx; M,cy] M
 
 (*******************************************************************************)
 
