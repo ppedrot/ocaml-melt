@@ -17,6 +17,7 @@ Latex library:
 - Latex.Verbatim.trim, trim_end and trim_begin (and Melt.Verbatim.trim)
 - Bugfix: ~packages argument of commands and environment are now taken account
 even if the command is used deep inside the AST.
+- Latex.size type enhanced with more sizes
 
 Latex library (smaller features):
 - Latex.parbox

@@ -121,7 +121,17 @@ val to_string: ?mode: mode -> t -> string
 
 type documentclass = [ `Article | `Report | `Book | `Letter | `Slides | `Beamer ]
 type documentoptions = [ `Landscape | `A4paper ]
-type size = [ `Cm of float | `Textwidth of float | `Linewidth of float ]
+
+type size = [
+| `In of float (** inches *)
+| `Mm of float (** millimeters *)
+| `Cm of float (** centimeters *)
+| `Pt of float (** points (about 1/72 inch) *)
+| `Em of float (** approximately the width of an "M" in the current font *)
+| `Ex of float (** approximately the width of an "x" in the current font *)
+| `Textwidth of float
+| `Linewidth of float
+]
 
 val usepackage: ?opt: t -> t -> t
 val input: t -> t

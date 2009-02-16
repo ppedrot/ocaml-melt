@@ -253,10 +253,25 @@ let make_option ?(sep = ",") mode f o =
     let o = list_insert (text sep) (List.map (fun x -> text x) (List.map f o)) in
     Some(mode, concat o)
 
-type size = [ `Cm of float | `Textwidth of float | `Linewidth of float ]
+type size = [
+| `In of float
+| `Mm of float
+| `Cm of float
+| `Pt of float
+| `Em of float
+| `Ex of float
+| `Textwidth of float
+| `Linewidth of float
+]
+
 let string_of_size size =
   match size with
+    | `In x -> sprintf "%fin" x
+    | `Mm x -> sprintf "%fmm" x
     | `Cm x -> sprintf "%fcm" x
+    | `Pt x -> sprintf "%fpt" x
+    | `Em x -> sprintf "%fem" x
+    | `Ex x -> sprintf "%fex" x
     | `Textwidth x -> sprintf "%f\\textwidth" x
     | `Linewidth x -> sprintf "%f\\linewidth" x
 let latex_of_size size = text (string_of_size size)
