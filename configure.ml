@@ -33,7 +33,15 @@ open Format
 #use "totoconf.ml"
 
 let () =
-  init ~file: "Config" ();
+  init
+    ~file: "Config"
+    ~spec: [
+      force "OCAMLC" "<path> OCaml bytecode compiler";
+      force "MLPOST" "<path> Mlpost library directory";
+      force "INSTALLBIN" "<path> Install directory (tool binaries)";
+      force "INSTALLLIB" "<path> Install directory (OCaml libraries)";
+    ]
+    ();
 
   let ocamlc = SVar.make
     ~query: "OCaml bytecode compiler"

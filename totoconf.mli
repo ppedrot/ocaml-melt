@@ -30,6 +30,16 @@
 
 (** Tools to write configuration files. *)
 
+val force: ?option: string -> string -> string -> Arg.key * Arg.spec * Arg.doc
+  (** [force var doc] return a command line argument specification
+usable in the [~spec] argument of [init]. Default value for [~option] is
+["-"^var].
+The user can use the [option] command line argument to force the value
+of variable [var]. The value will be checked, and if the check fails,
+the configuration script will exit. Else the value will be used for [var].
+If variable [var] is not used by the configuration script, forcing its value
+has no effect. *)
+
 val init: ?file: string -> ?spec: (Arg.key * Arg.spec * Arg.doc) list ->
   unit -> unit
   (** Initialize the module. Should be called before anything else.

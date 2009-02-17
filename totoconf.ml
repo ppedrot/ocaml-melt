@@ -33,6 +33,7 @@ open Format
 let interactive = ref false
 let config_file = ref "Config"
 let debug = ref false
+let forced_vars = ref []
 
 let speclist = [
   "-c", Arg.Set_string config_file, "<file> Configuration file";
@@ -47,7 +48,7 @@ let usage_msg =
       "configure.ml"
     else name
   in
-  sprintf "ocaml %s [options]" name
+  sprintf "Usage: ocaml %s [options]" name
 
 (**************************************************************************)
 (*                          Errors and Warnings                           *)
@@ -335,55 +336,77 @@ module Var(T: STRINGABLE) = struct
       ask ()
     in
 
-    (* Old value. *)
-    let value =
-      match old_var name with
-        | None -> None
-        | Some x ->
-            debug "%s: Found old value = %s" name x;
-            T.of_string x
-    in
+    (* Forced value? *)
+    let value = try
+      let value = List.assoc name !forced_vars in
+      let v = T.of_string value in
+      match v with
+        | None ->
+            error "Invalid value for %s: %s." name value
+        | Some v ->
+            if check v then begin
+              begin match query with
+                | Some query ->
+                    printf "%s: %s\n" query (T.to_string v)
+                | None -> ()
+              end;
+              v
+            end else
+              error "Invalid value for %s: %s." name value
+    with Not_found -> begin
 
-    (* Check or guess. *)
-    let value =
-      if check_option value then
-        value
-      else begin
-        debug "Guessing for %s" name;
-        find_guess check (guess ())
-      end
-    in
+      (* Old value. *)
+      let value =
+        match old_var name with
+          | None -> None
+          | Some x ->
+              debug "%s: Found old value = %s" name x;
+              T.of_string x
+      in
 
-    (* User interaction. *)
-    let value =
-      match query with
-        | Some query when !interactive ->
-            do_query query value
-        | _ ->
-            value
-    in
+      (* Check or guess. *)
+      let value =
+        if check_option value then
+          value
+        else begin
+          debug "Guessing for %s" name;
+          find_guess check (guess ())
+        end
+      in
 
-    (* Final check. *)
-    let value =
-      match value, fail, query with
-        | None, None, None ->
-            error "%s: Not found" name
-        | None, None, Some query ->
-            error "%s: Not found" query
-        | None, Some fail, _ ->
-            fail ()
-        | Some value, _, _ ->
-            value
-    in
+      (* User interaction. *)
+      let value =
+        match query with
+          | Some query when !interactive ->
+              do_query query value
+          | _ ->
+              value
+      in
 
-    (* Notify the user. *)
-    begin
-      match query with
-        | Some query when not !interactive ->
-            printf "%s: %s\n" query (T.to_string value)
-        | _ ->
-            ()
-    end;
+      (* Final check. *)
+      let value =
+        match value, fail, query with
+          | None, None, None ->
+              error "%s: Not found" name
+          | None, None, Some query ->
+              error "%s: Not found" query
+          | None, Some fail, _ ->
+              fail ()
+          | Some value, _, _ ->
+              value
+      in
+
+      (* Notify the user. *)
+      begin
+        match query with
+          | Some query when not !interactive ->
+              printf "%s: %s\n" query (T.to_string value)
+          | _ ->
+              ()
+      end;
+
+      value
+    end in
 
     let var = {
       name = name;
@@ -442,6 +465,15 @@ module FVar = Var(struct
 (**************************************************************************)
 (*                            Init and Finish                             *)
 (**************************************************************************)
+
+let force ?option var doc =
+  let option = match option with
+    | None -> "-"^var
+    | Some option -> option
+  in
+  let spec =
+    Arg.String (fun value -> forced_vars := (var, value) :: !forced_vars) in
+  option, spec, doc
 
 let init ?(file = "Config") ?(spec = []) () =
   config_file := file;
