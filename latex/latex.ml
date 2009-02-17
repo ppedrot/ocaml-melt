@@ -492,13 +492,13 @@ let array_line ?sep x = {
 }
 
 let newline = text "\\\\\n"
-let newpage = command "newpage" [] T
+let newline_size x = text (Printf.sprintf "\\\\[%s]\n" (string_of_size x))
 
-let newlinesep x = text (Printf.sprintf "\\\\[%s]\n" (string_of_size x))
+let newpage = command "newpage" [] T
 
 let newlinegen = function
   | None -> newline
-  | Some x -> newlinesep x
+  | Some x -> newline_size x
 
 let quad = command "quad" [] M
 
@@ -525,6 +525,9 @@ let figure ?label ?(pos = [ `H ]) ?(center = false) ?caption body =
   in
   let body = body ^^ labelo label in
   environment ~opt: (T, text pos) "figure" (T, body) T
+
+let minipage size x =
+  environment ~args: [A, latex_of_size size] "minipage" (T, x) T
 
 let array c l =
   let cols = String.concat "" begin List.map begin function

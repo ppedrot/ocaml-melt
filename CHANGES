@@ -25,6 +25,8 @@ Latex library (smaller features):
 - Latex.hspace
 - Latex.bot
 - Latex.mathcal
+- Latex.newline_size
+- Latex.minipage
 
 Version 1.0.1
 =============

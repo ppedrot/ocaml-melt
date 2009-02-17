@@ -208,6 +208,7 @@ val latex_of_int: int -> t
 val itemize: t list -> t
 val enumerate: t list -> t
 val newline: t
+val newline_size: size -> t
 val newpage: t
 val noindent: t
 val quad: t
@@ -221,6 +222,8 @@ val float_all : float_position list
 
 val figure: ?label: label -> ?pos: float_position list -> ?center: bool ->
   ?caption: t -> t -> t
+
+val minipage: size -> t -> t
 
 val emph: t -> t
 val texttt: t -> t
