@@ -27,6 +27,7 @@ Latex library (smaller features):
 - Latex.mathcal
 - Latex.newline_size
 - Latex.minipage
+- Latex.center
 
 Version 1.0.1
 =============

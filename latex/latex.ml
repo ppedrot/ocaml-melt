@@ -529,6 +529,8 @@ let figure ?label ?(pos = [ `H ]) ?(center = false) ?caption body =
 let minipage size x =
   environment ~args: [A, latex_of_size size] "minipage" (T, x) T
 
+let center x = environment "center" (T, x) T
+
 let array c l =
   let cols = String.concat "" begin List.map begin function
     | `L -> "l"

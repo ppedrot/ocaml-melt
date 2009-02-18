@@ -223,6 +223,8 @@ val float_all : float_position list
 val figure: ?label: label -> ?pos: float_position list -> ?center: bool ->
   ?caption: t -> t -> t
 
+val center: t -> t
+
 val minipage: size -> t -> t
 
 val emph: t -> t
