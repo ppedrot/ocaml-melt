@@ -985,20 +985,25 @@ module Verbatim = struct
     while !e >= 0 && List.mem s.[!e] chars do decr e done;
     if !b <= !e then String.sub s !b (!e - !b + 1) else ""
 
-  let indexify_identifier id = function
-    | [] -> id
-    | indexes ->
-        let indexes = List.map text indexes in
-        index id (concat (list_insert (text ",") indexes))
-
   let pseudocode ?(trim = trim ['\n']) ?(id_regexp = ident)
       ?(kw_apply = textbf)
-      ?(id_apply = textit)
+      ?(id_apply = mathit)
       ?(rem_apply = verbatim)
       ?(keywords = [])
       ?(symbols = [])
       ?(keyword_symbols = [])
       s =
+    let identifier_nosplit kw =
+      try List.assoc kw keyword_symbols with Not_found ->
+        if List.mem kw keywords then kw_apply (text kw) else
+          id_apply (text kw)
+    in
+    let indexify_identifier id = function
+      | [] -> id
+      | indexes ->
+          let indexes = List.map identifier_nosplit indexes in
+          index id (concat (list_insert (text ",") indexes))
+    in
     let s = trim s in
     let ident_regexp =
       (ident,
@@ -1007,12 +1012,7 @@ module Verbatim = struct
          match us_split with
            | [] -> empty
            | kw::rem ->
-               let kw =
-                 try List.assoc kw keyword_symbols with Not_found ->
-                   if List.mem kw keywords then kw_apply (text kw) else
-                     id_apply (text kw)
-               in
-               indexify_identifier kw rem)
+               indexify_identifier (identifier_nosplit kw) rem)
     in
     let symbol_regexps =
       List.map (fun (s, l) -> regexp_string s, fun _ -> l) symbols in

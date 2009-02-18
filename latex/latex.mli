@@ -597,7 +597,7 @@ followed by any number of letter or digit, followed by any number
 of groups of underscore followed by at least one letter or digit:
 [Str.regexp "[a-zA-Z][a-zA-Z0-9]*\\(_[a-zA-Z0-9]+\\)*"])
         @param kw_apply applied to keywords (default is [textbf])
-        @param id_apply applied to identifiers (default is [textit])
+        @param id_apply applied to identifiers (default is [mathit])
         @param rem_apply applied to remaining parts (default is [verbatim])
         @param keywords keyword list 
         @param symbols symbol list and the way they are printed
@@ -606,7 +606,8 @@ way, as symbols, but parsed as identifiers
 
 Keywords, keyword symbols and identifiers are split using underscore (['_'])
 as delimiter. The first part is replaced by the corresponding [Latex.t].
-The other parts are displayed as indexes separated by commas ([',']). *)
+The other parts are displayed as indexes separated by commas ([',']).
+They are also treated as identifiers, potentiel keywords or keyword symbols. *)
 
   (** {2 Tools to Build Modes} *)
 
