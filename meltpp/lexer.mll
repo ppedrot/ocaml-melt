@@ -201,7 +201,7 @@ and text = parse
   | '$' { begin_mode M }
   | '{' { begin_mode C }
   | '"' { end_mode lexbuf }
-  | "<:" (['a'-'z' 'A'-'Z' '0'-'9' '.' ' ']+ as apply) ':'
+  | "<:" (['a'-'z' 'A'-'Z' '0'-'9' '.' ' ' '_']+ as apply) ':'
       { begin_mode (V(Some apply)) }
   | '<'
       { begin_mode (V None) }

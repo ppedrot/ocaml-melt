@@ -11,6 +11,7 @@ Preprocessor:
 a string litteral not terminated in a comment.
 - $, " and { didn't work as verbatim delimiters and now a parse error is printed
 - Errors are now printed as "Melt parse error" instead of just "Parse error"
+- Underscores (_) are now accepted in verbatim function names
 
 Latex library:
 - Latex.Verbatim.pseudocode (and Melt.Verbatim.pseudocode)
