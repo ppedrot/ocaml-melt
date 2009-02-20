@@ -6,6 +6,9 @@ Version 1.1.0
 Configuration:
 - Replaced the configuration tool by a more powerful one using Totoconf.
 
+Melt tool:
+- -classic-display option
+
 Preprocessor:
 - \" in comments become " to stop the OCaml compiler from complaining about
 a string litteral not terminated in a comment.

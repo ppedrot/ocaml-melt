@@ -54,6 +54,8 @@ let melt_dir = ref "_melt"
 
 let meltpp = ref "meltpp"
 
+let classic_display = ref false
+
 (* -P includes for meltpp *)
 let plugin_includes = ref []
 let meltpp_plugin_includes = ref ""
@@ -71,6 +73,8 @@ Melt pre-processor";
   "-I", Arg.String add_include, "<dir> Look for libraries in <dir> \
 (this option is passed to the OCaml compiler)";
 
+  "-classic-display", Arg.Set classic_display,
+  " Call Ocamlbuild with -classic-display (do not work with Mlpost)";
   "-no-mlpost", Arg.Clear mlpost, " Do not call mlpost, use ocamlbuild instead \
 (or ocamlc if -no-ocamlbuild)";
   "-no-ocamlbuild", Arg.Clear ocamlbuild, " Do not use Ocamlbuild";
@@ -166,7 +170,8 @@ let ml_to_tex f =
       pdfo pdfeo ocamlbuildo nativeo
       strlibo latexlibo meltlibo nameeo f
   else if !ocamlbuild then
-    cmd "ocamlbuild%s%s%s%s%s%s %s.%s --%s%s"
+    cmd "ocamlbuild%s%s%s%s%s%s%s %s.%s --%s%s"
+      (if !classic_display then " -classic-display" else "")
       ocamlbuild_includes
       strlibo unixlibo latexlibo mlpostlibo meltlibo bf ext pdfo nameo
   else begin
