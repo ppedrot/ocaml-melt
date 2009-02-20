@@ -625,4 +625,7 @@ new lines at the beginning. *)
     (** Delete characters at the end of a string.
         [trim [' '; '\n'] s] will return a copy of s without spaces and
 new lines at the end. *)
+
+  val split_lines: string -> string list
+    (** Split a string according to the ['\n'] delimiter, which is not kept. *)
 end

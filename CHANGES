@@ -15,7 +15,6 @@ a string litteral not terminated in a comment.
 
 Latex library:
 - Latex.Verbatim.pseudocode (and Melt.Verbatim.pseudocode)
-- Latex.Verbatim.trim, trim_end and trim_begin (and Melt.Verbatim.trim)
 - Bugfix: ~packages argument of commands and environment are now taken account
 even if the command is used deep inside the AST.
 - Latex.size type enhanced with more sizes
@@ -29,6 +28,8 @@ Latex library (smaller features):
 - Latex.newline_size
 - Latex.minipage
 - Latex.center
+- Latex.Verbatim.trim, trim_end and trim_begin (and Melt.Verbatim.trim)
+- Latex.Verbatim.split_lines (and Melt.Verbatim.split_lines)
 
 Version 1.0.1
 =============

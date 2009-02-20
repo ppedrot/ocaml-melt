@@ -985,6 +985,9 @@ module Verbatim = struct
     while !e >= 0 && List.mem s.[!e] chars do decr e done;
     if !b <= !e then String.sub s !b (!e - !b + 1) else ""
 
+  let split_lines s =
+    Str.split (Str.regexp_string "\n") s
+
   let pseudocode ?(trim = trim ['\n']) ?(id_regexp = ident)
       ?(kw_apply = textbf)
       ?(id_apply = mathit)

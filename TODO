@@ -47,5 +47,4 @@ the current directory, adding -I toto to the Ocamlbuild command?
 
 * Better error locations
 
-* pseudocode option to manage identifiers such as T1, T2, T3 (for exemple:
-give a function (t -> t -> t), default being the index function)
+* pseudocode: find a way to better handle spaces and indentation

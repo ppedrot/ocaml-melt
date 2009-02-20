@@ -32,6 +32,13 @@ open Melt_common
 
 let emit ?(file = name ^ ".tex") x = Latex.to_file file x
 
+let rec list_split_when f ?(acc = []) = function
+  | [] -> raise Not_found
+  | x :: r as l ->
+      if f x then List.rev acc, l else
+        let acc = x :: acc in
+        list_split_when f ~acc r
+
 module Verbatim = struct
   type melt_verbatim_string =
       [ `V of string | `C of Latex.t | `M of Latex.t | `T of Latex.t ] list
@@ -71,6 +78,23 @@ module Verbatim = struct
     in
     let last = `V (Latex.Verbatim.trim_end chars last) in
     first :: middle @ [last]
+
+  let split_lines verb: melt_verbatim_string list =
+    let rec f = function
+      | `V s ->
+          List.map
+            (function Str.Text s -> `V s | Str.Delim s -> `V "\n")
+            (Str.full_split (Str.regexp_string "\n") s)
+      | x -> [x]
+    in
+    let rec split verb =
+      try
+        let a, b = list_split_when (fun x -> x = `V "\n") verb in
+        a :: (split (List.tl b))
+      with Not_found ->
+        [verb]
+    in
+    split (List.flatten (List.map f verb))
 
   let verbatim = convert Latex.Verbatim.verbatim
   let regexps x y = convert (Latex.Verbatim.regexps x y)

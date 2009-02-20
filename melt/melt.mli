@@ -53,11 +53,13 @@ usable with the Melt pre-processor. The original function is applied to
 each quotations; anti-quotations are left as it, and the resulting list
 is concatenated. *)
 
-  (** The following functions are converted from the [Latex.Verbatim] module. *)
+  (** {2 Conversion of [Latex.Verbatim]} *)
 
   val trim: char list -> melt_verbatim_string -> melt_verbatim_string
     (** The [trim] function will only be applied at the beginning
 of the first [`V] item and at the end of the last [`V] item. *)
+
+  val split_lines: melt_verbatim_string -> melt_verbatim_string list
 
   val verbatim: melt_verbatim_function
   val regexps: (Str.regexp * (string -> Latex.t)) list -> (string -> Latex.t) ->
