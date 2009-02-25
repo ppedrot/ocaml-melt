@@ -478,6 +478,8 @@ let hfill = command "hfill" [] T
 let footnote x = command "footnote" [T, x] T
 
 let tableofcontents = command "tableofcontents" [] T
+let listoffigures = command "listoffigures" [] T
+let listoftables = command "listoftables" [] T
 
 type array_column = [ `L | `C | `R ]
 

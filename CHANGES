@@ -33,6 +33,8 @@ Latex library (smaller features):
 - Latex.center
 - Latex.Verbatim.trim, trim_end and trim_begin (and Melt.Verbatim.trim)
 - Latex.Verbatim.split_lines (and Melt.Verbatim.split_lines)
+- Latex.listoffigures
+- Latex.listoftables
 
 Version 1.0.1
 =============

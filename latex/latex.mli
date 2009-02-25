@@ -195,6 +195,10 @@ you want to be very precise about what LaTeX should do. *)
 val index: t -> t -> t (** [index x y] produces [{x}_{y}] *)
 val exponent: t -> t -> t (** [index x y] produces [{x}^{y}] *)
 
+val tableofcontents: t
+val listoffigures: t
+val listoftables: t
+
 val section: ?label: label -> t -> t
 val subsection: ?label: label -> t -> t
 val subsubsection: ?label: label -> t -> t
@@ -203,7 +207,6 @@ val par: t
 val displaymath: t -> t
 val hfill: t
 val footnote: t -> t
-val tableofcontents: t
 val latex_of_int: int -> t
 val itemize: t list -> t
 val enumerate: t list -> t
