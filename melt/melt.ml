@@ -48,7 +48,9 @@ module Verbatim = struct
   let convert f l =
     Latex.concat begin List.map begin function
       | `V s -> f s
-      | `C a | `M a | `T a -> a
+      | `C a -> a
+      | `M a -> Latex.mode Latex.M a
+      | `T a -> Latex.mode Latex.T a
     end l end
 
   let rec split_verbs_begin first = function

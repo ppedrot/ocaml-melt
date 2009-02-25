@@ -4,12 +4,12 @@ Version 1.1.0
 =============
 
 Configuration:
-- Replaced the configuration tool by a more powerful one using Totoconf.
+- Replaced the configuration tool by a more powerful one using Totoconf
 
 Melt tool:
 - -classic-display option
 - Added the latop tool to parse LaTeX output and re-print it prettier and with
-less trash.
+less trash
 
 Preprocessor:
 - \" in comments become " to stop the OCaml compiler from complaining about
@@ -18,13 +18,14 @@ a string litteral not terminated in a comment.
 - Errors are now printed as "Melt parse error" instead of just "Parse error"
 - Underscores (_) are now accepted in verbatim function names
 
-Latex library:
+Latex and Melt library:
 - Latex.Verbatim.pseudocode (and Melt.Verbatim.pseudocode)
-- Bugfix: ~packages argument of commands and environment are now taken account
-even if the command is used deep inside the AST.
+* Bugfix: ~packages argument of commands and environment are now taken into
+account even if the command is used deep inside the AST
+* Bugfix: Melt.convert now forces math or text mode for `M and `T
 - Latex.size type enhanced with more sizes
 
-Latex library (smaller features):
+Latex and Melt library (smaller features):
 * Latex.inferrule_ replaced by Latex.inferrule, which has many new options
 - Latex.parbox
 - Latex.hspace
