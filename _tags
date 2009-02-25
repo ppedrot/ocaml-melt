@@ -1,2 +1,3 @@
 <melt/tool.*>: use_unix, use_str, use_mlpost
+<latop/latop.*>: use_unix, use_str
 <meltpp/*.*>: use_dynlink, use_str

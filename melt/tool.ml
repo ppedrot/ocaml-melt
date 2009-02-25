@@ -164,14 +164,16 @@ let ml_to_tex f =
           (if !ocamlbuild then ocamlbuild_includes else ocamlc_includes)
         ^ "\""
   in
+  let classicdisplayo = if !classic_display then " -classic-display" else "" in
   if !mlpost then
-    cmd "mlpost -v%s%s%s%s%s%s%s%s%s %s"
+    cmd "mlpost -v%s%s%s%s%s%s%s%s%s%s %s"
+      classicdisplayo
       mlpost_includes
       pdfo pdfeo ocamlbuildo nativeo
       strlibo latexlibo meltlibo nameeo f
   else if !ocamlbuild then
     cmd "ocamlbuild%s%s%s%s%s%s%s %s.%s --%s%s"
-      (if !classic_display then " -classic-display" else "")
+      classicdisplayo
       ocamlbuild_includes
       strlibo unixlibo latexlibo mlpostlibo meltlibo bf ext pdfo nameo
   else begin
@@ -197,15 +199,17 @@ let produce_final f =
   let bf = Filename.chop_extension f in
   let latex = if !pdf then "pdflatex" else "latex" in
   let latex =
-    latex ^ " -interaction nonstopmode -file-line-error -halt-on-error" in
+    latex ^ " -interaction nonstopmode -file-line-error -halt-on-error"
+  in
+  let latop = " | latop > /dev/null" in
 
-  cmd "%s %s" latex bf;
+  cmd "%s %s%s" latex bf latop;
   if !bibtex then begin
     cmd "bibtex %s" bf;
-    cmd "%s %s" latex bf
+    cmd "%s %s%s" latex bf latop
   end;
   if not !fast then
-    cmd "%s %s" latex bf;
+    cmd "%s %s%s" latex bf latop;
 
   if not !pdf && not !dvi then
     cmd "dvips %s" bf

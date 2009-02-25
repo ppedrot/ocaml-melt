@@ -1,3 +1,10 @@
+Mandatory for next release
+==========================
+
+* Mlpost 0.7 differences
+  - -ps option needed
+  - -classic-display option only available in mlpost 0.7
+
 TO DO
 =====
 

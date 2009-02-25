@@ -109,6 +109,7 @@ let finish () =
 let () =
   do_bin ["meltpp/main.native"; "meltpp/main.byte"] "meltpp";
   do_bin ["melt/tool.native"; "melt/tool.byte"] "melt";
+  do_bin ["latop/latop.native"; "latop/latop.byte"] "latop";
   List.iter do_lib [
     "latex/latex.a";
     "latex/latex.cmi";

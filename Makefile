@@ -38,8 +38,8 @@ ifeq ($(TERM), dumb)
 endif
 
 #################################################################################
-BYTE = latex/latex.cma melt/melt.cma melt/tool.byte meltpp/main.byte
-NATIVE := latex/latex.cmxa melt/melt.cmxa melt/tool.native
+BYTE = latex/latex.cma melt/melt.cma melt/tool.byte latop/latop.byte meltpp/main.byte
+NATIVE := latex/latex.cmxa melt/melt.cmxa melt/tool.native latop/latop.native
 ifeq ($(NATDYNLINK), YES)
 	NATIVE := $(NATIVE) meltpp/main.native
 endif
