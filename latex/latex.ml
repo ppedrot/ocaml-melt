@@ -464,14 +464,28 @@ let displaymath x =
   environment "displaymath" (M, x) T
 
 let emph x = command "emph" [T, x] T
+
 let texttt x = command "texttt" [T, x] T
 let textsc x = command "textsc" [T, x] T
 let textit x = command "textit" [T, x] T
 let textbf x = command "textbf" [T, x] T
+let textrm x = command "textrm" [T, x] T
+let textsf x = command "textsf" [T, x] T
+
 let mathit x = command "mathit" [M, x] M
 let mathbf x = command "mathbf" [M, x] M
 let mathcal x = command "mathcal" [M, x] M
+
 let tiny x = command "tiny" [T, x] T
+let scriptsize x = command "scriptsize" [T, x] T
+let footnotesize x = command "footnotesize" [T, x] T
+let small x = command "small" [T, x] T
+let normalsize x = command "normalsize" [T, x] T
+let large x = command "large" [T, x] T
+let large2 x = command "Large" [T, x] T
+let large3 x = command "LARGE" [T, x] T
+let huge x = command "huge" [T, x] T
+let huge2 x = command "Huge" [T, x] T
 
 let hfill = command "hfill" [] T
 

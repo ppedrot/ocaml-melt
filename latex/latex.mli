@@ -230,16 +230,6 @@ val center: t -> t
 
 val minipage: size -> t -> t
 
-val emph: t -> t
-val texttt: t -> t
-val textsc: t -> t
-val textit: t -> t
-val textbf: t -> t
-val mathit: t -> t
-val mathbf: t -> t
-val mathcal: t -> t
-val tiny: t -> t
-
 val stackrel: t -> t -> t
 
 val vspace: size -> t
@@ -263,6 +253,38 @@ type array_line
 
 val array: array_column list -> array_line list -> t
 val array_line: ?sep: size -> t list -> array_line
+
+(** {3 Fonts} *)
+
+(** {4 Font Styles} *)
+
+val emph: t -> t (** Emphasize *)
+
+val texttt: t -> t (** Monospace *)
+val textsc: t -> t (** Small caps *)
+val textit: t -> t (** Italic *)
+val textbf: t -> t (** Bold *)
+val textrm: t -> t (** Roman *)
+val textsf: t -> t (** Sans serif *)
+
+val mathit: t -> t (** Italic (for math mode) *)
+val mathbf: t -> t (** Bold (for math mode) *)
+val mathcal: t -> t (** Caligraphic *)
+
+(** {4 Font Sizes} *)
+
+(** From the smallest to the largest. *)
+
+val tiny: t -> t
+val scriptsize: t -> t
+val footnotesize: t -> t
+val small: t -> t
+val normalsize: t -> t
+val large: t -> t
+val large2: t -> t
+val large3: t -> t
+val huge: t -> t
+val huge2: t -> t
 
 (** {3 Math Accents} *)
 

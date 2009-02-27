@@ -26,18 +26,16 @@ account even if the command is used deep inside the AST
 - Latex.size type enhanced with more sizes
 
 Latex and Melt library (smaller features):
-* Latex.inferrule_ replaced by Latex.inferrule, which has many new options
-- Latex.parbox
-- Latex.hspace
-- Latex.bot
-- Latex.mathcal
-- Latex.newline_size
-- Latex.minipage
-- Latex.center
-- Latex.Verbatim.trim, trim_end and trim_begin (and Melt.Verbatim.trim)
-- Latex.Verbatim.split_lines (and Melt.Verbatim.split_lines)
-- Latex.listoffigures
-- Latex.listoftables
+* inferrule_ replaced by inferrule, which has many new options
+- parbox, minipage, center
+- hspace
+- bot
+- textrm, textsf, mathcal
+- newline_size
+- Verbatim.trim, trim_end and trim_begin
+- Verbatim.split_lines
+- listoffigures, listoftables
+- many more font size commands
 
 Version 1.0.1
 =============

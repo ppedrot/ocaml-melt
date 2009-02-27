@@ -55,3 +55,7 @@ the current directory, adding -I toto to the Ocamlbuild command?
 * Better error locations
 
 * pseudocode: find a way to better handle spaces and indentation
+
+* newtheorem and counters
+
+* better array (without array_line?), tabular
