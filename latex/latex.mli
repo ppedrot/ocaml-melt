@@ -624,10 +624,10 @@ regular expressions. *)
     (** Pseudocode parsing.
         @param trim apply this function first (default is [trim ['\n']])
         @param id_regexp the regular expression used to parse identifiers,
-including keywords (default is words starting with a letter
+including keywords (default is words starting with a letter or an underscore
 followed by any number of letter or digit, followed by any number
 of groups of underscore followed by at least one letter or digit:
-[Str.regexp "[a-zA-Z][a-zA-Z0-9]*\\(_[a-zA-Z0-9]+\\)*"])
+[Str.regexp "[_a-zA-Z][a-zA-Z0-9]*\\(_[a-zA-Z0-9]+\\)*"])
         @param kw_apply applied to keywords (default is [textbf])
         @param id_apply applied to identifiers (default is [mathit])
         @param rem_apply applied to remaining parts (default is [verbatim])

@@ -958,7 +958,7 @@ module Verbatim = struct
   open Str
 
   let alphanumplus = regexp "[a-zA-Z0-9]+"
-  let ident = regexp "[a-zA-Z][a-zA-Z0-9]*\\(_[a-zA-Z0-9]+\\)*"
+  let ident = regexp "_?[a-zA-Z][a-zA-Z0-9]*\\(_[a-zA-Z0-9]+\\)*"
   let underscore = regexp "_"
 
   let verbatim s =
@@ -1034,7 +1034,7 @@ module Verbatim = struct
     let ident_regexp =
       (ident,
        fun s ->
-         let us_split = split underscore s in
+         let us_split = split_delim underscore s in
          match us_split with
            | [] -> empty
            | kw::rem ->
