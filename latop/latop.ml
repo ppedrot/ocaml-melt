@@ -46,7 +46,7 @@ let parse_line line =
 
 let reprint_line = function
   | Normal line ->
-      printf "%s\n" line
+      eprintf "%s\n" line
   | Error (file, line, error) ->
       if error <> Fatal then
         eprintf "File \"%s\", line %d:\n" file line;

@@ -119,8 +119,19 @@ val to_string: ?mode: mode -> t -> string
 
 (** {2 LaTeX Pervasives} *)
 
+(** {3 Document} *)
+
 type documentclass = [ `Article | `Report | `Book | `Letter | `Slides | `Beamer ]
 type documentoptions = [ `Landscape | `A4paper ]
+
+val document: ?documentclass: documentclass -> ?options: documentoptions list ->
+  ?title: t -> ?author: t -> ?date: t -> ?prelude: t ->
+  ?packages: (t * t) list -> t -> t
+(** The [~packages] argument takes a list of [(name, opt)] where [name] is the
+name of the package and [opt] is its option. This is equivalent to
+using several calls to [usepackage] in the [~prelude]. *)
+
+(** {3 Basic Commands} *)
 
 type size = [
 | `In of float
@@ -172,28 +183,6 @@ type size = [
 
 - [`Fill]: rubber length; take as much space as possible
 *)
-
-val usepackage: ?opt: t -> t -> t
-val input: t -> t
-val newcommand: int -> t -> t -> t
-(** [newcommand parameter_count name body] defines a new command with
- * [parameter_count] arguments, where you can use the [i]th argument by writing
- * [#i] in the body, just as in Latex. *)
-val renewcommand: int -> t -> t -> t
-(** Same as [newcommand] except that it can redefine existing LaTeX commands. *)
-
-val document: ?documentclass: documentclass -> ?options: documentoptions list ->
-  ?title: t -> ?author: t -> ?date: t -> ?prelude: t ->
-  ?packages: (t * t) list -> t -> t
-(** The [~packages] argument takes a list of [(name, opt)] where [name] is the
-name of the package and [opt] is its option. This is equivalent to
-using several calls to [usepackage] in the [~prelude]. *)
-
-val block: t -> t
-  (** [block x] produces [{x}]. Should only be used in some rare cases when
-you want to be very precise about what LaTeX should do. *)
-val index: t -> t -> t (** [index x y] produces [{x}_{y}] *)
-val exponent: t -> t -> t (** [index x y] produces [{x}^{y}] *)
 
 val tableofcontents: t
 val listoffigures: t
@@ -557,6 +546,37 @@ val rrbracket: t
 (** {3 Slide Document Class} *)
 
 val slide: t -> t
+
+(** {3 Low-Level LaTeX} *)
+
+val usepackage: ?opt: t -> t -> t
+  (** You can use this in the [~prelude] of your [document], but it is better
+to use the [~packages] argument of [document]. Note that some commandes
+add their own packages to the document automatically. *)
+
+val input: t -> t
+  (** Include a LaTeX file. Usually you'd prefer to open an OCaml module,
+but this can be useful if you have a [.tex] file with macros that you want
+to reuse. *)
+
+val newcommand: int -> t -> t -> t
+(** [newcommand parameter_count name body] defines a new command with
+[parameter_count] arguments, where you can use the [i]th argument by writing
+[#i] in the body, just as in Latex. Normally you'd prefer to just define
+an OCaml value with [let]. *)
+
+val renewcommand: int -> t -> t -> t
+(** Same as [newcommand] except that it can redefine existing LaTeX commands. *)
+
+val block: t -> t
+  (** [block x] produces [{x}]. Should only be used in some rare cases when
+you want to be very precise about what LaTeX should do. *)
+
+val index: t -> t -> t
+  (** [index x y] produces [{x}_{y}] *)
+
+val exponent: t -> t -> t
+  (** [index x y] produces [{x}^{y}] *)
 
 (** {3 Beamer Document Class} *)
 
