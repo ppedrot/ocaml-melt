@@ -24,6 +24,7 @@ Latex and Melt library:
 account even if the command is used deep inside the AST
 * Bugfix: Melt.convert now forces math or text mode for `M and `T
 - Latex.size type enhanced with more sizes
+- Reorganized the interface and its documentation
 
 Latex and Melt library (smaller features):
 * inferrule_ replaced by inferrule, which has many new options

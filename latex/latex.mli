@@ -33,105 +33,7 @@
 (** LaTeX expressions. *)
 type t
 
-(** LaTeX mode: math, text or any. *)
-type mode = M | T | A
-
-(** {2 Constructors} *)
-
-(** Raw LaTeX. *)
-val text: string -> t
-
-(** Concatenation. *)
-val concat: t list -> t
-
-(** Infix Concatenation. *)
-val (^^): t -> t -> t
-
-(** LaTeX Command. *)
-val command: ?packages: (string * string) list -> string -> ?opt: (mode * t) ->
-  (mode * t) list -> mode -> t
-(** [command name args mode] produces the LaTeX command [name] applied to
-arguments [args].
-
-The command should be used in mode [mode]. For exemple,
-the [ensuremath] LaTeX command should be used in math mode. The command will
-be coerced using [mbox] or [$ ... $] if [mode] differs from the mode it is
-used in.
-
-The [opt] optional parameter may be used to provide an optional parameter
-(in brackets [[]]) to the LaTeX command.
-
-Arguments [opt] and [args] must be given with their expected mode and will
-be coerced if needed. For example, the [mbox] command expect an argument in
-text mode (the argument must be coerced using [$ ... $] if it is math).
-The [ensuremath] command expects an argument in any mode.
-
-All packages [(name, opt)] given using [packages] will automatically be used by
-[document]. *)
-
-(** LaTeX Environment. *)
-val environment: ?packages: (string * string) list -> string ->
-  ?opt: (mode * t) -> ?args: (mode * t) list -> (mode * t) -> mode -> t
-(** Same as function [command], except that it only takes one argument
-(the environment body) and produces an environment, i.e. using the
-[begin] and [end] commands. The [args] parameters may be used to give
-additional arguments, such as the columns of an array.
-
-All packages [(name, opt)] given using [packages] will automatically be used by
-[document]. *)
-
-(** Ensure text or math mode. *)
-val mode: mode -> t -> t
-(** [mode m x] returns [x] if its mode is already [m]. If its mode is not [m],
-the result is [x] coerced using [mbox] or [$ ... $]. *)
-
-(** {2 References and Labels} *)
-
-(** Example (using the Melt pre-processor):
-
-[let lbl_intro = label ()]
-
-[let intro = section ~label: lbl_intro "This is Sect.~{ref_ lbl_intro}."] *)
-
-type label
-
-val label: ?name: string -> unit -> label
-  (** Declare a new label.
-
-Argument [name]  can be  used to force  the name  of the label  in the
-LaTeX file. This can  be useful if you need to refer  to this label in
-an external LaTeX  file or if the label itself  is declared in another
-LaTeX file. The default value of [name] is ["latex_lib_label_n"] where
-[n] is a counter. *)
-
-val ref_: label -> t
-  (** Make a reference to the label. *)
-
-(** {2 Printing} *)
-
-(** All printing functions take the expected mode as a parameter
-(default is text). The printed expression will be coerced if its mode differs. *)
-
-val to_buffer: ?mode: mode -> Buffer.t -> t -> unit
-val to_channel: ?mode: mode -> out_channel -> t -> unit
-val to_file: ?mode: mode -> string -> t -> unit
-val to_string: ?mode: mode -> t -> string
-
 (** {2 LaTeX Pervasives} *)
-
-(** {3 Document} *)
-
-type documentclass = [ `Article | `Report | `Book | `Letter | `Slides | `Beamer ]
-type documentoptions = [ `Landscape | `A4paper ]
-
-val document: ?documentclass: documentclass -> ?options: documentoptions list ->
-  ?title: t -> ?author: t -> ?date: t -> ?prelude: t ->
-  ?packages: (t * t) list -> t -> t
-(** The [~packages] argument takes a list of [(name, opt)] where [name] is the
-name of the package and [opt] is its option. This is equivalent to
-using several calls to [usepackage] in the [~prelude]. *)
-
-(** {3 Basic Commands} *)
 
 type size = [
 | `In of float
@@ -183,6 +85,53 @@ type size = [
 
 - [`Fill]: rubber length; take as much space as possible
 *)
+
+(** {3 Document} *)
+
+type documentclass = [ `Article | `Report | `Book | `Letter | `Slides | `Beamer ]
+type documentoptions = [ `Landscape | `A4paper ]
+
+val document:
+  ?documentclass: documentclass ->
+  ?options: documentoptions list ->
+  ?title: t ->
+  ?author: t ->
+  ?date: t ->
+  ?prelude: t ->
+  ?packages: (t * t) list -> t -> t
+(** The [~packages] argument takes a list of [(name, opt)] where [name] is the
+name of the package and [opt] is its option. This is equivalent to
+using several calls to [usepackage] in the [~prelude]. *)
+
+(** {3 References and Labels} *)
+
+(** Example (using the Melt pre-processor):
+
+[let lbl_intro = label ()]
+
+[let intro = section ~label: lbl_intro "This is Sect.~{ref_ lbl_intro}."] *)
+
+type label
+
+val label: ?name: string -> unit -> label
+  (** Declare a new label.
+
+Argument [name]  can be  used to force  the name  of the label  in the
+LaTeX file. This can  be useful if you need to refer  to this label in
+an external LaTeX  file or if the label itself  is declared in another
+LaTeX file. The default value of [name] is ["latex_lib_label_n"] where
+[n] is a counter. *)
+
+val ref_: label -> t
+  (** Make a reference to the label. *)
+
+(** {3 Miscellaneous Commands} *)
+
+val index: t -> t -> t
+  (** [index x y] produces [{x}_{y}] *)
+
+val exponent: t -> t -> t
+  (** [index x y] produces [{x}^{y}] *)
 
 val tableofcontents: t
 val listoffigures: t
@@ -547,37 +496,6 @@ val rrbracket: t
 
 val slide: t -> t
 
-(** {3 Low-Level LaTeX} *)
-
-val usepackage: ?opt: t -> t -> t
-  (** You can use this in the [~prelude] of your [document], but it is better
-to use the [~packages] argument of [document]. Note that some commandes
-add their own packages to the document automatically. *)
-
-val input: t -> t
-  (** Include a LaTeX file. Usually you'd prefer to open an OCaml module,
-but this can be useful if you have a [.tex] file with macros that you want
-to reuse. *)
-
-val newcommand: int -> t -> t -> t
-(** [newcommand parameter_count name body] defines a new command with
-[parameter_count] arguments, where you can use the [i]th argument by writing
-[#i] in the body, just as in Latex. Normally you'd prefer to just define
-an OCaml value with [let]. *)
-
-val renewcommand: int -> t -> t -> t
-(** Same as [newcommand] except that it can redefine existing LaTeX commands. *)
-
-val block: t -> t
-  (** [block x] produces [{x}]. Should only be used in some rare cases when
-you want to be very precise about what LaTeX should do. *)
-
-val index: t -> t -> t
-  (** [index x y] produces [{x}_{y}] *)
-
-val exponent: t -> t -> t
-  (** [index x y] produces [{x}^{y}] *)
-
 (** {3 Beamer Document Class} *)
 
 module Beamer: sig
@@ -681,3 +599,92 @@ new lines at the end. *)
   val split_lines: string -> string list
     (** Split a string according to the ['\n'] delimiter, which is not kept. *)
 end
+
+(** {2 Low-Level LaTeX} *)
+
+(** LaTeX mode: math, text or any. *)
+type mode = M | T | A
+
+(** {3 Constructors} *)
+
+(** Raw LaTeX. *)
+val text: string -> t
+
+(** Concatenation. *)
+val concat: t list -> t
+
+(** Infix Concatenation. *)
+val (^^): t -> t -> t
+
+(** LaTeX Command. *)
+val command: ?packages: (string * string) list -> string -> ?opt: (mode * t) ->
+  (mode * t) list -> mode -> t
+(** [command name args mode] produces the LaTeX command [name] applied to
+arguments [args].
+
+The command should be used in mode [mode]. For exemple,
+the [ensuremath] LaTeX command should be used in math mode. The command will
+be coerced using [mbox] or [$ ... $] if [mode] differs from the mode it is
+used in.
+
+The [opt] optional parameter may be used to provide an optional parameter
+(in brackets [[]]) to the LaTeX command.
+
+Arguments [opt] and [args] must be given with their expected mode and will
+be coerced if needed. For example, the [mbox] command expect an argument in
+text mode (the argument must be coerced using [$ ... $] if it is math).
+The [ensuremath] command expects an argument in any mode.
+
+All packages [(name, opt)] given using [packages] will automatically be used by
+[document]. *)
+
+(** LaTeX Environment. *)
+val environment: ?packages: (string * string) list -> string ->
+  ?opt: (mode * t) -> ?args: (mode * t) list -> (mode * t) -> mode -> t
+(** Same as function [command], except that it only takes one argument
+(the environment body) and produces an environment, i.e. using the
+[begin] and [end] commands. The [args] parameters may be used to give
+additional arguments, such as the columns of an array.
+
+All packages [(name, opt)] given using [packages] will automatically be used by
+[document]. *)
+
+(** Ensure text or math mode. *)
+val mode: mode -> t -> t
+(** [mode m x] returns [x] if its mode is already [m]. If its mode is not [m],
+the result is [x] coerced using [mbox] or [$ ... $]. *)
+
+(** {3 Miscellaneous} *)
+
+val usepackage: ?opt: t -> t -> t
+  (** You can use this in the [~prelude] of your [document], but it is better
+to use the [~packages] argument of [document]. Note that some commandes
+add their own packages to the document automatically. *)
+
+val input: t -> t
+  (** Include a LaTeX file. Usually you'd prefer to open an OCaml module,
+but this can be useful if you have a [.tex] file with macros that you want
+to reuse. *)
+
+val newcommand: int -> t -> t -> t
+(** [newcommand parameter_count name body] defines a new command with
+[parameter_count] arguments, where you can use the [i]th argument by writing
+[#i] in the body, just as in Latex. Normally you'd prefer to just define
+an OCaml value with [let]. *)
+
+val renewcommand: int -> t -> t -> t
+(** Same as [newcommand] except that it can redefine existing LaTeX commands. *)
+
+val block: t -> t
+  (** [block x] produces [{x}]. Should only be used in some rare cases when
+you want to be very precise about what LaTeX should do. *)
+
+(** {2 Printing} *)
+
+(** All printing functions take the expected mode as a parameter
+(default is text). The printed expression will be coerced if its mode differs. *)
+
+val to_buffer: ?mode: mode -> Buffer.t -> t -> unit
+val to_channel: ?mode: mode -> out_channel -> t -> unit
+val to_file: ?mode: mode -> string -> t -> unit
+val to_string: ?mode: mode -> t -> string
