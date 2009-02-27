@@ -547,6 +547,13 @@ at the bottom. If [pre] or [post] is empty, the bar is not drawn.
     @param vdots raise the rule and draw vertical dots ; the length argument
 is translated to a number of line-skips *)
 
+(** {4 Saint Mary Road} *)
+
+(** The package ["stmaryrd"] is automatically added by these commands. *)
+
+val llbracket: t
+val rrbracket: t
+
 (** {3 Slide Document Class} *)
 
 val slide: t -> t

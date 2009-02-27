@@ -36,6 +36,7 @@ Latex and Melt library (smaller features):
 - Verbatim.split_lines
 - listoffigures, listoftables
 - many more font size commands
+- llbracket, rrbracket (package stmaryrd)
 
 Version 1.0.1
 =============

@@ -872,6 +872,13 @@ let inferrule ?lab ?left ?right ?vdots ?width ?leftskip ?rightskip lx ly =
 
 (*******************************************************************************)
 
+let cmd_stmaryrd = command ~packages: ["stmaryrd", ""]
+
+let llbracket = cmd_stmaryrd "llbracket" [] M
+let rrbracket = cmd_stmaryrd "rrbracket" [] M
+
+(*******************************************************************************)
+
 let slide x =
   environment "slide" (T, x) T
 
