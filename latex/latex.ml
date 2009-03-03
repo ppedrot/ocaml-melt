@@ -511,6 +511,7 @@ let newline = text "\\\\\n"
 let newline_size x = text (Printf.sprintf "\\\\[%s]\n" (string_of_size x))
 
 let newpage = command "newpage" [] T
+let clearpage = command "clearpage" [] T
 
 let newlinegen = function
   | None -> newline

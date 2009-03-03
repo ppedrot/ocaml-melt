@@ -61,3 +61,8 @@ the current directory, adding -I toto to the Ocamlbuild command?
 * better array (without array_line?), tabular
 
 * easier local "let"s
+
+* colors: move Beamer.color outside and complete it
+(see http://www.commentcamarche.net/contents/latex/latex-mise-en-forme.php3)
+
+* check the hfill size; what is the difference with the hfill command?

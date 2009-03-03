@@ -149,8 +149,14 @@ val latex_of_int: int -> t
 val itemize: t list -> t
 val enumerate: t list -> t
 val newline: t
+  (** Start a new line. *)
 val newline_size: size -> t
+  (** A newline followed by a vertical space. *)
 val newpage: t
+  (** Start a new page. *)
+val clearpage: t
+  (** Same as [newpage], but also force figures and tables floating in the
+current page to be printed. *)
 val noindent: t
 val quad: t
 val includegraphics: t -> t
