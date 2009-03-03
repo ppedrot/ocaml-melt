@@ -1029,7 +1029,7 @@ module Verbatim = struct
       | [] -> id
       | indexes ->
           let indexes = List.map identifier_nosplit indexes in
-          index id (concat (list_insert (text ",") indexes))
+          index id (scriptsize (concat (list_insert (text ",") indexes)))
     in
     let s = trim s in
     let ident_regexp =
