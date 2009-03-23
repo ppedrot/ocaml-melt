@@ -66,3 +66,5 @@ the current directory, adding -I toto to the Ocamlbuild command?
 (see http://www.commentcamarche.net/contents/latex/latex-mise-en-forme.php3)
 
 * check the hfill size; what is the difference with the hfill command?
+
+* bug: {index rightarrow "<%R%>"} becomes $\rightarrow_$

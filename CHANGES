@@ -38,6 +38,7 @@ Latex and Melt library (smaller features):
 - listoffigures, listoftables
 - many more font size commands
 - llbracket, rrbracket (package stmaryrd)
+- box_
 
 Version 1.0.1
 =============

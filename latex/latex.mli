@@ -432,6 +432,10 @@ val leadsto: t (** latexsym package *)
 
 (** {4 Symbols to be Sorted (Stay Tuned)} *)
 
+val box_: t
+  (** A square box, for instance to end proofs (QED).
+      Adds package [latexsym]. *)
+
 val langle: t
 val rangle: t
 val lceil: t

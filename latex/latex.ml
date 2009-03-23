@@ -589,6 +589,8 @@ let stackrel x y = command "stackrel" [M, x; M, y] M
 
 (*******************************************************************************)
 
+let box_ = command ~packages: [ "latexsym", "" ] "Box" [] M
+
 let langle = command "langle" [] M
 let rangle = command "rangle" [] M
 let lceil = command "lceil" [] M
