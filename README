@@ -36,8 +36,8 @@ Pre-requisites
 ==============
 
 You  need the  OCaml compiler.   Version  3.09 is  enough, maybe  some
-previous versions will work too. Version 3.10 is needed if you want to
-compile using  Ocamlbuild.  Version 3.11 is  needed if you  want to be
+previous versions will work too.  Version 3.10.2 is needed if you want
+to compile using Ocamlbuild.  Version 3.11 is needed if you want to be
 able to use native plugins for the Melt Preprocessor.
 
 To compile Melt documents you need a LaTeX distribution.
@@ -54,8 +54,8 @@ compile your Melt documents using  the -no-mlpost option. If you later
 install Mlpost and want to use it with Melt you will have to recompile
 Melt.
 
-Quick install (OCaml 3.10 or more)
-==================================
+Quick install (OCaml 3.10.2 or more)
+====================================
 
 make
 make install
