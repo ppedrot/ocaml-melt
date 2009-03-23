@@ -9,7 +9,7 @@ Configuration:
 Melt tool:
 - -classic-display option
 - Added the latop tool to parse LaTeX output and re-print it prettier and with
-less trash
+less trash (for now it is more or less deactivated though)
 
 Preprocessor:
 - \" in comments become " to stop the OCaml compiler from complaining about
