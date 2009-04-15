@@ -68,3 +68,5 @@ the current directory, adding -I toto to the Ocamlbuild command?
 * check the hfill size; what is the difference with the hfill command?
 
 * bug: {index rightarrow "<%R%>"} becomes $\rightarrow_$
+
+* configuration: look in /usr/local too

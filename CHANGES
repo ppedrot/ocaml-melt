@@ -1,5 +1,12 @@
 Changes that may break existing programs are marked using a star *.
 
+Version 1.2.0
+=============
+
+Melt tool
+- Add -latex file.tex option to Mlpost to compute prelude, if the tex file
+already exists.
+
 Version 1.1.0
 =============
 

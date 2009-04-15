@@ -165,8 +165,15 @@ let ml_to_tex f =
         ^ "\""
   in
   let classicdisplayo = if !classic_display then " -classic-display" else "" in
+  let mlpost_preludeo =
+    let prelude_file = bf ^ ".tex" in
+    if Sys.file_exists prelude_file then
+      " -latex " ^ prelude_file
+    else ""
+  in
   if !mlpost then
-    cmd "mlpost -v%s%s%s%s%s%s%s%s%s%s %s"
+    cmd "mlpost -v%s%s%s%s%s%s%s%s%s%s%s %s"
+      mlpost_preludeo
       classicdisplayo
       mlpost_includes
       pdfo pdfeo ocamlbuildo nativeo
