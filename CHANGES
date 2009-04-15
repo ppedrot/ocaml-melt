@@ -7,6 +7,9 @@ Melt tool
 - Add -latex file.tex option to Mlpost to compute prelude, if the tex file
 already exists.
 
+Latex library:
+- phantom, vphantom, hphantom
+
 Version 1.1.0
 =============
 
@@ -25,7 +28,7 @@ a string litteral not terminated in a comment.
 - Errors are now printed as "Melt parse error" instead of just "Parse error"
 - Underscores (_) are now accepted in verbatim function names
 
-Latex and Melt library:
+Latex and Melt libraries:
 - Latex.Verbatim.pseudocode (and Melt.Verbatim.pseudocode)
 * Bugfix: ~packages argument of commands and environment are now taken into
 account even if the command is used deep inside the AST
@@ -33,7 +36,7 @@ account even if the command is used deep inside the AST
 - Latex.size type enhanced with more sizes
 - Reorganized the interface and its documentation
 
-Latex and Melt library (smaller features):
+Latex and Melt libraries (smaller features):
 * inferrule_ replaced by inferrule, which has many new options
 - parbox, minipage, center
 - hspace

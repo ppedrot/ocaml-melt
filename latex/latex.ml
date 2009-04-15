@@ -581,6 +581,10 @@ let medskip = command "medskip" [] T
 let bigskip = command "bigskip" [] T
 let nointerlineskip = command "nointerlineskip" [] T
 
+let phantom x = command "phantom" [T, x] T
+let vphantom x = command "vphantom" [T, x] T
+let hphantom x = command "hphantom" [T, x] T
+
 let parbox x y = command "parbox" [A, latex_of_size x; T, y] T
 
 let noindent = command "noindent" [] T

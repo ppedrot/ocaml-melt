@@ -188,6 +188,11 @@ val medskip: t (** A medium [vspace]. *)
 val bigskip: t (** A big [vspace]. *)
 val nointerlineskip: t (** Delete the interline vertical space. *)
 
+val phantom: t -> t
+  (** Take the space of the argument without actually drawing it *)
+val vphantom: t -> t (** Vertical-only phantom *)
+val hphantom: t -> t (** Horizontal-only phantom *)
+
 val parbox: size -> t -> t
   (** A box in which new lines and paragraphs may be used. Useful to display
       code listings, for instance. *)
