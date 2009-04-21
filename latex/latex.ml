@@ -832,7 +832,7 @@ let nearrow = command "nearrow" [] M
 let searrow = command "searrow" [] M
 let swarrow = command "swarrow" [] M
 let nwarrow = command "nwarrow" [] M
-let leadsto = command "leadsto" [] M
+let leadsto = command ~packages: ["latexsym", ""] "leadsto" [] M
 
 (*******************************************************************************)
 

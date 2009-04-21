@@ -433,7 +433,7 @@ val nearrow: t (** North-East arrow *)
 val searrow: t (** South-East arrow *)
 val swarrow: t (** South-West arrow *)
 val nwarrow: t (** North-West arrow *)
-val leadsto: t (** latexsym package *)
+val leadsto: t (** ~> (latexsym package) *)
 
 (** {4 Symbols to be Sorted (Stay Tuned)} *)
 
