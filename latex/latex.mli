@@ -468,6 +468,8 @@ type delimiter = [ `None | `Brace | `Paren | `Vert | `Bracket ]
 val left: delimiter -> t
 val right: delimiter -> t
 
+val oe: t (** French e in o as in "coeur", "noeud"... *)
+
 (** {4 AMS} *)
 
 val mathbb: t -> t

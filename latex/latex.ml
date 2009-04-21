@@ -638,6 +638,8 @@ let right d =
   in
   command (sprintf "right%s" ds) [] M
 
+let oe = command "oe" [] T
+
 (*******************************************************************************)
 
 let hat x = command "hat" [M, x] M
