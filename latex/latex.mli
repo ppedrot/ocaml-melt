@@ -137,6 +137,7 @@ val tableofcontents: t
 val listoffigures: t
 val listoftables: t
 
+val chapter: ?label: label -> t -> t
 val section: ?label: label -> t -> t
 val subsection: ?label: label -> t -> t
 val subsubsection: ?label: label -> t -> t

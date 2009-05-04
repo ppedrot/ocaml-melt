@@ -448,6 +448,9 @@ let block x = match none_if_empty x with
 let index x y = mode M (block x ^^ text "_" ^^ block y)
 let exponent x y = mode M (block x ^^ text "^" ^^ block y)
 
+let chapter ?label title =
+  command "chapter" [T, title] T ^^ labelo label
+
 let section ?label title =
   command "section" [T, title] T ^^ labelo label
 
