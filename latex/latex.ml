@@ -498,7 +498,7 @@ let tableofcontents = command "tableofcontents" [] T
 let listoffigures = command "listoffigures" [] T
 let listoftables = command "listoftables" [] T
 
-type array_column = [ `L | `C | `R ]
+type array_column = [ `L | `C | `R | `Vert | `Sep of t]
 
 type array_line = {
   al_columns: t list;
@@ -520,7 +520,9 @@ let newlinegen = function
   | None -> newline
   | Some x -> newline_size x
 
+let space = command " " [] A
 let quad = command "quad" [] M
+let qquad = command "qquad" [] M
 
 let includegraphics filename = command "includegraphics" [ T, filename ] T
 
@@ -552,20 +554,23 @@ let minipage size x =
 let center x = environment "center" (T, x) T
 
 let array c l =
-  let cols = String.concat "" begin List.map begin function
-    | `L -> "l"
-    | `C -> "c"
-    | `R -> "r"
+  let cols = concat begin List.map begin function
+    | `L -> text "l"
+    | `C -> text "c"
+    | `R -> text "r"
+    | `Vert -> text "|"
+    | `Sep t -> concat [ text "@" ; block t ] 
   end c end in
+  let numcols = List.length (List.filter (function `L | `C | `R -> true | _ -> false) c) in
   let lines = List.map begin fun al ->
     let lc = al.al_columns in
-    if List.length lc <> List.length c then
+    if List.length lc <> numcols then
       failwith (sprintf "array: line with %d columns instead of %d"
                   (List.length lc) (List.length c));
     concat (list_insert (text " & ") lc) ^^ newlinegen al.al_sep
   end l in
   let body = concat lines (*(list_insert newline lines)*) in
-  environment "array" ~args: [M, text cols] (M, body) M
+  environment "array" ~args: [M, cols] (M, body) M
 
 let list_env l name = 
 (*  let items = List.map ((^^) (command "item" [] T)) l in*)

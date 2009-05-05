@@ -159,7 +159,10 @@ val clearpage: t
   (** Same as [newpage], but also force figures and tables floating in the
 current page to be printed. *)
 val noindent: t
+val space : t
+  (** Forces a space, same as "\ " in LaTeX *)
 val quad: t
+val qquad : t
 val includegraphics: t -> t
 val symbol: int -> t
 val symbolc: char -> t
@@ -198,7 +201,7 @@ val parbox: size -> t -> t
   (** A box in which new lines and paragraphs may be used. Useful to display
       code listings, for instance. *)
 
-type array_column = [ `L | `C | `R ]
+type array_column = [ `L | `C | `R | `Vert | `Sep of t ]
 type array_line
 
 val array: array_column list -> array_line list -> t
