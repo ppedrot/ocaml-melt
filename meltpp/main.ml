@@ -39,18 +39,67 @@ let dir = ref ""
 
 let meltpp_verbatim_default_name = "meltpp_verbatim_default"
 
-let locate_error (b, e) x =
-  let buf = Buffer.create 42 in
-  kfprintf
-    (fun buffmt ->
-       fprintf buffmt "@?";
-       fprintf std_formatter
-         "File \"%s%s\", line %d, characters %d-%d:@\n%s@."
-         !dir
-         b.pos_fname b.pos_lnum (b.pos_cnum - b.pos_bol)
-         (e.pos_cnum - b.pos_bol) (Buffer.contents buf);
-       exit 1)
-    (formatter_of_buffer buf) x
+let error  =
+  (* Let's call "commands" expressions of type 
+      [Format.formatter -> (Format.formatter -> 'k) ->'k],
+      with the intention that a command prints something 
+      into the formatter and then gives it to its continuation.
+      Commands can be given a monoid structure which we 
+      write [(<:>)] , [unit] (the definitions are much in the spirit
+      of the continuation monad in Haskell). With [a<:>b] 
+      executing [a] first, then [b], then its continuation and
+      [unit] doing nothing and executes its continuation.
+  *)
+  let (<:>) a b k fmt = a (fun fmt' -> b k fmt') fmt in
+  let unit k fmt = k fmt in
+  (* [flush fmt] executes [cmd] on the formatter [fmt] then flushes
+      [fmt]. *)
+  let flush fmt cmd = cmd (fun fmt' -> fprintf fmt' "@.") fmt  in
+  (* We use continuation passing style to change the order in which 
+      arguments are needed by fprintf.
+      The cost is that we have to indirect through a string which means
+      we lose some of the abilities of format strings. *)
+  let print_gen k m =
+    let buf = Buffer.create 42 in
+    kfprintf (fun buffmt -> 
+		fprintf buffmt "@?";
+		k (Buffer.contents buf))
+      (formatter_of_buffer buf) m
+  in
+  let print m =
+    print_gen (fun s k fmt -> kfprintf k fmt "%s" s) m
+  in
+  let print_loc (b,e) =
+    print "File \"%s%s\", line %d, characters %d-%d:" 
+      !dir b.pos_fname 
+      b.pos_lnum (b.pos_cnum - b.pos_bol)
+      (e.pos_cnum - b.pos_bol)
+  in
+  let print_msg loc m = 
+    print_loc loc <:> print "@\n" <:> print "%s" m <:> print "@\n"
+  in
+  let string_mode = function
+    | C -> "Code mode"
+    | M -> "Math mode"
+    | T -> "Text mode"
+    | V None -> "Verbatim mode"
+    | V (Some name) -> sprintf "Verbatim mode (%s)" name
+  in
+  let print_mode_line (m,lc) =
+    print_loc lc <:> print "@,"<:>print "%s opened and pending@," (string_mode m)
+  in
+  let print_mode_stack ms =
+    List.fold_left (<:>) unit (List.map print_mode_line ms)
+  in
+  let print_err_msg_and_exit lc stk x =
+    flush std_formatter (print_msg lc x <:> 
+			              print "@[<v>" <:> 
+				        print_mode_stack stk <:> 
+			              print "@]");
+    exit 1
+  in
+  fun lc stk m ->
+    print_gen (print_err_msg_and_exit lc stk) m
 
 let parse_file f =
   let ic = open_in f in
@@ -58,8 +107,8 @@ let parse_file f =
   l.lex_curr_p <- { l.lex_curr_p with pos_fname = f };
   try
     file token l
-  with Lexer.Lexical_error(loc, s) ->
-    locate_error loc "Melt parse error: %s" s
+  with Lexer.Lexical_error(loc, stk, s) ->
+    error loc stk "Melt parse error: %s" s
 
 let rec interp code = function
   | String s ->

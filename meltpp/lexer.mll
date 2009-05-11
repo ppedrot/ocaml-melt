@@ -32,17 +32,7 @@
   open Parser
   open Lexing
 
-  exception Lexical_error of (Lexing.position * Lexing.position) * string
 
-  let loc lexbuf = (lexeme_start_p lexbuf, lexeme_end_p lexbuf)
-
-  let lex_error lexbuf s =
-    Printf.ksprintf (fun s -> raise (Lexical_error(loc lexbuf, s))) s
-
-  let newline lexbuf =
-    let pos = lexbuf.lex_curr_p in
-    lexbuf.lex_curr_p <- 
-      { pos with pos_lnum = pos.pos_lnum + 1; pos_bol = pos.pos_cnum }
 
   type mode =
     | C
@@ -50,15 +40,34 @@
     | T
     | V of string option
 
-  let get_mode, begin_mode, end_mode, reset_mode, top_level =
-    let mode = ref [C] in
+  exception Lexical_error of (Lexing.position * Lexing.position) * 
+                                             (* offending position *)
+                                             (mode * (Lexing.position * Lexing.position)) list *
+					     (* stack of open modes *)
+					     string
+					     (* further explanation *)
+
+  let loc lexbuf = (lexeme_start_p lexbuf, lexeme_end_p lexbuf)
+
+  let lex_error lexbuf stack s =
+    Printf.ksprintf (fun s -> raise (Lexical_error(loc lexbuf, stack, s))) s
+
+  let newline lexbuf =
+    let pos = lexbuf.lex_curr_p in
+    lexbuf.lex_curr_p <- 
+      { pos with pos_lnum = pos.pos_lnum + 1; pos_bol = pos.pos_cnum }
+
+  let get_stack,get_mode, begin_mode, end_mode, reset_mode, top_level =
+    let mode = ref [] in
+    (* get stack is for use in [lex_error] *)
+    begin fun () -> !mode end,
     begin fun () ->
       match !mode with
-        | m::_ -> m
-        | [] -> assert false
+        | (m,_)::_ -> m
+        | [] -> C
     end,
-    begin fun m ->
-      mode := m :: !mode;
+    begin fun m lexbuf ->
+      mode := (m , loc lexbuf) :: !mode;
       match m with
         | C -> CODE_BEGIN
         | M -> MATH_BEGIN
@@ -67,7 +76,7 @@
     end,
     begin fun lexbuf ->
       match !mode with
-        | m::((_::_) as rem) ->
+        | (m,_)::rem ->
             mode := rem;
             begin match m with
               | C -> CODE_END
@@ -75,15 +84,19 @@
               | T -> TEXT_END
               | V _ -> VERB_END
             end
-        | [_] -> lex_error lexbuf "mismatched mode delimiter"
-        | [] -> assert false
+        | [] -> lex_error lexbuf !mode "mismatched mode delimiter"
     end,
     begin fun () ->
-      mode := [C]
+      mode := []
     end,
     begin fun () ->
-      !mode = [C]
+      !mode = []
     end
+
+  (* should be defined inside the tuple, but we're facing the value restriction
+      here, and it so happens that [lex_error] must have arbitrary return type,
+      thus the convoluted workaround. *)
+  let lex_error lexbuf s = lex_error lexbuf (get_stack ()) s
 
   let verb_buf = Buffer.create 16
 
@@ -130,9 +143,9 @@ let ident = alpha (alpha_num | '_')*
 rule code = parse
   | "##" { pragma lexbuf }
 
-  | '"' { begin_mode T }
-  | '$' { begin_mode M }
-  | '{' { begin_mode C }
+  | '"' { begin_mode T lexbuf }
+  | '$' { begin_mode M lexbuf }
+  | '{' { begin_mode C lexbuf }
   | '}' { end_mode lexbuf }
   | '\n' { newline lexbuf; STRING "\n" }
 
@@ -177,8 +190,8 @@ and comment = parse
   | eof { lex_error lexbuf "unexpected end of file in comment" }
 
 and math = parse
-  | '"' { begin_mode T }
-  | '{' { begin_mode C }
+  | '"' { begin_mode T lexbuf }
+  | '{' { begin_mode C lexbuf }
   | '$' { end_mode lexbuf }
   | '\n' { newline lexbuf; STRING "\n" }
 
@@ -198,13 +211,13 @@ and math = parse
   | eof { lex_error lexbuf "unexpected end of file in math mode" }
 
 and text = parse
-  | '$' { begin_mode M }
-  | '{' { begin_mode C }
+  | '$' { begin_mode M lexbuf }
+  | '{' { begin_mode C lexbuf }
   | '"' { end_mode lexbuf }
   | "<:" (['a'-'z' 'A'-'Z' '0'-'9' '.' ' ' '_']+ as apply) ':'
-      { begin_mode (V(Some apply)) }
+      { begin_mode (V(Some apply)) lexbuf }
   | '<'
-      { begin_mode (V None) }
+      { begin_mode (V None) lexbuf }
   | '\n'+
       { let s = lexeme lexbuf in
         let l = String.length s in
@@ -234,9 +247,9 @@ and text = parse
 
 and verb = parse
   | '>' { end_mode lexbuf }
-  | '"' { begin_mode T }
-  | '$' { begin_mode M }
-  | '{' { begin_mode C }
+  | '"' { begin_mode T lexbuf }
+  | '$' { begin_mode M lexbuf }
+  | '{' { begin_mode C lexbuf }
   | '<' { verb_item '>' lexbuf }
   | (_ as c) { verb_item c lexbuf }
   | eof { lex_error lexbuf "unexpected end of file in verbatim mode" }
