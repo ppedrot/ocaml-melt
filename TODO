@@ -52,8 +52,6 @@ the current directory, adding -I toto to the Ocamlbuild command?
 
 * Prettier LaTeX pretty-printing
 
-* Better error locations, especially for "end of file in XXX mode"
-
 * pseudocode: find a way to better handle spaces and indentation
 
 * newtheorem and counters
