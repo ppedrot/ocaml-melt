@@ -44,12 +44,14 @@ let () = dispatch begin function
   | After_rules ->
       flag ["ocaml"; "doc"] (S[A "-hide-warnings"; Sh (config "OCAMLINCLUDES")]);
 
-      ocaml_lib ~extern: true "mlpost";
       ocaml_lib ~extern: true "cairo";
       ocaml_lib ~extern: true "bitstring";
+      ocaml_lib ~extern: true "mlpost";
 
       if config "MLPOSTCAIRO" = "YES" then begin
-        tag_any ["use_bigarray"; "use_bitstring"; "use_cairo"]
+        List.iter
+          (fun x -> tag_file x ["use_bigarray"; "use_bitstring"; "use_cairo"])
+          ["melt/tool.native"; "melt/tool.byte"]
       end;
 
       let mlpost_onoff = config "MLPOSTSPECIFIC" in
