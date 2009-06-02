@@ -53,6 +53,7 @@ let clean = ref false
 let melt_dir = ref "_melt"
 
 let meltpp = ref "meltpp"
+let latop = ref "latop"
 
 let classic_display = ref false
 
@@ -68,6 +69,7 @@ let add_include x = includes := x :: !includes
 let spec = Arg.align [
   "-meltpp", Arg.Set_string meltpp, "<meltpp> Specify the location of the \
 Melt pre-processor";
+  "-latop", Arg.Set_string latop, "<latop> Specify the location of latop";
   "-P", Arg.String add_plugin_include, "<dir> Look for plugins in <dir> \
 (this option is passed to the Melt pre-processor)";
   "-I", Arg.String add_include, "<dir> Look for libraries in <dir> \
@@ -225,7 +227,7 @@ let produce_final f =
   let latex =
     latex ^ " -interaction nonstopmode -file-line-error -halt-on-error"
   in
-  let latop = " | latop > /dev/null" in
+  let latop = sprintf " | %s > /dev/null" !latop in
 
   cmd "%s %s%s" latex bf latop;
   if !bibtex then begin

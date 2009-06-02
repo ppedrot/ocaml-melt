@@ -27,8 +27,9 @@ let file f =
   let cmd = sprintf
     "%s/../_build/melt/tool.byte -P %s/../_build/bench/plugs \
 -I %s/../_build/latex -I %s/../_build/melt \
+-latop %s/../_build/latop/latop.byte \
 -meltpp %s/../_build/meltpp/main.byte %s \
-2>> %s >> %s" cwd cwd cwd cwd cwd f log log in
+2>> %s >> %s" cwd cwd cwd cwd cwd cwd f log log in
   let dots = String.make (!maxlen - String.length f + 5) '.' in
   match Sys.command cmd with
     | 0 ->
