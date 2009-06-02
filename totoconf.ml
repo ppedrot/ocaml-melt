@@ -87,9 +87,12 @@ exception Exec_error of int
 let exec_line cmd args =
   let c = String.concat " " (cmd::args) in
   let tmp = Filename.temp_file "configure_exec_line" ".out" in
-  match Sys.command (c ^ " > " ^ tmp) with
-    | 0 -> input_line (open_in tmp)
-    | n -> raise (Exec_error n)
+  try
+    match Sys.command (c ^ " > " ^ tmp) with
+      | 0 -> input_line (open_in tmp)
+      | n -> raise (Exec_error n)
+  with End_of_file ->
+    ""
 
 let which file =
   try
