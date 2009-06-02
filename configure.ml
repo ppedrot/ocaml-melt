@@ -90,7 +90,7 @@ compiler version (%s)" s v ocaml_version;
                  ocaml_dir;
                ] in
                try
-                 exec_line "ocamlfind" ["query"; "mlpost"; "2> /dev/null"] :: l
+                 exec_line "ocamlfind" ["query"; pkg; "2> /dev/null"] :: l
                with Exec_error _ -> l)
     ~check: (fun s -> Sys.file_exists (Filename.concat s cm))
   in
@@ -124,6 +124,33 @@ compiler version (%s)" s v ocaml_version;
   SVar.usimple "MLPOSTSPECIFIC"
     (if mlpost then "melt/mlpost_on.ml" else "melt/mlpost_off.ml");
 
+  let mlpost_with_cairo =
+    mlpost &&
+      try ignore (exec_line "mlpost" ["-cairo"]); true
+      with Exec_error _ -> false
+  in
+  BVar.usimple "MLPOSTCAIRO" mlpost_with_cairo;
+
+  let cm_dir_if_mlpost_with_cairo pkg cm name var =
+    if mlpost_with_cairo then
+      cm_dir pkg cm
+        ~query: (name^" library directory")
+        ~fail: (fun () -> warning "%s not found" name; "")
+        var
+    else
+      cm_dir pkg cm ~fail: (fun () -> "") var
+  in
+
+  let bitstring_cm_dir =
+    cm_dir_if_mlpost_with_cairo
+      "bitstring" "bitstring.cma" "Bitstring" "BITSTRINGLIBDIR"
+  in
+
+  let cairo_cm_dir =
+    cm_dir_if_mlpost_with_cairo
+      "cairo" "cairo.cma" "Cairo" "CAIROLIBDIR"
+  in
+
   SVar.umake
     ~query: "Install directory (tool binaries)"
     ~guess: (fun () -> ["/usr/local/bin"])
@@ -141,8 +168,15 @@ compiler version (%s)" s v ocaml_version;
   in
 
   let ocaml_includes =
-    let includes = if mlpost then [!!mlpost_cm_dir] else [] in
-    SVar.simple "OCAMLINCLUDES" (ocaml_includes includes) in
+    let includes =
+      if mlpost then [
+        !!mlpost_cm_dir;
+        !!bitstring_cm_dir;
+        !!cairo_cm_dir
+      ] else []
+    in
+    SVar.simple "OCAMLINCLUDES" (ocaml_includes includes)
+  in
 
   let ocamlbuild_flags l =
     let l = String.concat " " l in

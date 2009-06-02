@@ -45,6 +45,12 @@ let () = dispatch begin function
       flag ["ocaml"; "doc"] (S[A "-hide-warnings"; Sh (config "OCAMLINCLUDES")]);
 
       ocaml_lib ~extern: true "mlpost";
+      ocaml_lib ~extern: true "cairo";
+      ocaml_lib ~extern: true "bitstring";
+
+      if config "MLPOSTCAIRO" = "YES" then begin
+        tag_any ["use_bigarray"; "use_bitstring"; "use_cairo"]
+      end;
 
       let mlpost_onoff = config "MLPOSTSPECIFIC" in
       let mlpost_specific = "melt/mlpost_specific.ml" in

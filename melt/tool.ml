@@ -120,6 +120,15 @@ let cmd x = ksprintf begin fun s ->
     if code <> 0 && not !continue then exit code
 end x
 
+let mlpost_version = ref ""
+
+let check_mlpost_version () =
+  try
+    mlpost_version := Totoconf.exec_line "mlpost" ["-version"]
+  with
+    | Totoconf.Exec_error _ ->
+        ()
+
 let melt_to_ml f =
   let o = Filename.chop_extension f ^ ".ml" in
   cmd "%s%s -dir \"../\" -open Latex -open Melt %s -o %s" !meltpp
@@ -134,7 +143,13 @@ let libopt lib =
 
 let ml_to_tex f =
   let bf = Filename.chop_extension f in
-  let pdfo = if !pdf then " -pdf" else "" in
+  let pdfo =
+    if !pdf then " -pdf" else
+      if Totoconf.Version.ge !mlpost_version "0.7" then
+        " -ps"
+      else
+        " -pdf"
+  in
   let pdfeo = if !pdf then " -execopt \"-pdf\"" else "" in
   let nameo = " -name " ^ bf in
   let nameeo = " -execopt \"-name " ^ bf ^ "\"" in
@@ -174,7 +189,9 @@ let ml_to_tex f =
   if !mlpost then
     cmd "mlpost -v%s%s%s%s%s%s%s%s%s%s%s %s"
       mlpost_preludeo
-      classicdisplayo
+      (if Totoconf.Version.ge !mlpost_version "0.7" then
+         classicdisplayo
+       else "")
       mlpost_includes
       pdfo pdfeo ocamlbuildo nativeo
       strlibo latexlibo meltlibo nameeo f
@@ -265,6 +282,7 @@ let do_clean () =
 
 let () =
   Arg.parse spec anon usage;
+  check_mlpost_version ();
   meltpp_plugin_includes := begin match !plugin_includes with
     | [] -> ""
     | l -> " " ^ String.concat " " (List.map (fun x -> "-P "^x) l)

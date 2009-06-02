@@ -10,7 +10,7 @@ let _ = emit begin document
     ~packages: ["graphicx", ""]
     "Small test of Mlpost inclusion:
 {mlpost
-  (draw (
+  (Tree.draw (
      bin ~ls: (cm 1.5) ~cs: (cm 0.6)
        (pic (latex "Cou{alpha}cou"))
        (leaf (pic (latex "Arf")))
