@@ -44,8 +44,9 @@ let anon_fun x = raise (Arg.Bad (x^": unknown option"))
 let usage_msg =
   let name =
     let name = Filename.basename Sys.executable_name in
-    if String.sub (String.lowercase name) 0 5 = "ocaml" then
-      "configure.ml"
+    if String.length name >= 5 &&
+      String.sub (String.lowercase name) 0 5 = "ocaml" then
+        "configure.ml"
     else name
   in
   sprintf "Usage: ocaml %s [options]" name
