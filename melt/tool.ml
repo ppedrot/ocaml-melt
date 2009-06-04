@@ -87,6 +87,7 @@ Melt pre-processor";
   "-byte", Arg.Clear native, " Compile to bytecode instead of native code";
 
   "-dvi", Arg.Set dvi, " Produce a DVI instead of a PS";
+  "-ps", Arg.Clear pdf, " Produce a PS file (this is the default behavior)";
   "-pdf", Arg.Set pdf, " Produce a PDF instead of a PS";
   "-cairo", Arg.Set pdf, " Use the Cairo backend of Mlpost";
   "-quiet", Arg.Set quiet, " Be quiet";
