@@ -52,6 +52,16 @@ chosen.  This default name is [base.melt.figureN.ext], where [base] is
 the executable base name (can  be overriden with the [-name] option on
 the  command line),  [N] is  the figure  index and  [ext] is  [mps] if
 [~pdf] is [true] or [1] otherwise. *)
+
+  module Beamer :
+    sig
+      include Latex.BEAMER
+
+      val mlpost: ?only: Latex.Beamer.overlays_spec list -> 
+        ?mode: Melt_common.mode ->
+        ?file: string -> Mlpost.Command.t -> Latex.t
+
+    end
 end
 
 let compiled_with_mlpost = true
@@ -60,7 +70,7 @@ open Melt_common
 
 let latex l = Mlpost.Picture.tex (Latex.to_string l)
 
-let mlpost ?(mode = mode) ?file f =
+let mlpost_gen includegraphics ?(mode = mode) ?file f =
   let file = match file with
     | None -> next_name ()
     | Some file -> file
@@ -71,4 +81,13 @@ let mlpost ?(mode = mode) ?file f =
     | Cairo -> ".pdf"
   in
   Mlpost.Metapost.emit file f;
-  Latex.includegraphics (Latex.text (file ^ ext))
+  includegraphics (Latex.text (file ^ ext))
+
+let mlpost = mlpost_gen Latex.includegraphics
+
+module Beamer =
+struct
+  include Latex.Beamer
+
+  let mlpost ?only = mlpost_gen (fun x -> Latex.Beamer.includegraphics ?only x)
+end

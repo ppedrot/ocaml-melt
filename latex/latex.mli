@@ -519,7 +519,7 @@ val slide: t -> t
 
 (** {3 Beamer Document Class} *)
 
-module Beamer: sig
+module type BEAMER = sig
   type beamertemplate = [ `NavigationSymbols | `Footline ]
   type tocoptions = [ `CurrentSection | `CurrentSubsection | `HideAllSubsections
   | `HideOtherSubsections | `PauseSections | `PauseSubsections ]
@@ -545,7 +545,19 @@ module Beamer: sig
   type color = [ `Gray | `Red | `Green | `Blue | `Yellow ]
 
   val color: color -> t -> t
+
+  type overlays_spec = [`I of int]
+
+  (*val command: ?packages: (string * string) list -> string -> ?only: overlays_spec list -> 
+    ?opt: (mode * t) -> (mode * t) list -> mode -> t*)
+    
+  val only: overlays_spec list -> t -> t
+
+  val includegraphics: ?only: overlays_spec list -> t -> t
+
 end
+
+module Beamer : BEAMER
 
 (** {3 Verbatim Modes} *)
 

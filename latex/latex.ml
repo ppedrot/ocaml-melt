@@ -524,7 +524,7 @@ let space = command " " [] A
 let quad = command "quad" [] M
 let qquad = command "qquad" [] M
 
-let includegraphics filename = command "includegraphics" [ T, filename ] T
+let includegraphics filename = command ~packages: ["graphicx", ""] "includegraphics" [ T, filename ] T
 
 let symbol i = command "symbol" [T, latex_of_int i] T
 let symbolc c = symbol (Char.code c)
@@ -900,6 +900,43 @@ let slide x =
   environment "slide" (T, x) T
 
 (*******************************************************************************)
+module type BEAMER = sig
+  type beamertemplate = [ `NavigationSymbols | `Footline ]
+  type tocoptions = [ `CurrentSection | `CurrentSubsection | `HideAllSubsections
+  | `HideOtherSubsections | `PauseSections | `PauseSubsections ]
+
+  val frame: ?title: t -> ?subtitle: t -> t -> t
+  val setbeamertemplate: beamertemplate -> t -> t
+
+  val insertpagenumber: t
+  val insertdocumentendpage: t
+  val inserttitle: t
+  val insertsection: t
+  val insertsubsection: t
+  val insertshorttitle: t
+  val insertshortsection: t
+  val insertshortsubsection: t
+
+  val tableofcontents: tocoptions list -> t
+  val at_begin_section: t -> t
+  val at_begin_subsection: t -> t
+  val at_begin_subsubsection: t -> t
+  val block: t -> t -> t (** [block title body] *)
+
+  type color = [ `Gray | `Red | `Green | `Blue | `Yellow ]
+
+  val color: color -> t -> t
+
+  type overlays_spec = [`I of int]
+
+  (*val command: ?packages: (string * string) list -> string -> ?only: overlays_spec list -> 
+    ?opt: (mode * t) -> (mode * t) list -> mode -> t*)
+    
+  val only: overlays_spec list -> t -> t
+
+  val includegraphics: ?only: overlays_spec list -> t -> t
+
+end
 
 module Beamer = struct
   let frame ?title ?subtitle body =
@@ -969,6 +1006,24 @@ module Beamer = struct
         ] A;
       x
     ] end
+
+  type overlays_spec = [`I of int]
+
+  let string_of_overlays_spec name = function
+    | [] -> name
+    | l -> let l = List.map (function `I i -> string_of_int i) l in
+      let s = String.concat "," l in
+      sprintf "%s<%s>" name s
+    
+
+  let command ?packages name ?(only=[]) ?opt args mode = command ?packages (string_of_overlays_spec name only) ?opt args mode
+
+    (*TODO A posibility for a command to have a result mode which depend of the mode of its argument*)
+  let only only arg = command "only" ~only [A,arg] A
+
+  let includegraphics ?only filename = command ?only "includegraphics" [ T, filename ] T
+
+
 end
 
 module Verbatim = struct
