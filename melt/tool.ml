@@ -89,7 +89,8 @@ Melt pre-processor";
   "-dvi", Arg.Set dvi, " Produce a DVI instead of a PS";
   "-ps", Arg.Clear pdf, " Produce a PS file (this is the default behavior)";
   "-pdf", Arg.Set pdf, " Produce a PDF instead of a PS";
-  "-cairo", Arg.Set pdf, " Use the Cairo backend of Mlpost";
+  "-cairo", Arg.Unit (fun () -> cairo := true; pdf := true),
+  " Use the Cairo backend of Mlpost (implies -pdf)";
   "-quiet", Arg.Set quiet, " Be quiet";
   "-q", Arg.Set quiet, " Same as -quiet";
   "-continue", Arg.Set continue, " Continue on errors";
