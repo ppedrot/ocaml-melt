@@ -3,9 +3,14 @@ Changes that may break existing programs are marked using a star *.
 Version 1.2.0
 =============
 
+- Cairo support for Mlpost 0.7
+
 Melt tool:
 - Add -latex file.tex option to Mlpost to compute prelude, if the tex file
 already exists.
+
+Melt library:
+* ?pdf argument for mlpost becomes ?mode
 
 Preprocessor:
 - Print opened and pending modes in unexpected end of file errors

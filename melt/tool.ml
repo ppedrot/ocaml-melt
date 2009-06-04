@@ -41,6 +41,7 @@ let link = ref true
 
 let dvi = ref false
 let pdf = ref false
+let cairo = ref false
 let quiet = ref false
 let continue = ref false
 let fake = ref false
@@ -87,6 +88,7 @@ Melt pre-processor";
 
   "-dvi", Arg.Set dvi, " Produce a DVI instead of a PS";
   "-pdf", Arg.Set pdf, " Produce a PDF instead of a PS";
+  "-cairo", Arg.Set pdf, " Use the Cairo backend of Mlpost";
   "-quiet", Arg.Set quiet, " Be quiet";
   "-q", Arg.Set quiet, " Same as -quiet";
   "-continue", Arg.Set continue, " Continue on errors";
@@ -195,7 +197,9 @@ let ml_to_tex f =
          classicdisplayo
        else "")
       mlpost_includes
-      pdfo pdfeo ocamlbuildo nativeo
+      pdfo
+      (if !cairo then " -cairo -execopt \"-cairo\"" else pdfeo)
+      ocamlbuildo nativeo
       strlibo latexlibo meltlibo nameeo f
   else if !ocamlbuild then
     cmd "ocamlbuild%s%s%s%s%s%s%s %s.%s --%s%s"

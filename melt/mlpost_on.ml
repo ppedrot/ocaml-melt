@@ -38,7 +38,8 @@ module type Signature = sig
   val latex: Latex.t -> Mlpost.Picture.t
 
   (** Emit a figure to use it in a LaTeX document. *)
-  val mlpost: ?pdf: bool -> ?file: string -> Mlpost.Command.t -> Latex.t
+  val mlpost: ?mode: Melt_common.mode ->
+    ?file: string -> Mlpost.Command.t -> Latex.t
   (**  The default  value  of [~pdf]  is  [true] if  the command  line
 contain  [-pdf], and  [false] otherwise.  It should  be [true]  if the
 figure will be  used in a PDF file, and  [false] otherwise. The [melt]
@@ -59,11 +60,15 @@ open Melt_common
 
 let latex l = Mlpost.Picture.tex (Latex.to_string l)
 
-let mlpost ?(pdf = pdf) ?file f =
+let mlpost ?(mode = mode) ?file f =
   let file = match file with
     | None -> next_name ()
     | Some file -> file
   in
-  let ext = if pdf then ".mps" else ".1" in
+  let ext = match mode with
+    | Pdf -> ".mps"
+    | Ps -> ".1"
+    | Cairo -> ".pdf"
+  in
   Mlpost.Metapost.emit file f;
   Latex.includegraphics (Latex.text (file ^ ext))

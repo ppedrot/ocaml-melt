@@ -31,12 +31,16 @@
 (* We don't use the Arg module in order not to force the user to handle
 the -pdf and -name options *)
 
-let pdf =
-  let b = ref false in
+type mode = Pdf | Ps | Cairo
+
+let mode =
+  let m = ref Ps in
   for i = 1 to Array.length Sys.argv - 1 do
-    if Sys.argv.(i) = "-pdf" then b := true
+    if Sys.argv.(i) = "-pdf" then m := Pdf;
+    if Sys.argv.(i) = "-ps" then m := Ps;
+    if Sys.argv.(i) = "-cairo" then m := Cairo
   done;
-  !b
+  !m
 
 let rec no_extension f =
   try
