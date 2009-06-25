@@ -1,15 +1,12 @@
 Changes that may break existing programs are marked using a star *.
 
-Version 1.2.0
-=============
+Development version
+===================
 
-- Cairo support for Mlpost 0.7
-
-Melt tool:
+Melt tool and library:
 - Add -latex file.tex option to Mlpost to compute prelude, if the tex file
 already exists.
-
-Melt library:
+- Cairo support for Mlpost 0.7
 * ?pdf argument for mlpost becomes ?mode
 
 Preprocessor:
@@ -17,6 +14,7 @@ Preprocessor:
 
 Latex library:
 - phantom, vphantom, hphantom
+- Beamer overlays
 
 Version 1.1.0
 =============

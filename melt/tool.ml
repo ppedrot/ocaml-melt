@@ -222,9 +222,10 @@ let produce_tex f =
     ml_to_tex ml
   end else if Filename.check_suffix f ".ml" then
     ml_to_tex f
-  else if not (Filename.check_suffix f ".tex") then begin
+  else if not (Filename.check_suffix f ".tex"
+               || Filename.check_suffix f ".cls") then begin
     if not !quiet then
-      Printf.printf "Warning: don't know what to do with %s.\n%!" f
+      Printf.eprintf "Warning: don't know what to do with %s.\n%!" f
   end
 
 let produce_final f =
