@@ -230,6 +230,13 @@ let produce_tex f =
 
 let produce_final f =
   let bf = Filename.chop_extension f in
+
+  let tex = bf ^ ".tex" in
+  if not (Sys.file_exists tex) then begin
+    Printf.eprintf "Error: cannot find file: \"%s\" (in the \"%s\" directory).\nMaybe the \"emit\" function has not been called on your document?\n%!" tex !melt_dir;
+    exit 2
+  end;
+
   let latex = if !pdf then "pdflatex" else "latex" in
   let latex =
     latex ^ " -interaction nonstopmode -file-line-error -halt-on-error"
