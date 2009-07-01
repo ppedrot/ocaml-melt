@@ -56,6 +56,7 @@ let melt_dir = ref "_melt"
 let meltpp = ref "meltpp"
 let latop = ref "latop"
 let mlpost_bin = ref "mlpost"
+let mlpost_no_prelude = ref false
 
 let classic_display = ref false
 
@@ -74,6 +75,8 @@ Melt pre-processor";
   "-latop", Arg.Set_string latop, "<latop> Specify the location of latop";
   "-mlpost", Arg.Set_string mlpost_bin,
   "<mlpost> Specify the location of the mlpost tool";
+  "-mlpost-no-prelude", Arg.Set mlpost_no_prelude,
+  " Do not pass a -latex option to mlpost";
   "-P", Arg.String add_plugin_include, "<dir> Look for plugins in <dir> \
 (this option is passed to the Melt pre-processor)";
   "-I", Arg.String add_include, "<dir> Look for libraries in <dir> \
@@ -190,10 +193,11 @@ let ml_to_tex f =
   in
   let classicdisplayo = if !classic_display then " -classic-display" else "" in
   let mlpost_preludeo =
-    let prelude_file = bf ^ ".tex" in
-    if Sys.file_exists prelude_file then
-      " -latex " ^ prelude_file
-    else ""
+    if !mlpost_no_prelude then "" else
+      let prelude_file = bf ^ ".tex" in
+      if Sys.file_exists prelude_file then
+        " -latex " ^ prelude_file
+      else ""
   in
   if !mlpost then
     cmd "%s -v%s%s%s%s%s%s%s%s%s%s%s %s"
