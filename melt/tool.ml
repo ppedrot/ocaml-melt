@@ -55,6 +55,7 @@ let melt_dir = ref "_melt"
 
 let meltpp = ref "meltpp"
 let latop = ref "latop"
+let mlpost_bin = ref "mlpost"
 
 let classic_display = ref false
 
@@ -71,6 +72,8 @@ let spec = Arg.align [
   "-meltpp", Arg.Set_string meltpp, "<meltpp> Specify the location of the \
 Melt pre-processor";
   "-latop", Arg.Set_string latop, "<latop> Specify the location of latop";
+  "-mlpost", Arg.Set_string mlpost_bin,
+  "<mlpost> Specify the location of the mlpost tool";
   "-P", Arg.String add_plugin_include, "<dir> Look for plugins in <dir> \
 (this option is passed to the Melt pre-processor)";
   "-I", Arg.String add_include, "<dir> Look for libraries in <dir> \
@@ -130,7 +133,7 @@ let mlpost_version = ref ""
 
 let check_mlpost_version () =
   try
-    mlpost_version := Totoconf.exec_line "mlpost" ["-version"]
+    mlpost_version := Totoconf.exec_line !mlpost_bin ["-version"]
   with
     | Totoconf.Exec_error _ ->
         ()
@@ -193,7 +196,8 @@ let ml_to_tex f =
     else ""
   in
   if !mlpost then
-    cmd "mlpost -v%s%s%s%s%s%s%s%s%s%s%s %s"
+    cmd "%s -v%s%s%s%s%s%s%s%s%s%s%s %s"
+      !mlpost_bin
       mlpost_preludeo
       (if Totoconf.Version.ge !mlpost_version "0.7" then
          classicdisplayo

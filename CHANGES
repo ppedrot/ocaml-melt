@@ -8,6 +8,7 @@ Melt tool and library:
 already exists.
 - Cairo support for Mlpost 0.7
 * ?pdf argument for mlpost becomes ?mode
+- -mlpost option
 
 Preprocessor:
 - Print opened and pending modes in unexpected end of file errors
