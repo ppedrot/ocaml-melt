@@ -17,6 +17,9 @@ Preprocessor:
 Latex library:
 - phantom, vphantom, hphantom
 - Beamer overlays
+- makebox, framebox
+- unusual_command, for weird LaTeX commands with interleaved [] and {} arguments
+or for commands with multiple optional arguments
 
 Version 1.1.0
 =============

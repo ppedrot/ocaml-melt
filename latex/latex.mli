@@ -202,7 +202,7 @@ val parbox: size -> t -> t
       code listings, for instance. *)
 
 type halignment = [ `C | `L | `R | `S ]
-  (** `C(enter), (flush)`L(eft), (flush)`R(ight) or `S(pread). *)
+  (** `C(enter), `L(eft), `R(ight) or `S(pread). *)
 
 val makebox : size -> ?halign:halignment -> t -> t
   (** A box which only deals with horizontaly aligned material. *)
@@ -683,13 +683,13 @@ type arg_kind = Bracket | Brace
 val unusual_command : ?packages: (string * string) list -> string -> 
   (mode * arg_kind * t) list -> mode -> t
 (** [unusual_command] does the same as [command], but is more low level.
-      Instead of having a single optional argument and a list of mandatory arguments,
-      it only has a list of arguments.
+      Instead of having a single optional argument and a list of mandatory
+      arguments, it only has a list of arguments.
 
-      Each argument comes not only with it's content and mode, but with an
-      "argument kind" (type [arg_kind]) specifying whether it is a brace argument
-      (corresponding to mandatory arguments in [command]) or a bracket argument
-      (corresponding, in turn, to the option argument of [command]).
+      Each argument comes not only with its content and mode, but with an
+      "argument kind" (type [arg_kind]) specifying whether it is a brace
+      argument (corresponding to mandatory arguments in [command]) or a bracket
+      argument (corresponding, in turn, to the option argument of [command]).
 
       This allows to handle commands which have several optional arguments, 
       or where optional and mandatory arguments are interleaved. *)
