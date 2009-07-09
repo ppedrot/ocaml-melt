@@ -202,7 +202,7 @@ val parbox: size -> t -> t
       code listings, for instance. *)
 
 type halignment = [ `C | `L | `R | `S ]
-  (** `C(enter), `L(eft), `R(ight) or `S(pread). *)
+  (** (`C)enter, flush (`L)eft, flush (`R)ight or (`S)pread. *)
 
 val makebox : size -> ?halign:halignment -> t -> t
   (** A box which only deals with horizontaly aligned material. *)
