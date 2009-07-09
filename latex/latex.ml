@@ -30,19 +30,44 @@
 
 open Printf
 
+
+
+module Opt = struct
+  let iter f = function
+    | Some x -> f x
+    | None -> ()
+  let map f = function
+    | Some x -> Some (f x)
+    | None -> None
+  let default d = function
+    | Some x -> x
+    | None -> d
+  let cons ox l = match ox with
+    | Some x -> x::l
+    | None -> l
+end
+
 type mode = M | T | A
+type arg_kind = Bracket | Brace
 
 type t =
-  | Command of (string * string) list * string * (mode * t) option *
-      (mode * t) list * mode
+  | Command of (string * string) list * string *
+      (mode * arg_kind * t) list * mode
   | Text of string
   | Environment of (string * string) list * string * (mode * t) option *
       (mode * t) list * (mode * t) * mode
   | Concat of t list
   | Mode of mode * t
 
-let command ?(packages = []) name ?opt args mode =
-  Command(packages, name, opt, args, mode)
+let unusual_command ?(packages = []) name args mode =
+  Command(packages, name, args, mode)
+let command ?(packages=[]) name ?opt args mode =
+    let opt = Opt.map (fun (m,t) -> (m,Bracket,t)) opt in
+    let args = List.map (fun (m,t) -> (m,Brace,t)) args in
+    let args = Opt.cons opt args in
+    unusual_command ~packages name args mode
+
+
 let text s = Text s
 let environment ?(packages = []) name ?opt ?(args = []) body mode =
   Environment(packages, name, opt, args, body, mode)
@@ -55,18 +80,6 @@ let braced x = concat [
   x;
   text "}";
 ]
-
-module Opt = struct
-  let iter f = function
-    | Some x -> f x
-    | None -> ()
-  let map f = function
-    | Some x -> Some (f x)
-    | None -> None
-  let default d = function
-    | Some x -> x
-    | None -> d
-end
 
 module Pp: sig
   type t
@@ -176,20 +189,20 @@ let ensure_mode pp from_mode to_mode f = match from_mode, to_mode with
   | M, T -> Pp.char pp '$'; f (); Pp.char pp '$'
   | T, M -> Pp.string pp "\\mbox{"; f (); Pp.char pp '}'
 
+
 (* bol: "beginning of line" *)
 let rec out toplevel mode pp = function
-  | Command(_, "par", None, [], T) when toplevel ->
+  | Command(_, "par", [], T) when toplevel ->
       Pp.bol pp;
       Pp.newline ~force: true pp
-  | Command(_, name, opt, args, rm) ->
+  | Command(_, name, args, rm) ->
       ensure_mode pp rm mode begin fun () ->
-        if opt = None && args = [] && mode = T then Pp.char pp '{';
+        if args = [] && mode = T then Pp.char pp '{';
         Pp.char pp '\\';
         Pp.string pp name;
-        if opt = None && args = [] && mode = M then Pp.space pp;
-        if opt = None && args = [] && mode = T then Pp.char pp '}';
-        Opt.iter (command_argument_brackets pp) opt;
-        List.iter (command_argument_braces pp) args
+        if args = [] && mode = M then Pp.space pp;
+        if args = [] && mode = T then Pp.char pp '}';
+        out_args pp args
       end
   | Environment(_, name, opt, args, (bodymode, body), rm) ->
       ensure_mode pp rm mode begin fun () ->
@@ -224,6 +237,14 @@ and command_argument pp (mode, x) before after =
 and command_argument_braces pp ca = command_argument pp ca "{" "}"
 
 and command_argument_brackets pp ca = command_argument pp ca "[" "]"
+
+and out_args =
+  let out_arg pp = function
+    | (m,Bracket,t) -> command_argument_brackets pp (m,t)
+    | (m,Brace,t) -> command_argument_braces pp (m,t)
+  in
+  fun pp args ->
+  List.iter (out_arg pp) args
 
 let to_buffer ?(mode = T) buf x = out true mode (Pp.make buf) x
 
@@ -365,14 +386,11 @@ let packageset_of_list ?(acc = PackageSet.empty) =
 let rec packages_used acc = function
   | Text _ ->
       acc
-  | Command(packs, _, Some(_, opt), params, _) ->
+  | Command(packs, _, params, _) ->
       let packs = List.map (fun (x, y) -> text x, text y) packs in
       let acc = packageset_of_list ~acc packs in
-      List.fold_left packages_used (packages_used acc opt) (List.map snd params)
-  | Command(packs, _, None, params, _) ->
-      let packs = List.map (fun (x, y) -> text x, text y) packs in
-      let acc = packageset_of_list ~acc packs in
-      List.fold_left packages_used acc (List.map snd params)
+      let params = List.map (fun (_,_,x) -> x) params in
+      List.fold_left packages_used acc params
   | Environment(packs, _, Some(_, opt), params, body, _) ->
       let packs = List.map (fun (x, y) -> text x, text y) packs in
       let acc = packageset_of_list ~acc packs in
@@ -1016,8 +1034,10 @@ module Beamer = struct
       sprintf "%s<%s>" name s
     
 
-  let command ?packages name ?(only=[]) ?opt args mode = command ?packages (string_of_overlays_spec name only) ?opt args mode
-
+  let unusual_command ?packages name ?(only=[]) args mode =
+    unusual_command ?packages (string_of_overlays_spec name only) args mode
+  let command ?packages name ?(only=[]) ?opt args mode = 
+    command ?packages (string_of_overlays_spec name only) args mode
     (*TODO A posibility for a command to have a result mode which depend of the mode of its argument*)
   let only only arg = command "only" ~only [A,arg] A
 

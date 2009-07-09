@@ -671,6 +671,21 @@ The [ensuremath] command expects an argument in any mode.
 All packages [(name, opt)] given using [packages] will automatically be used by
 [document]. *)
 
+type arg_kind = Bracket | Brace
+val unusual_command : ?packages: (string * string) list -> string -> 
+  (mode * arg_kind * t) list -> mode -> t
+(** [unusual_command] does the same as [command], but is more low level.
+      Instead of having a single optional argument and a list of mandatory arguments,
+      it only has a list of arguments.
+
+      Each argument comes not only with it's content and mode, but with an
+      "argument kind" (type [arg_kind]) specifying whether it is a brace argument
+      (corresponding to mandatory arguments in [command]) or a bracket argument
+      (corresponding, in turn, to the option argument of [command]).
+
+      This allows to handle commands which have several optional arguments, 
+      or where optional and mandatory arguments are interleaved. *)
+
 (** LaTeX Environment. *)
 val environment: ?packages: (string * string) list -> string ->
   ?opt: (mode * t) -> ?args: (mode * t) list -> (mode * t) -> mode -> t
