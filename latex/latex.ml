@@ -613,6 +613,20 @@ let hphantom x = command "hphantom" [T, x] T
 
 let parbox x y = command "parbox" [A, latex_of_size x; T, y] T
 
+type halignment = [ `C | `L | `R | `S ]
+let latex_of_halignment = function
+  | `C -> text "c" 
+  | `L -> text "l"
+  | `R -> text "r"
+  | `S -> text "s"
+let makeframebox name size ?halign t =
+  let size = (A, Bracket,latex_of_size size) in
+  let halign = Opt.map (fun h -> (A,Bracket,latex_of_halignment h)) halign in
+  let t = (T,Brace,t) in
+  unusual_command name (size::(Opt.cons halign [t])) T
+let makebox = makeframebox "makebox"
+let framebox = makeframebox "framebox"
+
 let noindent = command "noindent" [] T
 
 let stackrel x y = command "stackrel" [M, x; M, y] M

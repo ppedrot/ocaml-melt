@@ -201,6 +201,14 @@ val parbox: size -> t -> t
   (** A box in which new lines and paragraphs may be used. Useful to display
       code listings, for instance. *)
 
+type halignment = [ `C | `L | `R | `S ]
+  (** `C(enter), (flush)`L(eft), (flush)`R(ight) or `S(pread). *)
+
+val makebox : size -> ?halign:halignment -> t -> t
+  (** A box which only deals with horizontaly aligned material. *)
+val framebox : size -> ?halign:halignment -> t -> t
+  (** Same as [makebox] but draws a frame around the box. *)
+
 type array_column = [ `L | `C | `R | `Vert | `Sep of t ]
 type array_line
 
