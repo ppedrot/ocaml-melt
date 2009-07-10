@@ -735,6 +735,11 @@ val block: t -> t
   (** [block x] produces [{x}]. Should only be used in some rare cases when
 you want to be very precise about what LaTeX should do. *)
 
+val place_label: label -> t
+  (** [place_label lbl] places label [lbl]. Normally you would prefer using
+the various [~label] optional arguments available, and only use [place_label]
+for unimplemented features or if you are feeling hackish. *)
+
 (** {2 Printing} *)
 
 (** All printing functions take the expected mode as a parameter

@@ -372,6 +372,8 @@ let label =
 
 let ref_ l = command "ref" [T, text l] T
 
+let place_label l = command "label" [T, text l] T
+
 (*******************************************************************************)
 
 module PackageSet = Set.Make(struct
