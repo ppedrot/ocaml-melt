@@ -560,7 +560,7 @@ let figure ?label ?(pos = [ `H ]) ?(center = false) ?caption body =
     | `P -> "p"
     | `B -> "b"
   end pos end in
-  let body = if center then command "centering" [] T ^^ body else body in
+  let body = if center then text "\\centering{}" ^^ body else body in
   let body = match caption with
     | None -> body
     | Some caption -> body ^^ command "caption" [T, caption] T

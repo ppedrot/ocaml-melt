@@ -21,6 +21,7 @@ Latex library:
 - unusual_command, for weird LaTeX commands with interleaved [] and {} arguments
 or for commands with multiple optional arguments
 - place_label to hackishly place a label
+- (bugfix) the ~center option of figure has been fixed
 
 Version 1.1.0
 =============
