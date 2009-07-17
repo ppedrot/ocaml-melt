@@ -86,6 +86,9 @@ type size = [
 - [`Fill]: rubber length; take as much space as possible
 *)
 
+val latex_of_size : size -> t
+(** Low level function to be used to make new bindings. *)
+
 (** {3 Document} *)
 
 type documentclass = [ `Article | `Report | `Book | `Letter | `Slides | `Beamer ]
