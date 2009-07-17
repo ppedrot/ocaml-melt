@@ -192,6 +192,7 @@ and comment = parse
 and math = parse
   | '"' { begin_mode T lexbuf }
   | '{' { begin_mode C lexbuf }
+  | '}' { lex_error lexbuf "end of Code mode while in Math mode"}
   | '$' { end_mode lexbuf }
   | '\n' { newline lexbuf; STRING "\n" }
 
@@ -207,12 +208,13 @@ and math = parse
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ' '_']
       { lex_error lexbuf "invalid escaping in math mode" }
 
-  | [^ '"' '$' '{' '\n' '\\']+ { STRING(lexeme lexbuf) }
+  | [^ '"' '$' '{' '\n' '\\' '}']+ { STRING(lexeme lexbuf) }
   | eof { lex_error lexbuf "unexpected end of file in math mode" }
 
 and text = parse
   | '$' { begin_mode M lexbuf }
   | '{' { begin_mode C lexbuf }
+  | '}' { lex_error lexbuf "end of Code mode while in Text mode"}
   | '"' { end_mode lexbuf }
   | "<:" (['a'-'z' 'A'-'Z' '0'-'9' '.' ' ' '_']+ as apply) ':'
       { begin_mode (V(Some apply)) lexbuf }
@@ -242,7 +244,7 @@ and text = parse
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
       { lex_error lexbuf "invalid escaping in text mode" }
 
-  | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^']+ { STRING(lexeme lexbuf) }
+  | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}']+ { STRING(lexeme lexbuf) }
   | eof { lex_error lexbuf "unexpected end of file in text mode" }
 
 and verb = parse
