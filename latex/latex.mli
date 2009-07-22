@@ -679,7 +679,9 @@ The [ensuremath] command expects an argument in any mode.
 All packages [(name, opt)] given using [packages] will automatically be used by
 [document]. *)
 
-type arg_kind = Bracket | Brace
+type arg_kind
+  val bracket : arg_kind
+  val brace : arg_kind
 val unusual_command : ?packages: (string * string) list -> string -> 
   (mode * arg_kind * t) list -> mode -> t
 (** [unusual_command] does the same as [command], but is more low level.

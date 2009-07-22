@@ -49,6 +49,8 @@ end
 
 type mode = M | T | A
 type arg_kind = Bracket | Brace
+let bracket = Bracket
+let brace = Brace
 
 type t =
   | Command of (string * string) list * string *
@@ -622,9 +624,9 @@ let latex_of_halignment = function
   | `R -> text "r"
   | `S -> text "s"
 let makeframebox name size ?halign t =
-  let size = (A, Bracket,latex_of_size size) in
-  let halign = Opt.map (fun h -> (A,Bracket,latex_of_halignment h)) halign in
-  let t = (T,Brace,t) in
+  let size = (A, bracket,latex_of_size size) in
+  let halign = Opt.map (fun h -> (A,bracket,latex_of_halignment h)) halign in
+  let t = (T,brace,t) in
   unusual_command name (size::(Opt.cons halign [t])) T
 let makebox = makeframebox "makebox"
 let framebox = makeframebox "framebox"
