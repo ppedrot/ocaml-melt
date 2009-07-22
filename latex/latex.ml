@@ -878,7 +878,7 @@ let leadsto = command ~packages: ["latexsym", ""] "leadsto" [] M
 
 (*******************************************************************************)
 
-let mathbb x = command "mathbb" [M, x] M
+let mathbb x = command "mathbb" ~packages:["amssymb",""] [M, x] M
 let align x = environment "align" (M, x) T
 let align_ x = environment "align*" (M, x) T
 let gather x = environment "gather" (M, x) T
