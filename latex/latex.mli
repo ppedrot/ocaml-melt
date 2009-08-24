@@ -91,7 +91,8 @@ val latex_of_size : size -> t
 
 (** {3 Document} *)
 
-type documentclass = [ `Article | `Report | `Book | `Letter | `Slides | `Beamer ]
+type documentclass = 
+    [ `Article | `Report | `Book | `Letter | `Slides | `Beamer | `Custom of string]
 type documentoptions = [ `Landscape | `A4paper ]
 
 val document:

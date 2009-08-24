@@ -412,7 +412,8 @@ let rec packages_used acc = function
 
 (*******************************************************************************)
 
-type documentclass = [ `Article | `Report | `Book | `Letter | `Slides | `Beamer ]
+type documentclass = 
+    [ `Article | `Report | `Book | `Letter | `Slides | `Beamer | `Custom of string ]
 type documentoptions = [ `Landscape | `A4paper ]
 
 let usepackage ?opt name =
@@ -442,6 +443,7 @@ let document ?(documentclass=`Article) ?(options=[]) ?title ?(author = empty)
     | `Letter -> "letter"
     | `Slides -> "slides"
     | `Beamer -> "beamer"
+    | `Custom c -> c
   in
   let options = make_option T begin function
     | `Landscape -> "landscape"
