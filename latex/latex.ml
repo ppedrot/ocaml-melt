@@ -432,7 +432,7 @@ let renewcommand count name body =
     ?opt: (if count = 0 then None else Some(T, latex_of_int count))
     [T, name; T, body] T
 
-let document ?(documentclass=`Article) ?(options=[]) ?title ?(author = empty)
+let document ?(documentclass=`Article) ?(options=[]) ?title ?author
     ?date ?(prelude=empty) ?(packages=[]) body =
   let packages =
     PackageSet.elements (packages_used (packageset_of_list packages) body) in
@@ -460,7 +460,7 @@ let document ?(documentclass=`Article) ?(options=[]) ?title ?(author = empty)
     prelude;
     par;
     optcmd "title" title;
-    command "author" [T, author] T;
+    Opt.default empty (Opt.map (fun a -> command "author" [T, a] T) author);
     optcmd "date" date;
     par;
     environment "document" (T, body) T;
