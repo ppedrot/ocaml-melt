@@ -220,14 +220,13 @@ and text = parse
       { begin_mode (V(Some apply)) lexbuf }
   | '<'
       { begin_mode (V None) lexbuf }
-  | '\n'+
+  | ('\n' (' ' | '\t' )* )+ '\n'
       { let s = lexeme lexbuf in
-        let l = String.length s in
-        for i = 1 to l do
-          newline lexbuf
-        done;
-        if l > 1 then PAR l else STRING "\n" }
-
+	let l = ref 0 in
+	String.iter (fun c -> if c='\n' then (newline lexbuf ; incr l)) s;
+        PAR !l }
+  | '\n' 
+      {newline lexbuf ; STRING "\n" }
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
 
