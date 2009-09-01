@@ -318,5 +318,6 @@ let () =
     Queue.iter produce_tex files;
     if !final then produce_final !main_file;
     chdir cwd;
-    produce_link !main_file
+    if !final && !link then
+      produce_link !main_file
   end
