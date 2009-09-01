@@ -103,7 +103,7 @@ compiler version (%s)" s v ocaml_version;
   let check_mlpost_version () =
     try
       let v = exec_line (which "mlpost") ["-version"; "2> /dev/null"] in
-      if Version.ge v "0.6" then begin
+      if Version.ge v "0.6" || v = "current" then begin
         echo "Mlpost version: %s" v;
         true
       end else begin
