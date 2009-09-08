@@ -158,7 +158,13 @@ compiler version (%s)" s v ocaml_version;
 
   SVar.umake
     ~query: "Install directory (OCaml libraries)"
-    ~guess: (fun () -> [ocaml_where])
+    ~guess: (fun () -> let l = [Filename.concat ocaml_where "melt"] in
+             try
+               let dir = exec_line "ocamlfind" 
+                 ["printconf"; "destdir"; "2> /dev/null"] in
+               (Filename.concat dir "melt"):: l
+             with Exec_error _ -> l
+            )
     "INSTALLLIB";
 
   let ocaml_includes l =

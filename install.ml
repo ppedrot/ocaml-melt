@@ -29,6 +29,7 @@
 (**************************************************************************)
 
 open Printf
+#use "version.ml"
 
 let bin = ref ""
 let lib = ref ""
@@ -67,31 +68,53 @@ let rec first name = function
       let x = if !build = "" then x else !build ^ "/" ^ x in
       if Sys.file_exists x then x else first name r
 
+let add_com com =
+  Queue.add (`Com com) script
+
+let add_fun s f =
+  Queue.add (`Fun (s,f)) script
+
+let mkdir dir =
+    add_com (sprintf "mkdir -p %s" dir)
+
+let install_file name =
+  add_com (sprintf "install -D -m 644 %s %s/%s" name !lib name)
+
 let install_lib l =
   let base = Filename.basename l in
   try
     let l = first base [l] in
-    Queue.add (sprintf "install -D -m 644 %s %s/%s" l !lib base) script
+    add_com (sprintf "install -D -m 644 %s %s/%s" l !lib base)
   with Not_found -> ()
 
 let install_bin b final =
   try
     let b = first final b in
-    Queue.add (sprintf "install -D %s %s/%s" b !bin final) script
+    add_com (sprintf "install -D %s %s/%s" b !bin final)
   with Not_found -> ()
 
 let rm f =
   if Sys.file_exists f then
-    Queue.add (sprintf "rm %s" f) script
+    add_com (sprintf "rm %s" f)
   else
     eprintf "Warning: file %s does not exist.\n" f
 
+let rm_dir f =
+  if Sys.file_exists f then
+    add_com (sprintf "rmdir %s" f)
+  else
+    eprintf "Warning: dir %s does not exist or is not empty.\n" f
+
+let uninstall_file file =
+  rm (Filename.concat !lib file)
+
 let uninstall_lib l =
-  rm (!lib ^ "/" ^ Filename.basename l)
+  uninstall_file (Filename.basename l)
 
 let uninstall_bin _ final =
-  rm (!bin ^ "/" ^ final)
+  rm (Filename.concat (!bin) final)
 
+let do_file = if !uninstall then uninstall_file else install_file
 let do_lib = if !uninstall then uninstall_lib else install_lib
 let do_bin = if !uninstall then uninstall_bin else install_bin
 
@@ -99,12 +122,76 @@ let check_code = function
   | 0 -> ()
   | n -> exit n
 
-let execute cmd =
-  printf "%s\n%!" cmd;
-  if not !fake then check_code (Sys.command cmd)
+let execute = function
+  | `Com cmd ->
+      printf "%s\n%!" cmd;
+      if not !fake then check_code (Sys.command cmd)
+  | `Fun (s,f) ->
+      printf "%s\n%!" s;
+      if not !fake then f ()
 
 let finish () =
   Queue.iter execute script
+
+(**************************************************************************)
+(*                            Ocamlfind META file                         *)
+(**************************************************************************)
+
+type meta = { description : string;
+              version : string;
+              requires : string list;
+              archive : ([`Byte |`Native] list * string list) list;
+              subpackage : (string * meta) list}
+
+let create_meta ?(filename="META") meta =
+  (* CREATE META FILE *)
+  let rec print_meta o meta =
+    fprintf o "description = \"%s\"\n" meta.description;
+    fprintf o "version = \"%s\"\n" meta.version;
+    (match meta.requires with
+       | [] -> ()
+       | _ -> fprintf o "requires = \"%s\"\n"
+           (String.concat " " meta.requires);
+    );
+    List.iter (fun (preds,l) ->
+                 fprintf o "archive(%s) = \"%s\"\n"
+                   (String.concat ","
+                      (List.map (function
+                                   | `Byte -> "byte"
+                                   | `Native -> "native") preds))
+                   (String.concat " " l))
+      meta.archive;
+    List.iter (fun (s,m) ->
+                 fprintf o "package \"%s\" (\n%a)\n" s print_meta m)
+      meta.subpackage
+  in
+  add_fun (sprintf "META file created in %s" filename)
+    (fun () ->
+       let o = open_out filename in
+       print_meta o meta;
+       close_out o;)
+
+let do_meta () =
+  if !uninstall then
+    uninstall_file "META"
+  else
+      let meta_latex =
+        {version=full;
+         description="Latex library for OCaml.";
+         archive=[[`Byte],["latex.cma"];
+                  [`Native],["latex.cmxa"]];
+         requires=[];
+         subpackage=[]} in
+      let meta_melt = {version=full;
+                       description=
+          "Melt allows you to write Latex documents using OCaml.";
+                       requires=["melt.latex"];
+                       archive=[[`Byte],["melt.cma"];
+                                [`Native],["melt.cmxa"]];
+                       subpackage=["latex",meta_latex]} in
+      create_meta
+        ~filename:(Filename.concat !lib "META")
+        meta_melt
 
 let () =
   do_bin ["meltpp/main.native"; "meltpp/main.byte"] "meltpp";
@@ -120,4 +207,7 @@ let () =
     "melt/melt.cma";
     "melt/melt.cmxa";
   ];
+  do_meta ();
+  if !uninstall then rm_dir !lib;
   finish ()
+

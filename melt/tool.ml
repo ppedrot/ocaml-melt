@@ -30,6 +30,20 @@
 
 open Printf
 
+(* From Totoconf *)
+exception Exec_error of int
+
+let exec_line cmd args =
+  let c = String.concat " " (cmd::args) in
+  let tmp = Filename.temp_file "configure_exec_line" ".out" in
+  try
+    match Sys.command (c ^ " > " ^ tmp) with
+      | 0 -> input_line (open_in tmp)
+      | n -> raise (Exec_error n)
+  with End_of_file ->
+    ""
+(* *)
+
 let files = Queue.create ()
 let main_file = ref ""
 
@@ -68,6 +82,12 @@ let add_plugin_include x = plugin_includes := x :: !plugin_includes
 (* -I includes for the OCaml compiler *)
 let includes = ref []
 let add_include x = includes := x :: !includes
+
+let () =
+  try
+    let libmelt_dir = exec_line "ocamlfind" ["query"; "melt"; "2> /dev/null"] in
+    add_include libmelt_dir
+  with Exec_error _ -> add_include "+melt"
 
 let spec = Arg.align [
   "-meltpp", Arg.Set_string meltpp, "<meltpp> Specify the location of the \

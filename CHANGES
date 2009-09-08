@@ -3,6 +3,9 @@ Changes that may break existing programs are marked using a star *.
 Development version
 ===================
 
+Installation
+- Directory of installation by default in $OCAMLLIB/melt. $OCAMLLIB if ocamlfind is installed, the default installation directory of ocamlfind. Otherwise $OCAMLLIB is the standard directory of caml.
+
 Melt tool and library:
 - Add -latex file.tex option to Mlpost to compute prelude, if the tex file
 already exists.
