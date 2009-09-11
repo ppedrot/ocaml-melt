@@ -30,8 +30,6 @@
 
 open Printf
 
-
-
 module Opt = struct
   let iter f = function
     | Some x -> f x
@@ -548,7 +546,8 @@ let space = command " " [] A
 let quad = command "quad" [] M
 let qquad = command "qquad" [] M
 
-let includegraphics filename = command ~packages: ["graphicx", ""] "includegraphics" [ T, filename ] T
+let includegraphics filename = command ~packages: ["graphicx", ""]
+  "includegraphics" [ T, filename ] T
 
 let symbol i = command "symbol" [T, latex_of_int i] T
 let symbolc c = symbol (Char.code c)
