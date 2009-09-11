@@ -3,8 +3,11 @@ Changes that may break existing programs are marked using a star *.
 Development version
 ===================
 
-Installation
-- Directory of installation by default in $OCAMLLIB/melt. $OCAMLLIB if ocamlfind is installed, the default installation directory of ocamlfind. Otherwise $OCAMLLIB is the standard directory of caml.
+Configuration, Compilation and Installation
+- Default installation directory is now OCAMLLIB/melt, where OCAMLLIB is
+either: the default installation directory of ocamlfind, or
+the standard directory of caml if ocamlfind is not available.
+- (bugfix) Do not link with mlpost if MLPOST = NO.
 
 Melt tool and library:
 - Add -latex file.tex option to Mlpost to compute prelude, if the tex file
@@ -16,15 +19,18 @@ already exists.
 
 Preprocessor:
 - Print opened and pending modes in unexpected end of file errors
+- Print an error if a "}" appears in text or math mode
 
 Latex library:
+- (bugfix) the ~center option of figure has been fixed
 - phantom, vphantom, hphantom
 - Beamer overlays
 - makebox, framebox
 - unusual_command, for weird LaTeX commands with interleaved [] and {} arguments
 or for commands with multiple optional arguments
 - place_label to hackishly place a label
-- (bugfix) the ~center option of figure has been fixed
+- latex_of_size for user-defined commands
+* Latex.document does not add an empty \author{} if the ~author is not given
 
 Version 1.1.0
 =============

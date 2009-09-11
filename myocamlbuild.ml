@@ -40,6 +40,8 @@ let config =
 
 let config_yes x = String.uppercase (config x) = "YES"
 
+let tool_targets = [ "melt/tool.native"; "melt/tool.byte" ]
+
 let () = dispatch begin function
   | After_rules ->
       flag ["ocaml"; "doc"] (S[A "-hide-warnings"; Sh (config "OCAMLINCLUDES")]);
@@ -48,11 +50,13 @@ let () = dispatch begin function
       ocaml_lib ~extern: true "bitstring";
       ocaml_lib ~extern: true "mlpost";
 
-      if config "MLPOSTCAIRO" = "YES" then begin
+      if config_yes "MLPOST" then
+        List.iter (fun x -> tag_file x [ "use_mlpost" ]) tool_targets;
+
+      if config_yes "MLPOST" && config_yes "MLPOSTCAIRO" then
         List.iter
-          (fun x -> tag_file x ["use_bigarray"; "use_bitstring"; "use_cairo"])
-          ["melt/tool.native"; "melt/tool.byte"]
-      end;
+          (fun x -> tag_file x [ "use_bigarray"; "use_bitstring"; "use_cairo" ])
+          tool_targets;
 
       let mlpost_onoff = config "MLPOSTSPECIFIC" in
       let mlpost_specific = "melt/mlpost_specific.ml" in
