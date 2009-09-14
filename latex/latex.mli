@@ -566,7 +566,6 @@ module type BEAMER = sig
   val only: overlays_spec list -> t -> t
 
   val includegraphics: ?only: overlays_spec list -> t -> t
-
 end
 
 module Beamer : BEAMER

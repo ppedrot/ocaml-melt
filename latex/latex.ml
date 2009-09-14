@@ -43,6 +43,9 @@ module Opt = struct
   let cons ox l = match ox with
     | Some x -> x::l
     | None -> l
+  let fold f a = function
+    | Some x -> f a x
+    | None -> a
 end
 
 type mode = M | T | A
@@ -188,7 +191,6 @@ let ensure_mode pp from_mode to_mode f = match from_mode, to_mode with
   | _, A -> f ()
   | M, T -> Pp.char pp '$'; f (); Pp.char pp '$'
   | T, M -> Pp.string pp "\\mbox{"; f (); Pp.char pp '}'
-
 
 (* bol: "beginning of line" *)
 let rec out toplevel mode pp = function
@@ -432,8 +434,13 @@ let renewcommand count name body =
 
 let document ?(documentclass=`Article) ?(options=[]) ?title ?author
     ?date ?(prelude=empty) ?(packages=[]) body =
-  let packages =
-    PackageSet.elements (packages_used (packageset_of_list packages) body) in
+  let packages = packageset_of_list packages in
+  let packages = packages_used packages body in
+  let packages = Opt.fold packages_used packages title in
+  let packages = Opt.fold packages_used packages author in
+  let packages = Opt.fold packages_used packages date in
+  let packages = packages_used packages prelude in
+  let packages = PackageSet.elements packages in
   let dc = match documentclass with
     | `Article -> "article"
     | `Report -> "report"
@@ -937,6 +944,7 @@ let slide x =
   environment "slide" (T, x) T
 
 (*******************************************************************************)
+
 module type BEAMER = sig
   type beamertemplate = [ `NavigationSymbols | `Footline ]
   type tocoptions = [ `CurrentSection | `CurrentSubsection | `HideAllSubsections
@@ -972,7 +980,6 @@ module type BEAMER = sig
   val only: overlays_spec list -> t -> t
 
   val includegraphics: ?only: overlays_spec list -> t -> t
-
 end
 
 module Beamer = struct
@@ -1051,7 +1058,6 @@ module Beamer = struct
     | l -> let l = List.map (function `I i -> string_of_int i) l in
       let s = String.concat "," l in
       sprintf "%s<%s>" name s
-    
 
   let unusual_command ?packages name ?(only=[]) args mode =
     unusual_command ?packages (string_of_overlays_spec name only) args mode
@@ -1060,9 +1066,8 @@ module Beamer = struct
     (*TODO A posibility for a command to have a result mode which depend of the mode of its argument*)
   let only only arg = command "only" ~only [A,arg] A
 
-  let includegraphics ?only filename = command ?only "includegraphics" [ T, filename ] T
-
-
+  let includegraphics ?only filename =
+    command ?only "includegraphics" [ T, filename ] T
 end
 
 module Verbatim = struct

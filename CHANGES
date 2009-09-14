@@ -1,5 +1,12 @@
 Changes that may break existing programs are marked using a star *.
 
+Development Version
+===================
+
+Latex library:
+- packages used by commands in ~title, ~author, ~date and ~prelude of the
+document function are now taken into account
+
 Version 1.2.0
 =============
 
