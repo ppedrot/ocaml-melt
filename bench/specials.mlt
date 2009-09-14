@@ -7,7 +7,8 @@ Some special characters in text mode: sharp #, as in Spec#, underscore _,
 as in some_dummy_example, []@()/ are already ok. A blank line yields
 a new paragraph:
 
-See?
+See? Percent does not create a comment: %. More: %%%%%. And now in math
+mode: $%$. More: $%%%%%$.
 
 {section "With backslashes"}
 
