@@ -41,6 +41,7 @@ type verb_item =
 
 and item =
   | String of string
+  | Comment of string (* kept for better error locations *)
   | Code of item list
   | Math of item list
   | Text of item list
@@ -55,6 +56,7 @@ type verb_interp =
 
 and interp =
   | IString of string
+  | IComment of string
   | ICode of string
   | IConcat of interp list
   | IConcatCode of interp list

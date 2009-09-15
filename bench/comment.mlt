@@ -11,4 +11,7 @@ let y (* un peu de melt dans un commentaire: "bla$bli$"
 a noter que ca ne marche pas avec les guillemets doubles vu que Caml va
 raler de toute facon *)
 
-let () = emit (document "x = {x}, y = {y}")
+let () = emit (document "x = {x}(* commentaire (* imbrique *)
+dans du texte *), y = {y}, z = $42 (* commentaire (* imbrique *) *)+12$
+
+Parentheses and stars in math mode, with a space: $( * * )$")

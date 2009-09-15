@@ -49,6 +49,7 @@
 %}
 
 %token <string> STRING
+%token <string> COMMENT
 %token EOF
 %token TEXT_BEGIN TEXT_END
 %token MATH_BEGIN MATH_END
@@ -105,6 +106,8 @@ code:
     { Code [String "{"; Code $2; String "}"] }
 | STRING
     { String $1 }
+| COMMENT
+    { Comment $1 }
 ;
 
 text:
@@ -118,6 +121,8 @@ text:
     { String $1 }
 | PAR
     { Par $1 }
+| COMMENT
+    { Comment $1 }
 ;
 
 math:
@@ -127,6 +132,8 @@ math:
     { Code $2 }
 | STRING
     { String $1 }
+| COMMENT
+    { Comment $1 }
 ;
 
 verb:

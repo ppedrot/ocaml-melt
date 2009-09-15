@@ -108,14 +108,14 @@
     Buffer.add_string comment_buf "(*"
 
   (* Close the current comment. If we are still in a comment, raise Exit.
-     Else, return a STRING token containing the whole comment. *)
+     Else, return a COMMENT token containing the whole comment. *)
   let end_comment () =
     decr comment_nests;
     Buffer.add_string comment_buf "*)";
     if !comment_nests >= 1 then raise Exit;
     let s = Buffer.contents comment_buf in
     Buffer.reset comment_buf;
-    STRING s
+    COMMENT s
 
   let pragma_return lexbuf =
     newline lexbuf;
@@ -177,7 +177,8 @@ and pragma_plugin = parse
   | _ { lex_error lexbuf "syntax error in pragma plugin" }
 
 and pragma_verbatim = parse
-  | space* '\'' (_ as delim) '\'' space* '=' space* ((ident ('.' ident)*) as ident) space* '\n'
+  | space* '\'' (_ as delim) '\'' space* '=' space*
+    ((ident ('.' ident)*) as ident) space* '\n'
       { add_verb_delim lexbuf delim ident }
   | _ { lex_error lexbuf "syntax error in pragma verbatim" }
 
@@ -210,7 +211,10 @@ and math = parse
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ' '_']
       { lex_error lexbuf "invalid escaping in math mode" }
 
-  | [^ '"' '$' '{' '\n' '\\' '}' '%']+ { STRING(lexeme lexbuf) }
+  | "(*" { start_comment (); comment lexbuf }
+  | '(' { STRING "(" }
+
+  | [^ '"' '$' '{' '\n' '\\' '}' '%' '(']+ { STRING(lexeme lexbuf) }
   | eof { lex_error lexbuf "unexpected end of file in math mode" }
 
 and text = parse
@@ -246,7 +250,11 @@ and text = parse
   | '\\' [^ '\\' '{' '}' '$' '"' '&' ' ']
       { lex_error lexbuf "invalid escaping in text mode" }
 
-  | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%']+ { STRING(lexeme lexbuf) }
+  | "(*" { start_comment (); comment lexbuf }
+  | '(' { STRING "(" }
+
+  | [^ '"' '$' '{' '<' '\n' '\\' '#' '_' '^' '}' '%' '(']+
+      { STRING(lexeme lexbuf) }
   | eof { lex_error lexbuf "unexpected end of file in text mode" }
 
 and verb = parse

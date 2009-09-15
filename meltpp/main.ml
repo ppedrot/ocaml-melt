@@ -113,6 +113,8 @@ let parse_file f =
 let rec interp code = function
   | String s ->
       if code then ICode s else IString s
+  | Comment s ->
+      if code then ICode s else IComment s
   | Code l ->
       interp_list true l
   | Math l ->
@@ -146,9 +148,11 @@ let rec print f = function
       fprintf f "%s" s
   | IString "\n" ->
       fprintf f "(text \"\\n\")\n"
+  | IComment s ->
+      fprintf f "(text \"\"%s)" s
   | IString s ->
       fprintf f "(text \"%s\")" (String.escaped s)
-  | IConcat l -> 
+  | IConcat l ->
       begin match l with
         | [] ->
             fprintf f "(text \"\")"
