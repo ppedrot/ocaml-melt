@@ -46,6 +46,9 @@ module Opt = struct
   let fold f a = function
     | Some x -> f a x
     | None -> a
+  let is_none = function
+    | None -> true
+    | Some _ -> false
 end
 
 type mode = M | T | A
@@ -343,10 +346,9 @@ let empty = concat []
 let rec none_if_empty x = match x with
   | Text "" | Concat [] -> None
   | Concat l ->
-      List.fold_left begin fun acc -> function
-        | None -> None
-        | Some _ -> acc
-      end (Some x) (List.map none_if_empty l)
+      begin if List.for_all Opt.is_none (List.map none_if_empty l) then None
+      else Some x
+      end
   | Mode(_, y) ->
       if none_if_empty y = None then None else Some x
   | Command _ | Environment _ | Text _ -> Some x
