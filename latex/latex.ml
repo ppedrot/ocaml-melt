@@ -52,9 +52,10 @@ module Opt = struct
 end
 
 type mode = M | T | A
-type arg_kind = Bracket | Brace
+type arg_kind = Bracket | Brace | NoBr
 let bracket = Bracket
 let brace = Brace
+let nobr = NoBr
 
 type t =
   | Command of (string * string) list * string *
@@ -240,13 +241,14 @@ and command_argument pp (mode, x) before after =
   Pp.string pp after
 
 and command_argument_braces pp ca = command_argument pp ca "{" "}"
-
 and command_argument_brackets pp ca = command_argument pp ca "[" "]"
+and command_argument_nobr pp ca = command_argument pp ca "" ""
 
 and out_args =
   let out_arg pp = function
     | (m,Bracket,t) -> command_argument_brackets pp (m,t)
     | (m,Brace,t) -> command_argument_braces pp (m,t)
+    | (m,NoBr,t) -> command_argument_nobr pp (m,t)
   in
   fun pp args ->
   List.iter (out_arg pp) args
@@ -474,9 +476,10 @@ let document ?(documentclass=`Article) ?(options=[]) ?title ?author
     environment "document" (T, body) T;
   ]
 
+let within_braces x = text "{" ^^ x ^^ text "}"
 let block x = match none_if_empty x with
   | None -> empty
-  | Some x -> text "{" ^^ x ^^ text "}"
+  | Some x -> within_braces x
 let index x y = mode M (block x ^^ text "_" ^^ block y)
 let exponent x y = mode M (block x ^^ text "^" ^^ block y)
 

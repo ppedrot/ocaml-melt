@@ -764,6 +764,7 @@ All packages [(name, opt)] given using [packages] will automatically be used by
 type arg_kind
   val bracket : arg_kind
   val brace : arg_kind
+  val nobr : arg_kind
 val unusual_command : ?packages: (string * string) list -> string -> 
   (mode * arg_kind * t) list -> mode -> t
 (** [unusual_command] does the same as [command], but is more low level.
@@ -777,6 +778,10 @@ val unusual_command : ?packages: (string * string) list -> string ->
 
       This allows to handle commands which have several optional arguments, 
       or where optional and mandatory arguments are interleaved. *)
+
+val within_braces: t -> t
+  (** [within_braces x] produces [{x}]
+       Typically meant to be used together with [unusual_command]. *)
 
 (** LaTeX Environment. *)
 val environment: ?packages: (string * string) list -> string ->
