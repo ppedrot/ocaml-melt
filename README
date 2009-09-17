@@ -101,3 +101,11 @@ or, if you compiled without Ocamlbuild:
 
         latex/latex.docdir/index.html
         melt/melt.docdir/index.html
+
+Vim Plugin
+==========
+
+Vincent Aravantinos made a Melt plugin for the Vim text editor. You can find
+it here:
+
+        http://www.vim.org/scripts/script.php?script_id=2787

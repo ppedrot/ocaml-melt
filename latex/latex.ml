@@ -346,9 +346,10 @@ let empty = concat []
 let rec none_if_empty x = match x with
   | Text "" | Concat [] -> None
   | Concat l ->
-      begin if List.for_all Opt.is_none (List.map none_if_empty l) then None
-      else Some x
-      end
+      if List.for_all Opt.is_none (List.map none_if_empty l) then
+        None
+      else
+        Some x
   | Mode(_, y) ->
       if none_if_empty y = None then None else Some x
   | Command _ | Environment _ | Text _ -> Some x
