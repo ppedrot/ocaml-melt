@@ -160,7 +160,7 @@ val figure: ?label: label -> ?pos: float_position list -> ?center: bool ->
 
 type wrapfigure_position =
     [ `L | `R | `I | `O | `Force of [ `L | `R | `I | `O ] ]
-  (** Figure positions for package wrapfig.
+  (** Figure positions for package [wrapfig].
       - [`L]: left
       - [`R]: right
       - [`I]: inside (if document is twosided)
@@ -182,6 +182,20 @@ val wrapfigure: ?label: label -> ?pos: wrapfigure_position ->
       not do what you want, you can add
       some negative [vspace]s. In general it is better to let
       LaTeX place the figure for you, though. *)
+
+type floatingfigure_position = [ `L | `R | `P ]
+  (** Figure positions for package [floatflt].
+      - [`L]: left
+      - [`R]: right
+      - [`P]: right if the pagenumber is odd, left if even *)
+
+val floatingfigure: ?label: label -> ?pos: floatingfigure_position ->
+  ?width: size -> ?center: bool -> ?caption: t -> t -> t
+  (** Floating figure which makes text wrap around it.
+
+      Uses package [floatflt].
+      Default value for [width] is half the text width.
+      Default value for [center] is false. *)
 
 val subfloat: ?label: label -> ?caption: t -> t -> t
   (** Sub-figure.

@@ -623,6 +623,22 @@ let wrapfigure ?label ?(pos: wrapfigure_position = `R)
     ~args: [A, text pos; A, latex_of_size width]
     "wrapfigure" (T, body) T
 
+type floatingfigure_position = [ `L | `R | `P ]
+
+let floatingfigure ?label ?(pos: floatingfigure_position = `R)
+    ?(width: size = `Textwidth 0.5) ?center ?caption body =
+  let pos = match pos with
+    | `R -> "r"
+    | `L -> "l"
+    | `P -> "p"
+  in
+  let body = generic_figure_contents ?label ?center ?caption body in
+  environment
+    ~opt: (A, text pos)
+    ~packages: [ "floatflt", "" ]
+    ~args: [A, latex_of_size width]
+    "floatingfigure" (T, body) T
+
 let subfloat ?label ?caption body =
   let opt = Opt.map (fun c -> T, c) caption in
   let body = labelo label ^^ body in
