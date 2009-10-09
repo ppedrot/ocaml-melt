@@ -129,6 +129,66 @@ LaTeX file. The default value of [name] is ["latex_lib_label_n"] where
 val ref_: label -> t
   (** Make a reference to the label. *)
 
+(** {3 Figures} *)
+
+type float_position = [ `H | `T | `P | `B | `Force ]
+  (** Floating element (figure, ...) positions.
+      - [`H]: here
+      - [`T]: top of page
+      - [`B]: bottom of page
+      - [`P]: put on a special page for floats only
+      - [`Force]: override internal LaTeX parameters *)
+val float_all: float_position list
+  (** [[ `H; `T; `B; `P ]] *)
+
+val figure: ?label: label -> ?pos: float_position list -> ?center: bool ->
+  ?side_caption: bool -> ?caption: t -> ?wide: bool -> t -> t
+  (** Floating figure.
+
+      Default value for [center] is false.
+      If [side_caption] is [true], the caption will be placed at the side of
+      the figure instead of at the bottom. This uses package [sidecap].
+      Default value is [false].
+
+      Argument [~wide: true] must be used for multi-columns documents if you
+      want the figure to use the full width of the page. In this case,
+      positions [`H] has no effect, and position [`B] adds package
+      [stfloats].
+
+      To prevent wide figures from being placed out-of-order with respect to
+      their "non-wide" counterparts, use package [fixltx2e]. *)
+
+type wrapfigure_position =
+    [ `L | `R | `I | `O | `Force of [ `L | `R | `I | `O ] ]
+  (** Figure positions for package wrapfig.
+      - [`L]: left
+      - [`R]: right
+      - [`I]: inside (if document is twosided)
+      - [`O]: outside (if document is twosided)
+      - [`Force _]: force the figure to start precisely where specified
+(may cause it to run over page breaks) *)
+
+val wrapfigure: ?label: label -> ?pos: wrapfigure_position ->
+  ?lines: int -> ?width: size -> ?center: bool -> ?caption: t -> t -> t
+  (** Floating figure which makes text wrap around it.
+
+      Uses package [wrapfig].
+      Argument [lines] specifies the height of the figure in number of lines.
+      It can be useful if LaTeX fails to compute it correctly.
+      Default value for [width] is half the text width.
+      Default value for [center] is false.
+
+      If there is too much space on top and below the figure, and [lines] does
+      not do what you want, you can add
+      some negative [vspace]s. In general it is better to let
+      LaTeX place the figure for you, though. *)
+
+val subfloat: ?label: label -> ?caption: t -> t -> t
+  (** Sub-figure.
+
+      Uses package [subfig].
+      Use it inside a [figure] to insert sub-figures. *)
+
 (** {3 Miscellaneous Commands} *)
 
 val index: t -> t -> t
@@ -171,12 +231,6 @@ val includegraphics: t -> t
 val symbol: int -> t
 val symbolc: char -> t
   (** Convert a [char] into an [int] and apply [symbol]. *)
-
-type float_position = [ `H | `T | `P | `B ]
-val float_all : float_position list
-
-val figure: ?label: label -> ?pos: float_position list -> ?center: bool ->
-  ?caption: t -> t -> t
 
 val center: t -> t
 

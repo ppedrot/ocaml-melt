@@ -562,24 +562,71 @@ let includegraphics filename = command ~packages: ["graphicx", ""]
 let symbol i = command "symbol" [T, latex_of_int i] T
 let symbolc c = symbol (Char.code c)
 
-type float_position = [ `H | `T | `P | `B ]
+type float_position = [ `H | `T | `P | `B | `Force ]
 
-let float_all : float_position list = [ `H ; `T ; `P ; `B ]
+let float_all = [ `H; `T; `B; `P ]
 
-let figure ?label ?(pos = [ `H ]) ?(center = false) ?caption body =
-  let pos = String.concat "" begin List.map begin function
-    | `H -> "h"
-    | `T -> "t"
-    | `P -> "p"
-    | `B -> "b"
-  end pos end in
+let generic_figure_contents ?label ?(center = false) ?caption body =
   let body = if center then text "\\centering{}" ^^ body else body in
   let body = match caption with
     | None -> body
     | Some caption -> body ^^ command "caption" [T, caption] T
   in
   let body = body ^^ labelo label in
-  environment ~opt: (T, text pos) "figure" (T, body) T
+  body
+
+let figure ?label ?(pos = [ `H ]) ?center ?(side_caption = false) ?caption
+    ?(wide = false) body =
+  let spos = String.concat "" begin List.map begin function
+    | `H -> "h"
+    | `T -> "t"
+    | `P -> "p"
+    | `B -> "b"
+    | `Force -> "!"
+  end pos end in
+  let body = generic_figure_contents ?label ?center ?caption body in
+  let name = match side_caption, wide with
+    | false, false -> "figure"
+    | true, false -> "SCfigure"
+    | false, true -> "figure*"
+    | true, true -> "SCfigure*"
+  in
+  let packages = if side_caption then [ "sidecap", "" ] else [] in
+  let packages =
+    if wide && List.mem `B pos then
+      ("stfloats", "") :: packages
+    else
+      packages
+  in
+  environment ~packages ~opt: (A, text spos) name (T, body) T
+
+type wrapfigure_position =
+    [ `L | `R | `I | `O | `Force of [ `L | `R | `I | `O ] ]
+
+let wrapfigure ?label ?(pos: wrapfigure_position = `R)
+    ?lines ?(width: size = `Textwidth 0.5) ?center ?caption body =
+  let pos = match pos with
+    | `L -> "L"
+    | `R -> "R"
+    | `I -> "I"
+    | `O -> "O"
+    | `Force `L -> "l"
+    | `Force `R -> "r"
+    | `Force `I -> "i"
+    | `Force `O -> "o"
+  in
+  let body = generic_figure_contents ?label ?center ?caption body in
+  let opt = Opt.map (fun i -> A, latex_of_int i) lines in
+  environment
+    ?opt
+    ~packages: [ "wrapfig", "" ]
+    ~args: [A, text pos; A, latex_of_size width]
+    "wrapfigure" (T, body) T
+
+let subfloat ?label ?caption body =
+  let opt = Opt.map (fun c -> T, c) caption in
+  let body = labelo label ^^ body in
+  environment ?opt ~packages: [ "subfig", "" ] "subfloat" (T, body) T
 
 let minipage size x =
   environment ~args: [A, latex_of_size size] "minipage" (T, x) T

@@ -12,6 +12,9 @@ made no sense.
 Latex library:
 - packages used by commands in ~title, ~author, ~date and ~prelude of the
 document function are now taken into account
+- figure caption may be placed at the side (?side_caption)
+- figures may be wide (?wide)
+- wrapfigure, subfloat
 
 Version 1.2.0
 =============
