@@ -622,7 +622,14 @@ module type BEAMER = sig
   val at_begin_subsubsection: t -> t
   val block: t -> t -> t (** [block title body] *)
 
-  type color = [ `Gray | `Red | `Green | `Blue | `Yellow ]
+  type color = [
+  | `Gray
+  | `Red
+  | `Green
+  | `Blue
+  | `Yellow
+  | `RGB of float * float * float
+  ]
 
   val color: color -> t -> t
 

@@ -232,7 +232,7 @@ and text = parse
 	String.iter (fun c -> if c='\n' then (newline lexbuf ; incr l)) s;
         PAR !l }
   | '\n' 
-      {newline lexbuf ; STRING "\n" }
+      { newline lexbuf; STRING "\n" }
   | '#' { STRING "\\#" }
   | '_' { STRING "\\_" }
   | '%' { STRING "\\%" }

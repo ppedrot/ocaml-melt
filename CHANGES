@@ -15,6 +15,7 @@ document function are now taken into account
 - figure caption may be placed at the side (?side_caption)
 - figures may be wide (?wide)
 - wrapfigure, floatingfigure, subfloat
+- beamer colors may be given using rgb values
 
 Version 1.2.0
 =============

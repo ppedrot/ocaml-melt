@@ -1034,7 +1034,14 @@ module type BEAMER = sig
   val at_begin_subsubsection: t -> t
   val block: t -> t -> t (** [block title body] *)
 
-  type color = [ `Gray | `Red | `Green | `Blue | `Yellow ]
+  type color = [
+  | `Gray
+  | `Red
+  | `Green
+  | `Blue
+  | `Yellow
+  | `RGB of float * float * float
+  ]
 
   val color: color -> t -> t
 
@@ -1102,20 +1109,39 @@ module Beamer = struct
   let block title body =
     environment "block" ~args: [T, title] (T, body) T
 
-  type color = [ `Gray | `Red | `Green | `Blue | `Yellow ]
+  type color = [
+  | `Gray
+  | `Red
+  | `Green
+  | `Blue
+  | `Yellow
+  | `RGB of float * float * float
+  ]
 
   let color c x =
-    braced begin concat [
-      command "color"
-        [A, match c with
-           | `Gray -> text "gray"
-           | `Red -> text "red"
-           | `Green -> text "green"
-           | `Blue -> text "blue"
-           | `Yellow -> text "yellow"
-        ] A;
-      x
-    ] end
+    match c with
+      | `RGB (r, g, b) ->
+          let rgb =
+            string_of_float r^","^string_of_float g^","^string_of_float b
+          in
+          braced begin concat [
+            command "color" ~opt: (A, text "rgb") [A, text rgb] A;
+            x
+          ] end
+      | _ ->
+          braced begin concat [
+            command "color"
+              [A, match c with
+                 | `Gray -> text "gray"
+                 | `Red -> text "red"
+                 | `Green -> text "green"
+                 | `Blue -> text "blue"
+                 | `Yellow -> text "yellow"
+                 | `RGB (r, g, b) ->
+                     assert false
+              ] A;
+            x
+          ] end
 
   type overlays_spec = [`I of int]
 
