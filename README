@@ -43,9 +43,9 @@ able to use native plugins for the Melt Preprocessor.
 To compile Melt documents you need a LaTeX distribution.
 
 To compile Melt documents which use Mlpost figures you need the Mlpost
-library. Version 0.6 is required. You will also need its dependencies,
-such  as   Metapost  and   the  "context"  package   (Ubuntu,  Debian,
-...). Mlpost can be found at:
+library. Versions from 0.6 to 0.7.4 are compatible. You will also need
+its dependencies, such as  Metapost and the "context" package (Ubuntu,
+Debian, ...). Mlpost can be found at:
 
         http://mlpost.lri.fr
 

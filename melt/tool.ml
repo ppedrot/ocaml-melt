@@ -164,6 +164,9 @@ let check_mlpost_version () =
 let mlpost_version_ge s =
   !mlpost_version = "current" || Totoconf.Version.ge !mlpost_version s
 
+let mlpost_version_le s =
+  !mlpost_version <> "current" && Totoconf.Version.le !mlpost_version s
+
 let melt_to_ml f =
   let o = Filename.chop_extension f ^ ".ml" in
   cmd "%s%s -dir \"../\" -open Latex -open Melt %s -o %s" !meltpp
@@ -226,7 +229,9 @@ let ml_to_tex f =
     cmd "%s -v%s%s%s%s%s%s%s%s%s%s%s %s"
       !mlpost_bin
       mlpost_preludeo
-      (if mlpost_version_ge "0.7" then classicdisplayo else "")
+      (if mlpost_version_ge "0.7" && mlpost_version_le "0.7.1" then
+         classicdisplayo
+       else "")
       mlpost_includes
       pdfo
       (if !cairo then " -cairo -execopt \"-cairo\"" else pdfeo)

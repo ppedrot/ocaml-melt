@@ -9,6 +9,10 @@ would be a LaTeX comment. Lines being different in .mlt and .tex files, this
 made no sense.
 * Comments may be used in text and math mode. They use (* *) and may be nested.
 
+Melt tool:
+- -classic-display is not passed to recent mlpost versions which do not
+handle it
+
 Latex library:
 - packages used by commands in ~title, ~author, ~date and ~prelude of the
 document function are now taken into account
