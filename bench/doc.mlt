@@ -37,6 +37,7 @@ let latexlib = texttt "Latex"
 let melt = "Melt"
 let meltlib = texttt "Melt"
 let ocaml = "OCaml"
+let ocamldoc = "Ocamldoc"
 let camlp4 = "Camlp4"
 let mlpost = textsc "Mlpost"
 let postscript = "Postscript"
@@ -53,6 +54,9 @@ let display x =
 let listing = display
 
 let doc = ("
+{tableofcontents}
+{newpage}
+
 {section "Introduction"}
 
 {subsection "What is {melt}?"}
@@ -274,6 +278,14 @@ native  compiler.  For  example,  to produce  the  <#hello#>  bytecode
 executable:
 {listing "<#ocamlc -I +latex str.cma latex.cma hello.cmo -o hello#>"}
 
+{subsubsection "{ocamldoc} Documentation"}
+
+The  {ocamldoc} documentation  is automatically  genererated  when you
+compile   the  {melt}   distribution.   It   contains  the   list  and
+documentation of every  functions and values of the  library. Open its
+index file in your browser:
+{listing "<#_build/latex/latex.docdir/index.html#>"}
+
 {subsection "The Kernel"}
 
 {subsubsection "Modes"}
@@ -296,4 +308,13 @@ executable:
 - command line options
 ")
 
-let () = emit (document ~title: "Melt User Manual" ~date: "" doc)
+let () =
+  emit
+    (document
+       ~title: "Melt User Manual"
+       ~options: [ `A4paper ]
+       ~packages: [
+         "fullpage", "";
+       ]
+       ~date: ""
+       doc)
