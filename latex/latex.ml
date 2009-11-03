@@ -557,7 +557,7 @@ let quad = command "quad" [] M
 let qquad = command "qquad" [] M
 
 let includegraphics filename = command ~packages: ["graphicx", ""]
-  "includegraphics" [ T, filename ] T
+  "includegraphics" [ A, filename ] T
 
 let symbol i = command "symbol" [T, latex_of_int i] T
 let symbolc c = symbol (Char.code c)
@@ -1226,6 +1226,7 @@ module Verbatim = struct
       ?(keywords = [])
       ?(symbols = [])
       ?(keyword_symbols = [])
+      ?(underscore = underscore)
       s =
     let identifier_nosplit kw =
       try List.assoc kw keyword_symbols with Not_found ->

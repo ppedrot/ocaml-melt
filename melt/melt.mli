@@ -74,6 +74,7 @@ of the first [`V] item and at the end of the last [`V] item. *)
     ?keywords: string list ->
     ?symbols: (string * Latex.t) list ->
     ?keyword_symbols: (string * Latex.t) list ->
+    ?underscore: Str.regexp ->
     melt_verbatim_function
 end
 

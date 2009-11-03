@@ -113,7 +113,7 @@ using several calls to [usepackage] in the [~prelude]. *)
 
 [let lbl_intro = label ()]
 
-[let intro = section ~label: lbl_intro "This is Sect.~{ref_ lbl_intro}."] *)
+[let intro = section ~label: lbl_intro "This is Section~{ref_ lbl_intro}."] *)
 
 type label
 
@@ -677,6 +677,7 @@ regular expressions. *)
     ?keywords: string list ->
     ?symbols: (string * t) list ->
     ?keyword_symbols: (string * t) list ->
+    ?underscore: Str.regexp ->
     string -> t
     (** Pseudocode parsing.
         @param trim apply this function first (default is [trim ['\n']])
@@ -692,9 +693,12 @@ of groups of underscore followed by at least one letter or digit:
         @param symbols symbol list and the way they are printed
         @param keyword_symbols keyword list that should be printed in a special
 way, as symbols, but parsed as identifiers
+        @param underscore delimiter used to split identifiers
+(default is underscore (['_']))
 
-Keywords, keyword symbols and identifiers are split using underscore (['_'])
-as delimiter. The first part is replaced by the corresponding [Latex.t].
+Keywords, keyword symbols and identifiers are split using
+[underscore] as delimiter.
+The first part is replaced by the corresponding [Latex.t].
 The other parts are displayed as indexes separated by commas ([',']).
 They are also treated as identifiers, potentiel keywords or keyword symbols. *)
 
