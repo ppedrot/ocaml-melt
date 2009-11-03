@@ -29,13 +29,42 @@
 (**************************************************************************)
 
 ##verbatim '#' = verbatim_code
+##verbatim '%' = ocaml_code
 
 let verbatim_code x = texttt (Verbatim.verbatim x)
 
+let verbatim_keywords =
+  Latex.Verbatim.keywords ~apply: (fun _ -> texttt (symbolc '_')) [\"_\"]
+
+let ocaml_code_base x =
+  Latex.Verbatim.pseudocode
+    ~id_apply: (fun i -> textsf (verbatim_keywords (to_string i)))
+    ~kw_apply: (fun x -> textbf (textsf x))
+    ~rem_apply: (fun s -> texttt (Latex.Verbatim.verbatim s))
+    ~keywords: [\"let\"; \"in\"; \"val\"]
+    ~symbols: [\"->\", rightarrow]
+    ~underscore: (Str.regexp \"__\")
+    x
+
+let dquote = String.make 1 '\"'
+
+let ocaml_code =
+  Verbatim.regexps [
+    Str.regexp (dquote ^ \"\\(.\\|\\n\\)*[^\\]\" ^ dquote),
+    (fun s -> texttt (Latex.Verbatim.verbatim s));
+  ] ocaml_code_base
+
+let verbatim_example_nothing =
+  Verbatim.pseudocode ~keyword_symbols: [\"nothing\", emptyset]
+
+let lbl_latex_ocamldoc = label ()
+let lbl_melt_tool = label ()
+let lbl_meltpp = label ()
+
 let latex = command \"LaTeX\" [] T
-let latexlib = texttt "Latex"
+let latexlib = "<%Latex%>"
 let melt = "Melt"
-let meltlib = texttt "Melt"
+let meltlib = "<%Melt%>"
 let ocaml = "OCaml"
 let ocamldoc = "Ocamldoc"
 let camlp4 = "Camlp4"
@@ -77,8 +106,7 @@ you have some {latexlib} library providing the following functions:
 some basic {latex} macros and
 <#c#> which concatenates a list of {latex} expressions.
 Our example may then be encoded like this:
-      {display "<#c [ t "Let "; m "X"; subset; lbrace; m "1, 2, 3"; rbrace;
-    t "." ]#>"}
+      {display "<%c [ t "Let "; m "X"; subset; lbrace; m "1, 2, 3"; rbrace; t "." ]%>"}
       This is much more verbose than the original {latex} code!
       The {melt} pre-processor allows lighter syntax:
       {display "<#"Let $X {subset} \{1, 2, 3\}$."#>"}
@@ -131,11 +159,11 @@ You can produce a {pdf} file instead, using the <#-pdf#> option.
 Instead of using the {melt} tool, you can apply the preprocessor yourself:
 {listing "<#meltpp hello.mlt -o hello.ml -open Latex -open Melt#>"}
 This produces a file <#hello.ml#> which looks like this:
-{listing "<#open Latex;;
+{listing "<%open Latex;;
 open Melt;;
-emit (document (mode T ((text "Hello, world!"))))#>"}
-As you can see, the string <#"Hello, world!"#> is no longer a string but a
-value of type <#Latex.t#>. You can them compile this {ocaml} program.
+emit (document (mode T ((text "Hello, world!"))))%>"}
+As you can see, the string <%"Hello, world!"%> is no longer a string but a
+value of type <%Latex.t%>. You can then compile this {ocaml} program.
 Once executed, it will produce a file <#hello.tex#> looking like this:
 {listing "<#\documentclass{article}
 \author{}
@@ -164,7 +192,7 @@ function.
 
 {paragraph "Text and Math Modes."}
 
-You can insert math formula using the dollar delimiters <#$#{cdots}#$#>,
+You can insert math formulas using the dollar delimiters <#$#{cdots}#$#>,
 as in {latex}:
 {listing "<#"Assume $x+y=42$."#>"}
 This will produce:
@@ -278,7 +306,7 @@ native  compiler.  For  example,  to produce  the  <#hello#>  bytecode
 executable:
 {listing "<#ocamlc -I +latex str.cma latex.cma hello.cmo -o hello#>"}
 
-{subsubsection "{ocamldoc} Documentation"}
+{subsubsection ~label: lbl_latex_ocamldoc "{ocamldoc} Documentation"}
 
 The  {ocamldoc} documentation  is automatically  genererated  when you
 compile   the  {melt}   distribution.   It   contains  the   list  and
@@ -288,24 +316,379 @@ index file in your browser:
 
 {subsection "The Kernel"}
 
+{listing "<%type t (* the type of LaTeX abstract syntax trees *)%>"}
+
+The  {latexlib} library allows  you to  build {latex}  Abstract Syntax
+Trees  (ASTs)  from  a   small  set  of  basic  constructions:  modes,
+concatenation,  commands and  environments.   These ASTs  can then  be
+pretty-printed as  {latex} document parts. This  section details these
+basic  constructions.  Examples  do not  use the  {melt} preprocessor:
+strings are not escaped.
+
+{subsubsection "Raw Text"}
+
+{listing "<%val text: string -> t%>"}
+
+The <%text%> function  makes an AST from raw  {latex} code.  Normally,
+you only use it without any special symbol such as <#$#>, <#{#>, <#}#>
+or <#\#>, unless you want to write something which is not supported by
+the library. Instead, use <%text%> to write text or math formulas:
+
+{listing "<%text "Hello everyone."
+text "1 + 2 = 5"%>"}
+
+AST  parts produced  by <%text%>  are printed  simply by  printing the
+string given as argument.
+
 {subsubsection "Modes"}
+
+{listing "<%type mode = M | T | A
+val mode: mode -> t -> t%>"}
+
+The <%mode%> function takes an AST and sets its {emph "mode"}:
+{itemize [
+  "<%M%> for math mode;";
+  "<%T%> for text mode;";
+  "<%A%> for any mode.";
+]}
+If the  argument already  had a  mode, it is  converted. Math  mode is
+converted  to text  mode  using dollars  <#$ $#> while  text mode  is
+converted to math  mode using <#mbox#>. If the old or  the new mode is
+<%A%>, no conversion is made.
+
+For instance, <%mode T (text "Some text.")%>, when used in text mode, will be
+printed as <#Some text.#> (no conversion is needed)  but when used in
+math  mode, it will  be printed  as <#\mbox{Some text.}#>. Similarly,
+<%mode M (text "1 + 2 = 5")%>{footnote "Please note  that {melt}  does not
+ensure that the contents of your document makes sense."}, when used in text
+mode, will be printed as <#$1 + 2 = 5$#> but when used in math mode,
+it will be printed as <#1 + 2 = 5#>.
+
+Usually, the <%text%> and <%mode%> functions are used together.
+The <%text%> function may be used without <%mode%> if the raw {latex} part
+does not need a mode (for instance, it is usable in any mode, or it is used
+in a context when the mode makes no sense).
+
+{subsubsection "Concatenation"}
+
+{listing "<%val concat: t list -> t%>"}
+
+The <%concat%> function  takes a list of ASTs  and concatenate them in
+the given order. If a mode is given to the concatenation
+(using <%mode T (concat [ ... ])%> for instance), components of the
+list with a different mode are converted.
 
 {subsubsection "Commands and Environments"}
 
+{listing "<%val command:
+  ?packages:(string * string) list ->
+  string ->
+  ?opt:mode * t ->
+  (mode * t) list ->
+  mode ->
+  t%>"}
+
+Usage: <%command ~packages name ~opt arguments mode%>
+
+The <%command%> function produces the application of a {latex} {emph "command"},
+i.e. a backslash <#\#>, followed by the name of the command, followed
+(if any) by the parameters of the command in braces <#{ }#>.
+
+The <%packages%> optional parameter is used to specify which packages
+(and their options as the second element of the pair)
+must be added to the prelude of the document when the
+command is used. The <%document%> function of the library will scan all
+the AST to list these packages and print the prelude accordingly. If you
+do not use the <%document%> function to produce your document, the
+<%packages%> parameter will have no effect.
+
+The <%name%> parameter is the name of the command, for instance <#lambda#>
+or <#texttt#>.
+
+The <%opt%> optional parameter can be used to provide an optional argument
+to the command, which will be printed in brackets <#[ ]#> before the
+other arguments. The mode is the mode in which the argument will be printed.
+
+The <%arguments%> parameter is the list of arguments which are printed
+in braces. Their respective mode is the mode in which they will be printed.
+
+The <%mode%> parameter is the mode of the resulting command, as if you
+applied the <%mode%> function to the resulting AST (which is, thus, not
+needed).
+
+{listing "<%val environment:
+  ?packages:(string * string) list ->
+  string ->
+  ?opt:mode * t ->
+  ?args:(mode * t) list ->
+  mode * t ->
+  mode ->
+  t%>"}
+
+Usage: <%environment ~packages name ~opt ~args main_arg mode%>
+
+The <%environment%> function is similar to the <%command%> function, except
+that it produces {emph "environments"} instead of commands. An environment
+begins with <#\begin{...}#> and finishes with <#\end{...}#>, and has a
+main argument <%main_arg%> which is printed between the two.
+It may still, however, have an optional parameter <%~opt%>,
+and additional arguments <%~args%> which are printed in braces after
+the <#\begin#> command.
+
+In a typical {melt} document, you will not use <%command%> and
+<%environment%> very often. Indeed, there is a chance that the command or
+the environment you need has already been encoded in the library as an
+{ocaml} value. Here are some examples which are taken from the implementation
+of the library:
+
+{listing "<%let lambda = command "lambda" [] M
+let texttt x = command "texttt" [T, x] T
+let displaymath x = environment "displaymath" (M, x) T
+let includegraphics filename =
+  command ~packages: ["graphicx", ""] "includegraphics" [ A, filename ] T%>"}
+
 {subsubsection "Printing the AST"}
+
+{listing "<%val to_buffer: ?mode: mode -> Buffer.t -> t -> unit
+val to_channel: ?mode: mode -> out_channel -> t -> unit
+val to_file: ?mode: mode -> string -> t -> unit
+val to_string: ?mode: mode -> t -> string%>"}
+
+These functions allow you to print a {latex} AST (i.e. a value of type
+<%Latex.t%>) as {latex} code. Function <%to_buffer%> prints into a buffer
+of the standard library, function <%to_channel%> prints into a channel
+of the standard library (module <%Pervasives%>), function
+<%to_file%> takes a file name as argument and prints into this file
+(which is truncated if it already exists),
+and function <%to_string%> returns a new string containing the {latex} code.
+
+You can use these functions to print any AST, whether it was created from
+the <%document%> function or not. If you print an AST which was created
+using <%document%>, it can be compiled with <#latex#> or <#pdflatex#>.
+Not using <%document%> can be interesting if you only want to produce a part
+of your document using {melt}, and then include it in a {latex}
+document using the <#\input#> command.
+
+The {meltlib} library also contains a function <%emit%> which should be
+used instead if you are using the {melt} tool
+(see Section~{ref_ lbl_melt_tool}).
 
 {subsection "Pervasive Definitions"}
 
+The library provides several {latex} commands and environment as {ocaml}
+values, along with other handy functions.
+This section does not detail every of them; view the {ocamldoc}
+documentation for the full list (see Section~{ref_ lbl_latex_ocamldoc}).
+
 {subsubsection "References and Labels"}
+
+When you refer to other sections, figures, tables or items, you should use
+{emph "labels"}. If you write the index of the section directly
+(such as <#"Section~7"#>{footnote "Tilde <#~#> is a non-breakable space."})
+and then change the order of sections, you will have to change this ``7''
+everywhere in your code, and you might miss some of them.
+
+{listing "<%type label
+val label: ?name: string -> unit -> label
+val ref_: label -> t%>"}
+
+Function <%label%> creates a new label, and <%ref_%> makes reference to a label.
+However, this is not enough as the label must be placed at the position
+it references. In {latex}, labels can be placed anywhere, which often leads
+to errors. In {melt}, labels are placed on meaningful constructions:
+sections (including chapters, sections, subsections and subsubsections)
+and figures (including other floats). These constructions are available
+as functions of the {latexlib} library and they all have an optional
+argument <%~label%>.
+
+Here is an example, written using the {melt} preprocessor,
+of a section which refers itself:
+{listing "<%let lbl_intro = label ()
+let intro = section ~label: lbl_intro "This is Section~{ref_ lbl_intro}."%>"}
+A good practice is to put all label declarations of your document
+(such as <%lbl_intro%>) in the same place, and use some consistent
+naming convention such as <%lbl_something%>.
+
+You can still place labels anywhere using function <%place_label%>:
+{listing "<%val place_label: label -> t%>"}
+However, this should only be used if you want to use some {latex}
+feature which is not implemented in {melt}, or if you want to implement
+a command or environment similar to <#section#> or <#figure#>.
+
+If you want to mix {latex} and {melt} files by <#\input#>ing <#.tex#>
+files produced by {melt} in your <#.tex#> documents, you will want to name
+your labels using the <%~name%> optional argument of the <%label%> function.
+This name corresponds to the argument of the <#\label#> command of {latex}.
+There are two possible reasons for this. Either the label has been placed
+in the {latex} code, and you want to refer to it in your {melt} code; or the
+label has been placed in the {melt} code, and you want to refer to it in your
+{latex} code.
+
+If you do not wish to use the labels of {melt} for some reason, it is easy
+to reimplement them in a way which is closer to {latex} labels:
+{listing "<%let label x = command "label" [A, x] A
+let ref_ x = command "ref" [A, x] A%>"}
+If you use the preprocessor, don't forget to escape double quotes (<#\"#>)
+as the command name is a <%string%> and not a <%Latex.t%>.
 
 {subsubsection "Verbatim"}
 
-{section "The Melt Preprocessor"}
+The <%Latex.Verbatim%> module is very powerful, especially used in conjunction
+with the {melt} preprocessor (see Section~{ref_ lbl_meltpp}),
+as it allows:
+{itemize [
+  "to write text that will be printed verbatim (i.e. ``unchanged'');";
+  "to define pretty-printers of various languages;";
+  "to define your own ``mode''.";
+]}
+The last feature will be detailed in Section~{ref_ lbl_meltpp}.
+
+In {melt}, a {emph "verbatim function"} is a function of type
+<%string -> Latex.t%>, i.e. a function that somehow converts a string
+to a {latex} AST. The <%Latex.Verbatim%> module provides several tools
+to build such function.
+
+Function <%Latex.Verbatim.verbatim%> is a verbatim function which converts
+all non-alphanumerical characters using the <#\symbol#> command of {latex}.
+This allows you to print {emph "any"} string without messing with {latex}
+special characters such as <#$#>, <#\#>, <#{#> or <#}#>. Moreover, characters
+such as <#+#> have a special meaning in {latex}. Spacing rules are applied
+to them. For instance, <#$1+1$#> is printed as $1+1$: space is added to make
+the formula more pretty. However, it is not convenient when you want to 
+print a series of symbols, or a source code. The <%verbatim%> function solves
+this problem. Note, however, that the <#\symbol#> command of {latex}
+does not work with fonts other than <#tt#>, so you should usually
+apply <%texttt%> to the result. For instance,
+<%texttt (verbatim "$1+1$")%> is printed as <#$1+1$#>.{footnote "The
+<%Latex.Verbatim.verbatim%> function
+is more powerful than the {latex} <#\verb#> command and <#verbatim#>
+environments. The first reason is that these do not
+work everywhere, whereas the <#\symbol#> function works as long as you
+can use a <#tt#> font. The second reason is that <#\verb#> and <#verbatim#>
+do not do exactly the same thing, which means that you cannot directly replace
+one with the other."}
+
+The <%Latex.Verbatim%> module provides several functions which allow you
+to build your own verbatim functions. The first one is <%regexps%>:
+{listing "<%val regexps: (Str.regexp * (string -> t)) list -> (string -> t) -> string -> t%>"}
+Use the <%regexps%> function to apply a function to the parts of the string
+which match some regular expression. You can give several such functions
+along with their respective regular expressions, which are defined using
+the <%Str%> module of the standard library. The second argument is apply
+to parts which do not match any regular expression. This is the most general
+way of specifying verbatim functions that is provided by the library. If you
+need more, you can use other parser generators such as Ocamllex with Ocamlyacc
+or Menhir.
+
+The second function is <%keywords%>:
+{listing "<%val keywords: ?apply: (t -> t) -> string list -> string -> t%>"}
+This is a particular instance of <%regexps%> which allows you to quickly
+build a verbatim function which simply applies <%~apply%> to all occurences
+of a list of words.
+For instance, <%keywords ["let"; "in"]%> is a verbatim function which will
+apply <%textbf%> (bold font) to all occurences of <#let#> and <#in#>.
+
+The last function is <%pseudocode%>:
+{listing "<%val pseudocode:
+  ?trim: (string -> string) ->
+  ?id_regexp: Str.regexp ->
+  ?kw_apply: (t -> t) ->
+  ?id_apply: (t -> t) ->
+  ?rem_apply: (string -> t) ->
+  ?keywords: string list ->
+  ?symbols: (string * t) list ->
+  ?keyword_symbols: (string * t) list ->
+  ?underscore: Str.regexp ->
+  string -> t%>"}
+This function is a compromise between <%regexps%>, which
+can feel a bit heavy because of regular expressions,
+and <%keywords%>, which can only handle one kind of keywords as only one
+function can be applied. On the other hand, <%pseudocode%> can handle many
+kinds of replacement rules without requiring the use of regular expressions.
+
+What <%keywords%> does is first seperate {emph "identifiers"}, which are
+substrings matching <%id_regexpr%>, from the rest of the string.
+Identifiers can then be {emph "keywords"} if they match a string of
+the <%keywords%> argument; in this case, <%kw_apply%> is applied to them.
+Identifiers can also be {emph "keyword symbols"}, which are keywords
+which will be replaced by a symbol. They are defined by the list of couples
+<%keyword_symbols%>. For instance, use the couple <%("nothing", emptyset)%>
+to replace each occurences of ``nothing'' by {emptyset}. Identifiers
+which are not keywords nor keyword symbols are just identifiers, and
+<%id_apply%> is applied to them.
+
+Identifiers are split according to the <%underscore%> argument, which matches
+the underscore character by default. The first part is displayed normally,
+but the other parts are treated as indexes separated by commas. For instance,
+<#hello_42_z#> becomes <:Verbatim.pseudocode:<hello_42_z>>. Each part itself
+is checked to see if it is a keyword or a keyword symbol, which allows
+to replace, for instance, <#hello_nothing#> by
+<:verbatim_example_nothing:<hello_nothing>>.
+
+Parts of the string which are not identifiers are then scanned for
+{emph "symbols"}, defined using the <%symbols%> argument in a similar fashion
+than keyword symbols. For instance, this can be used to replace
+<#->#>, which is not an identifier, to an arrow {rightarrow}. Finally,
+everything which is not a keyword nor a symbol is replaced by applying
+<%rem_apply%>.
+
+The string given to a pseudocode verbatim function is {emph "trimmed"}
+before being processed: empty lines at the beginning and at the end of the
+string are deleted. This allows you to start your code at the beginning
+of a new line of your source code, which is prettier.
+You can change this behavior by changing the <%trim%> argument, which
+will be applied instead of the default trimming function.
+
+As an example, here is the pseudocode verbatim function which is applied
+to all OCaml examples of this user manual:
+{listing "<%
+let verbatim_keywords =
+  Latex.Verbatim.keywords ~apply: (fun _ -> texttt (symbolc '_')) ["_"]
+
+let ocaml_code_base x =
+  Verbatim.pseudocode
+    ~underscore: (Str.regexp "__")
+    ~id_apply: (fun i -> textsf (verbatim_keywords (to_string i)))
+    ~kw_apply: (fun x -> textbf (textsf x))
+    ~rem_apply: (fun s -> texttt (Latex.Verbatim.verbatim s))
+    ~keywords: ["let"; "in"; "val"]
+    ~symbols: ["->", rightarrow]
+    x
+
+let ocaml_code =
+  Verbatim.regexps [
+    Str.regexp "\"\\(.\\|\n\\)*[^\\]\"",
+    (fun s -> texttt (Latex.Verbatim.verbatim s));
+  ] ocaml_code_base
+%>"}
+Function <%ocaml_code_base%>
+first replaces the default behavior for underscores, as they are often
+used in ocaml identifiers. For the same reason, we modify <%~id_apply%>
+to apply <%verbatim%> to replace underscores by a suitable symbol, while not
+changing the rest of the identifier. We modify <%id_apply%> and <%kw_apply%>
+to print identifiers and keywords using a sans serif font (<%textsf%>),
+while the rest of the code is printed verbatim in a <%tt%> font.
+We then define some keywords and symbols of our language.
+Finally, we define <%ocaml_code%> which, before applying the pseudocode
+verbatim function <%ocaml_code_base%>, deals with
+string constants so as not to replace their contents if they contain
+a keyword or a symbol.
+
+- add a simpler example of pseudocode with some keywords and symbols
+- add another example of pseudocode which uses the mechanism to define
+a small formula language
+
+{section ~label: lbl_meltpp "The Melt Preprocessor"}
 
 - modes
 - pragmas
-- verbatim
+- verbatim (relire subsubsection verbatim)
 - command line options
+
+{section ~label: lbl_melt_tool "The Melt Tool"}
+
+- command line arguments
+- emit
 ")
 
 let () =
