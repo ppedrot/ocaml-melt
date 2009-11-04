@@ -20,6 +20,7 @@ document function are now taken into account
 - figures may be wide (?wide)
 - wrapfigure, floatingfigure, subfloat
 - beamer colors may be given using rgb values
+- ~underscore argument for pseudocode verbatim function
 
 Version 1.2.0
 =============

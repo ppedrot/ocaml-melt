@@ -38,21 +38,22 @@ let verbatim_keywords =
 
 let ocaml_code_base x =
   Latex.Verbatim.pseudocode
+    ~trim: (fun s -> s)
     ~id_apply: (fun i -> textsf (verbatim_keywords (to_string i)))
     ~kw_apply: (fun x -> textbf (textsf x))
     ~rem_apply: (fun s -> texttt (Latex.Verbatim.verbatim s))
-    ~keywords: [\"let\"; \"in\"; \"val\"]
+    ~keywords: [\"let\"; \"in\"; \"val\"; \"fun\"; \"type\"]
     ~symbols: [\"->\", rightarrow]
     ~underscore: (Str.regexp \"__\")
     x
 
 let dquote = String.make 1 '\"'
 
-let ocaml_code =
+let ocaml_code x =
   Verbatim.regexps [
-    Str.regexp (dquote ^ \"\\(.\\|\\n\\)*[^\\]\" ^ dquote),
+    Str.regexp \"\034\\([\\]\034\\|[^\034]\\)*\034\",
     (fun s -> texttt (Latex.Verbatim.verbatim s));
-  ] ocaml_code_base
+  ] ocaml_code_base (Verbatim.trim ['\n'] x)
 
 let verbatim_example_nothing =
   Verbatim.pseudocode ~keyword_symbols: [\"nothing\", emptyset]
@@ -647,36 +648,50 @@ let verbatim_keywords =
 
 let ocaml_code_base x =
   Verbatim.pseudocode
+    ~trim: (fun s -> s)
     ~underscore: (Str.regexp "__")
     ~id_apply: (fun i -> textsf (verbatim_keywords (to_string i)))
     ~kw_apply: (fun x -> textbf (textsf x))
     ~rem_apply: (fun s -> texttt (Latex.Verbatim.verbatim s))
-    ~keywords: ["let"; "in"; "val"]
+    ~keywords: ["let"; "in"; "val"; "fun"; "type"]
     ~symbols: ["->", rightarrow]
     x
 
-let ocaml_code =
+let ocaml_code x =
   Verbatim.regexps [
-    Str.regexp "\"\\(.\\|\n\\)*[^\\]\"",
+    Str.regexp "\"\\([\\]\"\\|[^\"]\\)*\"",
     (fun s -> texttt (Latex.Verbatim.verbatim s));
-  ] ocaml_code_base
+  ] ocaml_code_base (Verbatim.trim ['\n'] x)
 %>"}
-Function <%ocaml_code_base%>
-first replaces the default behavior for underscores, as they are often
-used in ocaml identifiers. For the same reason, we modify <%~id_apply%>
-to apply <%verbatim%> to replace underscores by a suitable symbol, while not
-changing the rest of the identifier. We modify <%id_apply%> and <%kw_apply%>
-to print identifiers and keywords using a sans serif font (<%textsf%>),
-while the rest of the code is printed verbatim in a <%tt%> font.
-We then define some keywords and symbols of our language.
-Finally, we define <%ocaml_code%> which, before applying the pseudocode
-verbatim function <%ocaml_code_base%>, deals with
-string constants so as not to replace their contents if they contain
-a keyword or a symbol.
+Function <%ocaml_code%> first deals with string constants using a regular
+expression. The rest of the code is processed by <%ocaml_code_base%>, which
+defines how keywords, symbols and identifiers should be printed.
+Several techniques are used.
+{itemize [
+  "We set <%~id_apply%> and <%~kw_apply%> to print identifiers and keywords
+using a sans serif font (using <%textsf%>).";
+  "OCaml identifiers tend to use underscores a lot, but <%pseudocode%> uses
+underscores to parse indices. We change this behavior by changing the
+<%~underscore%> optional parameter.";
+  "Now that underscores are normal parts of identifiers, we need to print
+them correctly. So we change how keywords are printed, by using an
+auxiliary verbatim function <%verbatim_keywords%> which views underscores
+inside keywords, as keywords which should be printed as <#tt#> underscores
+(default underscore is _, and <#tt#> underscore is <#_#> which is prettier).
+Note that we could have simply used <%Latex.Verbatim.verbatim%> if identifiers
+were printed using a <#tt#> font instead of a sans serif font.";
+  "Function <%ocaml_code_base%> will be applied to each part of the original
+string which is not a string constant. For instance, when we apply
+<%ocaml_code%> to <#print "this";#>, <%ocaml_code_base%> is
+actually applied twice: to <#"print "#> and to <#";"#>. This means that
+both these strings are trimmed, which is not the expected behavior. So
+we disable trimming by changing the <%~trim%> optional parameter, and
+we trim the string ourself in <%ocaml_code%> using <%Verbatim.trim%>.";
+]}
 
 - add a simpler example of pseudocode with some keywords and symbols
 - add another example of pseudocode which uses the mechanism to define
-a small formula language
+a small formula language, justifying underscores
 
 {section ~label: lbl_meltpp "The Melt Preprocessor"}
 
@@ -684,6 +699,7 @@ a small formula language
 - pragmas
 - verbatim (relire subsubsection verbatim)
 - command line options
+- plugins
 
 {section ~label: lbl_melt_tool "The Melt Tool"}
 
