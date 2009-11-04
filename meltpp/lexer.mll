@@ -40,12 +40,13 @@
     | T
     | V of string option
 
-  exception Lexical_error of (Lexing.position * Lexing.position) * 
-                                             (* offending position *)
-                                             (mode * (Lexing.position * Lexing.position)) list *
-					     (* stack of open modes *)
-					     string
-					     (* further explanation *)
+  exception Lexical_error of
+    (Lexing.position * Lexing.position)
+      (* offending position *)
+    * (mode * (Lexing.position * Lexing.position)) list
+      (* stack of open modes *)
+    * string
+      (* further explanation *)
 
   let loc lexbuf = (lexeme_start_p lexbuf, lexeme_end_p lexbuf)
 
@@ -154,7 +155,9 @@ rule code = parse
   | "\\r" { STRING "\\r" }
   | "\\n" { STRING "\\n" }
   | "\\t" { STRING "\\t" }
-  | '\\' [^ '"' '\\' 'r' 'n' 't']
+  | '\\' num num num as x { STRING x }
+  | '\\' [^ '"' '\\' 'r' 'n' 't' '0'-'9']
+  | '\\' num [^'0'-'9']
       { lex_error lexbuf "invalid escaping in code mode" }
 
   | "(*" { start_comment (); comment lexbuf }
