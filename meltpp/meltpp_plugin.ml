@@ -57,8 +57,9 @@ let list_iter_concat fmt f = function
       fprintf fmt ")"
 
 let escape_except_newline s =
-  let s = String.escaped s in
-  Str.global_replace (Str.regexp_string "\\n") "\n" s
+  let l = Str.split_delim (Str.regexp "\n") s in
+  let l = List.map String.escaped l in
+  String.concat "\n" l
 
 let verbatim_complex name: verbatim_function = fun f l ->
   let l = list_insert `I (l :> [ verbatim_item | `I ] list) in
