@@ -31,7 +31,7 @@
 ##verbatim '#' = verbatim_code
 ##verbatim '%' = ocaml_code
 
-let verbatim_code x = texttt (Verbatim.verbatim x)
+let verbatim_code x = texttt (Verbatim.verbatim (Verbatim.trim ['\n'] x))
 
 let verbatim_keywords =
   Latex.Verbatim.keywords ~apply: (fun _ -> texttt (symbolc '_')) [\"_\"]
@@ -57,6 +57,17 @@ let ocaml_code x =
 
 let verbatim_example_nothing =
   Verbatim.pseudocode ~keyword_symbols: [\"nothing\", emptyset]
+
+let verbatim_example_bool =
+  Verbatim.pseudocode
+    ~symbols: [
+      \"/\\\", land_;
+      \"\\/\", lor_;
+      \"<=>\", iff;
+      \"==>\", rightarrow_;
+      \"<==\", leftarrow_;
+    ]
+    ~keyword_symbols: [\"xor\", oplus; \"xand\", otimes]
 
 let lbl_latex_ocamldoc = label ()
 let lbl_melt_tool = label ()
@@ -544,6 +555,7 @@ as it allows:
 ]}
 The last feature will be detailed in Section~{ref_ lbl_meltpp}.
 
+{paragraph "Verbatim Functions"}
 In {melt}, a {emph "verbatim function"} is a function of type
 <%string -> Latex.t%>, i.e. a function that somehow converts a string
 to a {latex} AST. The <%Latex.Verbatim%> module provides several tools
@@ -569,8 +581,7 @@ can use a <#tt#> font. The second reason is that <#\verb#> and <#verbatim#>
 do not do exactly the same thing, which means that you cannot directly replace
 one with the other."}
 
-The <%Latex.Verbatim%> module provides several functions which allow you
-to build your own verbatim functions. The first one is <%regexps%>:
+You can build other verbatim functions using <%regexps%>:
 {listing "<%val regexps: (Str.regexp * (string -> t)) list -> (string -> t) -> string -> t%>"}
 Use the <%regexps%> function to apply a function to the parts of the string
 which match some regular expression. You can give several such functions
@@ -640,7 +651,36 @@ of a new line of your source code, which is prettier.
 You can change this behavior by changing the <%trim%> argument, which
 will be applied instead of the default trimming function.
 
-As an example, here is the pseudocode verbatim function which is applied
+{paragraph "Example: Boolean Formulas"}
+Let's use <%pseudocode%> to take boolean formulas such as:
+{listing "<#
+A /\ B \/ (C_1 xor C_2) <=> (D ==> E_1 xand E_2)
+#>"}
+and print them like this:
+{display "<:verbatim_example_bool:+
+A /\ B \/ (C_1 xor C_2) <=> (D ==> E_1 xand E_2)
++>"}
+Operators <#xor#> and <#xand#> are identifiers which should be viewed as
+keywords printed as symbols, so we define them using the <%~keyword_symbols%>
+argument.
+Operators <#/\#>, <#\/#>, <#<=>#> and <#==>#> are not identifiers, they
+are simply symbols, so we define them using the <%~symbols%> argument.
+The result is the following function:
+{listing "<%
+let boolean_formula =
+  Verbatim.pseudocode
+    ~symbols: [
+      "/\\", land_;
+      "\\/", lor_;
+      "<=>", iff;
+      "==>", rightarrow_;
+      "<==", leftarrow_;
+    ]
+    ~keyword_symbols: ["xor", oplus; "xand", otimes]
+%>"}
+
+{paragraph "Example: OCaml Pretty-Printer"}
+Here is the pseudocode verbatim function which is applied
 to all OCaml examples of this user manual:
 {listing "<%
 let verbatim_keywords =
@@ -688,10 +728,6 @@ both these strings are trimmed, which is not the expected behavior. So
 we disable trimming by changing the <%~trim%> optional parameter, and
 we trim the string ourself in <%ocaml_code%> using <%Verbatim.trim%>.";
 ]}
-
-- add a simpler example of pseudocode with some keywords and symbols
-- add another example of pseudocode which uses the mechanism to define
-a small formula language, justifying underscores
 
 {section ~label: lbl_meltpp "The Melt Preprocessor"}
 
