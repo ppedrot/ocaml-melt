@@ -52,7 +52,9 @@ let dquote = String.make 1 '\"'
 let ocaml_code x =
   Verbatim.regexps [
     Str.regexp \"\034\\([\\]\034\\|[^\034]\\)*\034\",
-    (fun s -> texttt (Latex.Verbatim.verbatim s));
+      (fun s -> texttt (Latex.Verbatim.verbatim s));
+    Str.regexp \"(\\*\\([^*]\\|\\*[^)]\\)*\\*)\",
+      (fun s -> textit (text s));
   ] ocaml_code_base (Verbatim.trim ['\n'] x)
 
 let verbatim_example_nothing =
@@ -72,6 +74,7 @@ let verbatim_example_bool =
 let lbl_latex_ocamldoc = label ()
 let lbl_melt_tool = label ()
 let lbl_meltpp = label ()
+let lbl_melt_distribution = label ()
 
 let latex = command \"LaTeX\" [] T
 let latexlib = "<%Latex%>"
@@ -93,6 +96,8 @@ let display x =
        T) T
 
 let listing = display
+
+let todo x = "{par}{huge "{textbf "TODO:"} {x}"}{par}"
 
 let doc = ("
 {tableofcontents}
@@ -145,13 +150,13 @@ becomes an awful, unreadable mess. The {melt} preprocessor provides a much
 lighter syntax, allowing the user to easily interleave {latex} values and
 {ocaml} code.
 
+The {meltlib} library contains various tools to glue things together. In
+particular, it contains functions to easily include {mlpost} pictures.
+
 The {melt} tool takes a {melt} program and compiles it into a {postscript} or
 a {pdf} document. It runs the preprocessor if needed, compiles the program,
 executes it to produce a {latex} program, and then runs {latex} to produce
 the final document.
-
-The {meltlib} library contains various tools to glue things together. In
-particular, it contains functions to easily include {mlpost} pictures.
 
 {subsection "Getting Started"}
 
@@ -275,6 +280,72 @@ The verbatim mode has other features such as delimiter selection,
 function selection and
 antiquotations. They will be described later in this document.
 
+{section ~label: lbl_melt_distribution "The {melt} Distribution"}
+
+The {melt} distribution contains the {latexlib} library, the
+{melt} preprocessor, the {meltlib} library, the {melt} tool, and
+this documentation.
+
+{subsection "Download"}
+
+The {melt} distribution can be found on OcamlForge:
+{listing "<#http://melt.forge.ocamlcore.org/#>"}
+Extract the archive wherever you want to obtain the <#melt#> directory.
+
+{subsection "Pre-requisites"}
+
+You  need the  OCaml compiler.   Version  3.09 is  enough, maybe  some
+previous versions will work too.  Version 3.10.2 is needed if you want
+to compile using Ocamlbuild.  Version 3.11 is needed if you want to be
+able to use native plugins for the Melt Preprocessor.
+
+To compile Melt documents you need a {latex} distribution.
+
+To compile Melt documents which use Mlpost figures you need the Mlpost
+library. Versions from 0.6 to 0.7.4 are compatible. You will also need
+its dependencies, such as  Metapost and the <#context#> package (Ubuntu,
+Debian, ...). Mlpost can be found at:
+
+{listing "<#http://mlpost.lri.fr#>"}
+
+You can  compile and  use Melt  without Mlpost, but  you will  need to
+compile your Melt documents using  the <#-no-mlpost#> option. If you later
+install Mlpost and want to use it with Melt you will have to recompile
+Melt.
+
+{subsection "Configure"}
+
+The configuration  tool is automatically  launched the first  time you
+run make. You can rerun it at any time by removing the Config file and
+running make again, or by running the following command in the
+<#melt#> directory:
+
+{listing "<#ocaml configure.ml -i#>"}
+
+The  -i option  activates  interactive  mode.  If  you  don't use  it,
+default values will be used.
+
+You can also edit the <#Config#> file by hand.
+
+{subsection "Compile"}
+
+Just enter the <#melt#> directory and run:
+{listing "<#make#>"}
+
+{subsection "Install"}
+
+Just enter the <#melt#> directory and run:
+{listing "<#make install#>"}
+You might have to add <#sudo#> at the beginning if do not have the
+right permissions on the installation directories.
+
+{subsection "Uninstall"}
+
+Just enter the <#melt#> directory and run:
+{listing "<#make uninstall#>"}
+Be careful not to change the configuration in the <#melt#> directory
+between installing and uninstalling.
+
 {section "The {latexlib} Library"}
 
 The  {latexlib} library  is  composed  of a  kernel,  which allows  to
@@ -286,19 +357,21 @@ built on top of this kernel.
 {subsubsection "Compiling the Library"}
 
 The  library is  automatically compiled  when you  compile  the {melt}
-distribution. See its Makefile if you want to know more.
+distribution (see Section~{ref_ lbl_melt_distribution}).
 
 {subsubsection "Installing the Library"}
 
 The  library will  automatically  be installed  when  you install  the
 {melt}  distribution. It  will normally  be installed  in  the {ocaml}
 library  directory, which  you  can find  using  the command
-<#ocamlc -where#>. The following files should be copied there:
+<#ocamlc -where#>, under the <#melt#> subdirectory.
+The following files should be copied there:
 {listing "<#latex.a
 latex.cmi
 latex.cma
 latex.cmxa#>"}
-To uninstall the library, simply delete these files.
+To uninstall the library, simply delete these files or uninstall
+the {melt} distribution (see Section~{ref_ lbl_melt_distribution}).
 
 {subsubsection "Compiling a Program Which Uses the Library"}
 
@@ -307,8 +380,8 @@ interface  <#latex.cmi#>.  If this  file  has  been  installed in  the
 default {ocaml} library directory, {ocaml} will find it automatically.
 Else, you need to include the directory using the <#-I#> option.
 For example, to compile <#hello.ml#> if the library has been installed
-in the <#latex#> subdirectory of the default directory:
-{listing "<#ocamlc -c -I +latex hello.ml#>"}
+in the <#melt#> subdirectory of the default directory:
+{listing "<#ocamlc -c -I +melt hello.ml#>"}
 
 At link-time, the {ocaml} compiler also needs to know that the archive
 <#latex.cma#>,  along  with its  dependency  <#str.cma#>,  have to  be
@@ -316,12 +389,13 @@ linked with the program.  Add  all these archives in the command line,
 in the  right order.  Replace <#.cma#>  with <#.cmxa#> if  you use the
 native  compiler.  For  example,  to produce  the  <#hello#>  bytecode
 executable:
-{listing "<#ocamlc -I +latex str.cma latex.cma hello.cmo -o hello#>"}
+{listing "<#ocamlc -I +melt str.cma latex.cma hello.cmo -o hello#>"}
 
 {subsubsection ~label: lbl_latex_ocamldoc "{ocamldoc} Documentation"}
 
 The  {ocamldoc} documentation  is automatically  genererated  when you
-compile   the  {melt}   distribution.   It   contains  the   list  and
+compile   the  {melt}   distribution
+(see Section~{ref_ lbl_melt_distribution}).   It   contains  the   list  and
 documentation of every  functions and values of the  library. Open its
 index file in your browser:
 {listing "<#_build/latex/latex.docdir/index.html#>"}
@@ -680,7 +754,7 @@ let boolean_formula =
 %>"}
 
 {paragraph "Example: OCaml Pretty-Printer"}
-Here is the pseudocode verbatim function which is applied
+Here is the verbatim function which is applied
 to all OCaml examples of this user manual:
 {listing "<%
 let verbatim_keywords =
@@ -700,11 +774,15 @@ let ocaml_code_base x =
 let ocaml_code x =
   Verbatim.regexps [
     Str.regexp "\"\\([\\]\"\\|[^\"]\\)*\"",
-    (fun s -> texttt (Latex.Verbatim.verbatim s));
+      (fun s -> texttt (Latex.Verbatim.verbatim s));
+    Str.regexp "(\\*\\([^*]\\|\\*[^)]\\)*\\*)",
+      (fun s -> textit (text s));
   ] ocaml_code_base (Verbatim.trim ['\n'] x)
 %>"}
-Function <%ocaml_code%> first deals with string constants using a regular
-expression. The rest of the code is processed by <%ocaml_code_base%>, which
+Function <%ocaml_code%> first deals with string constants and comments
+using regular expressions. Note that this is not perfect, as it does not
+handle double quotes in comments.
+The rest of the code is processed by <%ocaml_code_base%>, which
 defines how keywords, symbols and identifiers should be printed.
 Several techniques are used.
 {itemize [
@@ -731,16 +809,73 @@ we trim the string ourself in <%ocaml_code%> using <%Verbatim.trim%>.";
 
 {section ~label: lbl_meltpp "The Melt Preprocessor"}
 
-- modes
+{todo "- modes
 - pragmas
 - verbatim (relire subsubsection verbatim)
 - command line options
-- plugins
+- plugins"}
+
+{section ~label: lbl_meltpp "The {meltlib} Library"}
+
+{subsection "Using the Library"}
+
+{subsubsection "Compiling the Library"}
+
+The  library is  automatically compiled  when you  compile  the {melt}
+distribution (see Section~{ref_ lbl_melt_distribution}).
+
+{subsubsection "Installing the Library"}
+
+The  library will  automatically  be installed  when  you install  the
+{melt}  distribution. It  will normally  be installed  in  the {ocaml}
+library  directory, which  you  can find  using  the command
+<#ocamlc -where#>, under the <#melt#> subdirectory.
+The following files should be copied there:
+{listing "<#melt.a
+melt.cmi
+melt.cma
+melt.cmxa#>"}
+To uninstall the library, simply delete these files or uninstall the
+{melt} distribution (see Section~{ref_ lbl_melt_distribution}).
+
+{subsubsection "Compiling a Program Which Uses the Library"}
+
+At compile-time, the {ocaml} compiler  needs to know where to find the
+interface  <#melt.cmi#>.  If this  file  has  been  installed in  the
+default {ocaml} library directory, {ocaml} will find it automatically.
+Else, you need to include the directory using the <#-I#> option.
+For example, to compile <#hello.ml#> if the library has been installed
+in the <#melt#> subdirectory of the default directory:
+{listing "<#ocamlc -c -I +melt hello.ml#>"}
+
+At link-time, the {ocaml} compiler also needs to know that the archive
+<#melt.cma#>,  along  with its  dependencies <#latex.cma#>, <#str.cma#>
+and <#mlpost.cma#> (if you compiled {melt} with {mlpost}),  have to  be
+linked with the program.  Add  all these archives in the command line,
+in the  right order.  Replace <#.cma#>  with <#.cmxa#> if  you use the
+native  compiler.  For  example,  to produce  the  <#hello#>  bytecode
+executable:
+{listing "<#ocamlc -I +melt -I +mlpost mlpost.cma str.cma latex.cma melt.cma hello.cmo \
+  -o hello#>"}
+Note that {mlpost} itself may require some other dependencies.
+
+{subsubsection ~label: lbl_latex_ocamldoc "{ocamldoc} Documentation"}
+
+The  {ocamldoc} documentation  is automatically  genererated  when you
+compile   the  {melt}   distribution
+(see Section~{ref_ lbl_melt_distribution}).   It   contains  the   list  and
+documentation of every  functions and values of the  library. Open its
+index file in your browser:
+{listing "<#_build/melt/melt.docdir/index.html#>"}
+
+{subsection "......"}
+
+{todo "library documentation"}
 
 {section ~label: lbl_melt_tool "The Melt Tool"}
 
-- command line arguments
-- emit
+{todo "- command line arguments
+- emit"}
 ")
 
 let () =
@@ -753,3 +888,9 @@ let () =
        ]
        ~date: ""
        doc)
+
+(*
+Local Variables:
+compile-command: "melt doc.mlt && evince doc.ps"
+End:
+*)

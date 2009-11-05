@@ -3,11 +3,14 @@ Changes that may break existing programs are marked using a star *.
 Development Version
 ===================
 
+The documentation has been updated and extended.
+
 Preprocessor:
 * Percent character (%) now yields \% in .tex files, instead of just % which
 would be a LaTeX comment. Lines being different in .mlt and .tex files, this
 made no sense.
 * Comments may be used in text and math mode. They use (* *) and may be nested.
+- Bugfix: \n in verbatim mode is now handle correctly.
 
 Melt tool:
 - -classic-display is not passed to recent mlpost versions which do not
