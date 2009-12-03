@@ -50,9 +50,10 @@ let find name =
         exit 2
     | i::r ->
         let name = Filename.concat i name in
-        if Sys.file_exists (name^".cmo") then name^".cmo" else
-          if Sys.file_exists (name^".cma") then name^".cma" else
-            f r
+	if Sys.file_exists  (name^".cmxs") then name^".cmxs" else
+          if Sys.file_exists (name^".cmo") then name^".cmo" else
+            if Sys.file_exists (name^".cma") then name^".cma" else
+              f r
   in f !includes
 
 let load_plugin =
