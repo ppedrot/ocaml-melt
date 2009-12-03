@@ -51,9 +51,9 @@ let dquote = String.make 1 '\"'
 
 let ocaml_code x =
   Verbatim.regexps [
-    Str.regexp \"\034\\([\\]\034\\|[^\034]\\)*\034\",
+    Str.regexp \"\034\\\\([\\\\]\034\\\\|[^\034]\\\\)*\034\",
       (fun s -> texttt (Latex.Verbatim.verbatim s));
-    Str.regexp \"(\\*\\([^*]\\|\\*[^)]\\)*\\*)\",
+    Str.regexp \"(\\\\*\\\\([^*]\\\\|\\\\*[^)]\\\\)*\\\\*)\",
       (fun s -> textit (text s));
   ] ocaml_code_base (Verbatim.trim ['\n'] x)
 
@@ -63,8 +63,8 @@ let verbatim_example_nothing =
 let verbatim_example_bool =
   Verbatim.pseudocode
     ~symbols: [
-      \"/\\\", land_;
-      \"\\/\", lor_;
+      \"/\\\\\", land_;
+      \"\\\\/\", lor_;
       \"<=>\", iff;
       \"==>\", rightarrow_;
       \"<==\", leftarrow_;
@@ -92,7 +92,7 @@ let ie = emph "i.e."
 let display x =
   environment \"center\"
     (T, command \"fbox\"
-       [T, environment \"minipage\" ~args: [T, text \"0.9\\textwidth\"] (T, x) T]
+       [T, environment \"minipage\" ~args: [T, text \"0.9\\\\textwidth\"] (T, x) T]
        T) T
 
 let listing = display
@@ -744,8 +744,8 @@ The result is the following function:
 let boolean_formula =
   Verbatim.pseudocode
     ~symbols: [
-      "/\\", land_;
-      "\\/", lor_;
+      "/\\\\", land_;
+      "\\\\/", lor_;
       "<=>", iff;
       "==>", rightarrow_;
       "<==", leftarrow_;
@@ -773,9 +773,9 @@ let ocaml_code_base x =
 
 let ocaml_code x =
   Verbatim.regexps [
-    Str.regexp "\"\\([\\]\"\\|[^\"]\\)*\"",
+    Str.regexp "\"\\\\([\\\\]\"\\\\|[^\"]\\\\)*\"",
       (fun s -> texttt (Latex.Verbatim.verbatim s));
-    Str.regexp "(\\*\\([^*]\\|\\*[^)]\\)*\\*)",
+    Str.regexp "(\\\\*\\\\([^*]\\\\|\\\\*[^)]\\\\)*\\\\*)",
       (fun s -> textit (text s));
   ] ocaml_code_base (Verbatim.trim ['\n'] x)
 %>"}
