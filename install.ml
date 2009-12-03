@@ -206,6 +206,7 @@ let () =
     "melt/melt.cmi";
     "melt/melt.cma";
     "melt/melt.cmxa";
+    "meltpp/meltpp_plugin.cmi"
   ];
   do_meta ();
   if !uninstall then rm_dir !lib;
