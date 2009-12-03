@@ -69,3 +69,6 @@ let load_plugin =
     with Sys_error s ->
       eprintf "%s\nError: Cannot load plugin %s.\n" s name;
       exit 2
+    | Dynlink.Error m ->
+	eprintf "%s" (Dynlink.error_message m);
+	exit 2
