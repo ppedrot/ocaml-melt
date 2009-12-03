@@ -152,9 +152,9 @@ rule code = parse
 
   | "\\\"" { STRING "\"" }
   | "\\\\" { STRING "\\" }
-  | "\\r" { STRING "\r" }
-  | "\\n" { STRING "\n" }
-  | "\\t" { STRING "\t" }
+  | "\\r" { STRING "\\r" }
+  | "\\n" { STRING "\\n" }
+  | "\\t" { STRING "\\t" }
   | '\\' num num num as x { STRING x }
   | '\\' [^ '"' '\\' 'r' 'n' 't' '0'-'9']
   | '\\' num [^'0'-'9']
