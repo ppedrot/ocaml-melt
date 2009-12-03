@@ -255,3 +255,9 @@ let () =
     print fmt ast';
     close_out oc
   end files
+
+
+
+(* Artificial dependencies, for plugin to be able to use melt libraries *)
+open Latex
+open Melt

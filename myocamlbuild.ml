@@ -40,7 +40,8 @@ let config =
 
 let config_yes x = String.uppercase (config x) = "YES"
 
-let tool_targets = [ "melt/tool.native"; "melt/tool.byte" ]
+let tool_targets = 
+  [ "melt/tool.native"; "melt/tool.byte" ; "meltpp/main.native"; "meltpp/main.byte"]
 
 let () = dispatch begin function
   | After_rules ->
