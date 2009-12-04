@@ -780,8 +780,8 @@ val unusual_command : ?packages: (string * string) list -> string ->
       or where optional and mandatory arguments are interleaved. *)
 
 val within_braces: t -> t
-  (** [within_braces x] produces [{x}]
-       Typically meant to be used together with [unusual_command]. *)
+  (** [within_braces x] produces [{x}].
+      Typically meant to be used together with [unusual_command]. *)
 
 (** LaTeX Environment. *)
 val environment: ?packages: (string * string) list -> string ->
@@ -822,7 +822,9 @@ val renewcommand: int -> t -> t -> t
 
 val block: t -> t
   (** [block x] produces [{x}]. Should only be used in some rare cases when
-you want to be very precise about what LaTeX should do. *)
+      you want to be very precise about what LaTeX should do.
+      If [x] is empty, the braces are not added. If you need braces even if
+      [x] is empty, use {!within_braces}. *)
 
 val place_label: label -> t
   (** [place_label lbl] places label [lbl]. Normally you would prefer using
