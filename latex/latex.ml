@@ -501,6 +501,9 @@ let paragraph title =
 let displaymath x =
   environment "displaymath" (M, x) T
 
+let equation x =
+  environment "equation" (M, x) T
+
 let emph x = command "emph" [T, x] T
 
 let texttt x = command "texttt" [T, x] T

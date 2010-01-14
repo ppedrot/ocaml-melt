@@ -69,7 +69,7 @@ can then be used as a verbatim mode. *)
 
 val verbatim_complex: string -> verbatim_function
   (** [verbatim_complex "f"] is a verbatim function which prints a piece of code
-which fill apply [f] to the [verbatim_item list], which is printed as an
+which will apply [f] to the [verbatim_item list], which is printed as an
 expression of type
 [[ `V of string | `C of 'a | `M of Latex.t | `T of Latex.t ] list]. *)
 

@@ -24,6 +24,7 @@ document function are now taken into account
 - wrapfigure, floatingfigure, subfloat
 - beamer colors may be given using rgb values
 - ~underscore argument for pseudocode verbatim function
+- equation
 
 Version 1.2.0
 =============

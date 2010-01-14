@@ -222,6 +222,7 @@ val subsubsection: ?label: label -> t -> t
 val paragraph: t -> t
 val par: t
 val displaymath: t -> t
+val equation: t -> t
 val hfill: t
 val footnote: t -> t
 val latex_of_int: int -> t
