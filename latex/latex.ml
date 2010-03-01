@@ -759,7 +759,7 @@ let array c l =
     let lc = al.al_columns in
     if List.length lc <> numcols then
       failwith (sprintf "array: line with %d columns instead of %d"
-                  (List.length lc) (List.length c));
+                  (List.length lc) numcols);
     concat (list_insert (text " & ") lc) ^^ newlinegen al.al_sep
   end l in
   let body = concat lines (*(list_insert newline lines)*) in
