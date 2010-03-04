@@ -362,7 +362,7 @@ let optcmd name = function
 
 let labelo l = optcmd "label" (Opt.map text l)
 
-let par = command "par" [] T
+let par = text "\\par "
 
 (*******************************************************************************)
 
