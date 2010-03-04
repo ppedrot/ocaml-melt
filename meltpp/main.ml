@@ -159,8 +159,9 @@ let rec print f = function
         | [x] ->
             print f x
         | x::rem ->
-            fprintf f "(";
+            fprintf f "((";
             print f x;
+            fprintf f ")";
             List.iter (fun y -> fprintf f " ^^ (%a)" print y) rem;
             fprintf f ")"
       end
