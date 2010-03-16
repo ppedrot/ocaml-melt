@@ -74,19 +74,12 @@ let command ?(packages=[]) name ?opt args mode =
     let args = Opt.cons opt args in
     unusual_command ~packages name args mode
 
-
 let text s = Text s
 let environment ?(packages = []) name ?opt ?(args = []) body mode =
   Environment(packages, name, opt, args, body, mode)
 let concat l = Concat l
 let (^^) x y = concat [x; y]
 let mode mode x = Mode(mode, x)
-
-let braced x = concat [
-  text "{";
-  x;
-  text "}";
-]
 
 module Pp: sig
   type t
@@ -1132,12 +1125,12 @@ module Beamer = struct
           let rgb =
             string_of_float r^","^string_of_float g^","^string_of_float b
           in
-          braced begin concat [
+          within_braces begin concat [
             command "color" ~opt: (A, text "rgb") [A, text rgb] A;
             x
           ] end
       | _ ->
-          braced begin concat [
+          within_braces begin concat [
             command "color"
               [A, match c with
                  | `Gray -> text "gray"
