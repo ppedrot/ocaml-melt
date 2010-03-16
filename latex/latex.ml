@@ -482,6 +482,8 @@ let block x = match none_if_empty x with
   | Some x -> within_braces x
 let index x y = mode M (block x ^^ text "_" ^^ block y)
 let exponent x y = mode M (block x ^^ text "^" ^^ block y)
+let index_exponent x y z =
+  mode M (block x ^^ text "_" ^^ block y ^^ text "^" ^^ block z)
 
 let chapter ?label title =
   command "chapter" [T, title] T ^^ labelo label

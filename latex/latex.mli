@@ -211,6 +211,13 @@ val index: t -> t -> t
 val exponent: t -> t -> t
   (** [index x y] produces [{x}^{y}] *)
 
+val index_exponent: t -> t -> t -> t
+  (** [index_exponent x y z] produces [{x}_{y}^{z}].
+
+      This is NOT equivalent to [exponent (index x y) z] as this would
+      produce [{{x}_{y}}^{z}]. The former allows the exponent to be printed
+      above the index, while the latter does not. *)
+
 val tableofcontents: t
 val listoffigures: t
 val listoftables: t

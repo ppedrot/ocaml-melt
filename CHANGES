@@ -25,6 +25,7 @@ document function are now taken into account
 - beamer colors may be given using rgb values
 - ~underscore argument for pseudocode verbatim function
 - equation
+- index_exponent
 
 Version 1.2.0
 =============
