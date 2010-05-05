@@ -55,6 +55,7 @@ let link = ref true
 
 let dvi = ref false
 let pdf = ref false
+let ps2pdf = ref false
 let cairo = ref false
 let quiet = ref false
 let continue = ref false
@@ -83,6 +84,10 @@ let add_plugin_include x = plugin_includes := x :: !plugin_includes
 let includes = ref []
 let add_include x = includes := x :: !includes
 
+(* -T add links for latex *)
+let latex_link = ref []
+let add_latex_link x = latex_link := x :: !latex_link
+
 let () =
   try
     let libmelt_dir = exec_line "ocamlfind" ["query"; "melt"; "2> /dev/null"] in
@@ -101,6 +106,7 @@ Melt pre-processor";
 (this option is passed to the Melt pre-processor)";
   "-I", Arg.String add_include, "<dir> Look for libraries in <dir> \
 (this option is passed to the OCaml compiler)";
+  "-T", Arg.String add_latex_link, "<path> add a link to the path";
 
   "-classic-display", Arg.Set classic_display,
   " Call Ocamlbuild with -classic-display (do not work with Mlpost)";
@@ -115,6 +121,7 @@ Melt pre-processor";
   "-dvi", Arg.Set dvi, " Produce a DVI instead of a PS";
   "-ps", Arg.Clear pdf, " Produce a PS file (this is the default behavior)";
   "-pdf", Arg.Set pdf, " Produce a PDF instead of a PS";
+  "-ps2pdf", Arg.Set ps2pdf, " Produce a PDF using ps2pdf command";
   "-cairo", Arg.Unit (fun () -> cairo := true; pdf := true),
   " Use the Cairo backend of Mlpost (implies -pdf)";
   "-quiet", Arg.Set quiet, " Be quiet";
@@ -127,7 +134,7 @@ Melt pre-processor";
   "-bibtex", Arg.Set bibtex, " Use BibTeX";
   "-fast", Arg.Set fast, " Do not call LaTeX again to get references right";
 
-  "-melt-dir", Arg.Set_string melt_dir, "<dir> Change the named used for \
+  "-melt-dir", Arg.Set_string melt_dir, "<dir> Change the name used for \
 the _melt directory";
 
   "-clean", Arg.Set clean, " Remove the _melt directory and, if not -no-link, \
@@ -271,7 +278,19 @@ let produce_final f =
     exit 2
   end;
 
-  let latex = if !pdf then "pdflatex" else "latex" in
+  let add_link s =
+    cmd "ln -fs ../%s %s" s s
+  in
+  List.iter add_link !latex_link;
+
+  let latex =
+    if !ps2pdf
+    then "latex"
+    else
+      if !pdf
+      then "pdflatex"
+      else "latex"
+  in
   let latex =
     latex ^ " -interaction nonstopmode -file-line-error -halt-on-error"
   in
@@ -286,12 +305,18 @@ let produce_final f =
     cmd "%s %s%s" latex bf latop;
 
   if not !pdf && not !dvi then
-    cmd "dvips %s" bf
+    cmd "dvips %s" bf;
+
+  if !ps2pdf then begin
+    if !pdf || !dvi then
+      cmd "dvips %s" bf;
+    cmd "ps2pdf %s.ps" bf
+  end
 
 let produce_link f =
   let bf = Filename.chop_extension f in
   let o =
-    if !pdf then bf ^ ".pdf" else
+    if !pdf || !ps2pdf then bf ^ ".pdf" else
       if !dvi then bf ^ ".dvi" else
         bf ^ ".ps" in
   cmd "ln -f -s %s/%s %s" !melt_dir o o
