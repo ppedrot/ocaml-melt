@@ -949,3 +949,11 @@ val to_buffer: ?mode: mode -> Buffer.t -> t -> unit
 val to_channel: ?mode: mode -> out_channel -> t -> unit
 val to_file: ?mode: mode -> string -> t -> unit
 val to_string: ?mode: mode -> t -> string
+
+(* My stuffs *)
+
+val part: ?label: label -> t -> t
+val today: t
+val maketitle: t
+val bibliographystyle: t -> t
+val bibliography: t list -> t
