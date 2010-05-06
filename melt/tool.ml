@@ -134,7 +134,7 @@ the _melt directory";
 all symbolic links of the current directory linking into _melt \
 (cleaning is done before anything else)";
 
-  "-version", Arg.Unit Version.print, " Print version";
+  "-version", Arg.Unit Melt_version.print, " Print version";
 ]
 let anon s =
   main_file := s;

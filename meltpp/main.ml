@@ -199,7 +199,7 @@ compiling multiple files at the same time)";
 the beginning of the file";
   "-dir", Arg.Set_string dir, "<dir> Add <dir> to the file location (for \
 error message locations only)";
-  "-version", Arg.Unit Version.print, " Print version";
+  "-version", Arg.Unit Melt_version.print, " Print version";
 ]
 
 let usage =

@@ -29,7 +29,7 @@
 (**************************************************************************)
 
 open Printf
-#use "version.ml"
+#use "melt_version.ml"
 
 let bin = ref ""
 let lib = ref ""
