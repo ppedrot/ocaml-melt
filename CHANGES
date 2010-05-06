@@ -11,6 +11,7 @@ would be a LaTeX comment. Lines being different in .mlt and .tex files, this
 made no sense.
 * Comments may be used in text and math mode. They use (* *) and may be nested.
 - Bugfix: \n in verbatim mode is now handle correctly.
+* \\ now yields a single \ in the .ml file
 
 Melt tool:
 - -classic-display is not passed to recent mlpost versions which do not
@@ -26,6 +27,8 @@ document function are now taken into account
 - ~underscore argument for pseudocode verbatim function
 - equation
 - index_exponent
+- variables (similar in use to LaTeX counters, but evaluated when
+  pretty-printing the .tex file)
 
 Version 1.2.0
 =============

@@ -1,0 +1,26 @@
+let newtheorem name =
+  let c = variable 0 in
+  fun desc body ->
+    "{medskip}
+{noindent}{textbf "{name} {incr_var c}{vari c} ({desc})"}~ {body}
+{medskip}"
+
+let definition = newtheorem "Definition"
+let theorem = newtheorem "Theorem"
+
+let () = emit (document "
+{definition "Safety" "The property of being safe."}
+
+{definition "Soundness" "The property of being sound."}
+
+{theorem "Safety and Soundness" "Safety and soundness are more or less
+the same, but not quite."}
+
+{definition "Lightness" "The property of being light."}
+
+{definition "Fireness" "The property of being fire."}
+
+{theorem "Nessnessness" "Sound, light and fire are words,
+soundness is also a word, lightness is probably a word, but fireness
+is definitely not a word in my book."}
+")

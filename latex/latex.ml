@@ -65,6 +65,9 @@ type t =
       (mode * t) list * (mode * t) * mode
   | Concat of t list
   | Mode of mode * t
+  | Set of (unit -> unit)
+  | Get of (unit -> t)
+  | Final of (unit -> t)
 
 let unusual_command ?(packages = []) name args mode =
   Command(packages, name, args, mode)
@@ -80,6 +83,87 @@ let environment ?(packages = []) name ?opt ?(args = []) body mode =
 let concat l = Concat l
 let (^^) x y = concat [x; y]
 let mode mode x = Mode(mode, x)
+
+(******************************************************************************)
+(*                                  Variables                                 *)
+(******************************************************************************)
+
+type 'a variable = 'a ref
+
+exception GetInsideFinal
+exception SetInsideFinal
+
+let initializers = ref []
+
+let variable x =
+  let r = ref x in
+  initializers := (fun () -> r := x) :: !initializers;
+  r
+
+let set r v = Set (fun () -> r := v)
+let get r f = Get (fun () -> f !r)
+
+(* Function [f] should not return a tree containing Set or Get nodes. *)
+let final r f = Final (fun () -> f !r)
+
+(* Evaluate intermediate values of variables. This returns a new tree with
+   no Set or Get node. *)
+let rec compute_get_and_set_nodes = function
+  | Command (packages, name, args, mode) ->
+      let args =
+        List.map
+          (fun (mode, kind, node) ->
+             (mode, kind, compute_get_and_set_nodes node))
+          args
+      in
+      Command (packages, name, args, mode)
+  | Text _ as x ->
+      x
+  | Environment (packages, name, opt, args, (body_mode, body_node), mode) ->
+      let opt =
+        Opt.map
+          (fun (mode, node) -> mode, compute_get_and_set_nodes node)
+          opt
+      in
+      let args =
+        List.map
+          (fun (mode, node) -> mode, compute_get_and_set_nodes node)
+          args
+      in
+      let body_node = compute_get_and_set_nodes body_node in
+      Environment (packages, name, opt, args, (body_mode, body_node), mode)
+  | Concat nodes ->
+      Concat (List.map compute_get_and_set_nodes nodes)
+  | Mode (mode, node) ->
+      Mode (mode, compute_get_and_set_nodes node)
+  | Set f ->
+      f ();
+      Text ""
+  | Get f ->
+      compute_get_and_set_nodes (f ())
+  | Final _ as x ->
+      x
+
+(* Initialize all variables, evaluate them, and return the new tree which is
+   free of Get and Set nodes. Final nodes are untouched.
+   This function is called by [to_buffer] (which is itself called by other
+   [to_*] functions). The [out] function it in charge of dealing with Final
+   nodes. *)
+let compute_variables t =
+  List.iter (fun f -> f ()) !initializers;
+  compute_get_and_set_nodes t
+
+let setf x f = get x (fun v -> set x (f v))
+let incr_var x = setf x (fun x -> x + 1)
+let decr_var x = setf x (fun x -> x - 1)
+
+let vari x = get x (fun v -> text (string_of_int v))
+let varf x = get x (fun v -> text (string_of_float v))
+let varb x = get x (fun v -> text (string_of_bool v))
+let vars x = get x text
+let vart x = get x (fun v -> v)
+
+(******************************************************************************)
 
 module Pp: sig
   type t
@@ -227,6 +311,12 @@ let rec out toplevel mode pp = function
       ensure_mode pp m mode (fun () -> out false m pp x)
   | Concat l ->
       List.iter (out toplevel mode pp) l
+  | Get _ ->
+      raise GetInsideFinal
+  | Set _ ->
+      raise SetInsideFinal
+  | Final f ->
+      out toplevel mode pp (f ())
 
 and command_argument pp (mode, x) before after =
   Pp.string pp before;
@@ -246,7 +336,8 @@ and out_args =
   fun pp args ->
   List.iter (out_arg pp) args
 
-let to_buffer ?(mode = T) buf x = out true mode (Pp.make buf) x
+let to_buffer ?(mode = T) buf x =
+  out true mode (Pp.make buf) (compute_variables x)
 
 let to_channel ?mode c x =
   let buf = Buffer.create 69 in
@@ -338,6 +429,10 @@ let latex_of_int x = text (string_of_int x)
 
 let empty = concat []
 
+(* Since variables have been added, this function is a bit meh. But it is not
+   too much of a problem, because none_if_empty is only used in two cases:
+   - for empty packages options (and it was already hackish anyway)
+   - by the block function (and printing {} is not the end of the world *)
 let rec none_if_empty x = match x with
   | Text "" | Concat [] -> None
   | Concat l ->
@@ -348,6 +443,11 @@ let rec none_if_empty x = match x with
   | Mode(_, y) ->
       if none_if_empty y = None then None else Some x
   | Command _ | Environment _ | Text _ -> Some x
+  | Get _ | Set _ | Final _ ->
+      (* You would assume that these should disappear after [compute_variables]
+         is called. However, when building the AST, this is not actually
+         the case, yet. *)
+      Some x
 
 let optcmd name = function
   | Some arg -> command name [T, arg] T
@@ -374,7 +474,7 @@ let ref_ l = command "ref" [T, text l] T
 
 let place_label l = command "label" [T, text l] T
 
-(*******************************************************************************)
+(******************************************************************************)
 
 module PackageSet = Set.Make(struct
   type u = t * t
@@ -385,6 +485,7 @@ end)
 let packageset_of_list ?(acc = PackageSet.empty) =
   List.fold_left (fun acc p -> PackageSet.add p acc) acc
 
+(* FIXME: allow Get, Set and Final to use commands which use packages. *)
 let rec packages_used acc = function
   | Text _ ->
       acc
@@ -407,11 +508,14 @@ let rec packages_used acc = function
       List.fold_left packages_used acc l
   | Mode(_, x) ->
       packages_used acc x
+  | Get _ | Set _ | Final _ ->
+      (*assert false*) acc
 
-(*******************************************************************************)
+(******************************************************************************)
 
 type documentclass = 
-    [ `Article | `Report | `Book | `Letter | `Slides | `Beamer | `Custom of string ]
+    [ `Article | `Report | `Book | `Letter | `Slides | `Beamer
+    | `Custom of string ]
 type documentoptions = [ `Landscape | `A4paper ]
 
 let usepackage ?opt name =

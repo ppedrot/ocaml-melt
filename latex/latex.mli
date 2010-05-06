@@ -107,6 +107,96 @@ val document:
 name of the package and [opt] is its option. This is equivalent to
 using several calls to [usepackage] in the [~prelude]. *)
 
+(** {3 Variables} *)
+
+(** {4 Basic Constructors} *)
+
+(** Variables are similar to LaTeX counters, except that they are computed
+    when pretty-printing the LaTeX AST.
+
+    Each time you print a value of type {!t} using {!to_buffer}, {!to_channel},
+    {!to_file}, {!to_string} or using the [emit] function of the Melt library,
+    variables are re-initialized. They are then computed in the order they
+    appear in the tree. *)
+
+type 'a variable
+
+val variable: 'a -> 'a variable
+  (** Declare a new variable.
+
+      The argument is the initial value of the variable, i.e. the value of
+      the variable at the beginning of the pretty-printed AST (usually
+      the beginning of the document). *)
+
+val set: 'a variable -> 'a -> t
+  (** Change the value of a variable.
+
+      [set x v]: return a node which, when evaluated, changes the contents
+      of variable [x] to value [v]. *)
+
+val get: 'a variable -> ('a -> t) -> t
+  (** Get the current value of a variable.
+
+      [get x f]: return a node which depends on the value [v] of variable [x]
+      at the moment the node is evaluated. The resulting node is [f v].
+
+      Function [f] may itself call [set], [get] or [final] in its body. *)
+
+val final: 'a variable -> ('a -> t) -> t
+  (** Get the final value of a variable.
+
+      [final x f]: return a node which depends on the final value of
+      variable [x]. This is similar to [get], except that the resulting node
+      is [f v] where [v] is the value of [x] at the end of the evaluation
+      of the whole AST.
+
+      Function [f] may not call [set] nor [get].
+      It can call [final], however. *)
+
+(** {4 Useful Stuff About Variables} *)
+
+(** All these functions are defined using the above constructors. *)
+
+val setf: 'a variable -> ('a -> 'a) -> t
+  (** Apply a function to a variable.
+
+      [setf x f] is equivalent to [get x (fun v -> set x (f v))]. *)
+
+val incr_var: int variable -> t
+  (** Increment an integer variable.
+
+      [incr_var x] is equivalent to [setf x (fun x -> x + 1)]. *)
+
+val decr_var: int variable -> t
+  (** Decrement an integer variable.
+
+      [decr_var x] is equivalent to [setf x (fun x -> x - 1)]. *)
+
+val vari: int variable -> t
+  (** Print an integer variable.
+
+      [vari x] is equivalent to [get x (fun x -> text (string_of_int x))]. *)
+
+val varf: float variable -> t
+  (** Print a float variable.
+
+      [varf x] is equivalent to [get x (fun x -> text (string_of_float x))]. *)
+
+val varb: bool variable -> t
+  (** Print a boolean variable.
+
+      [varb x] is equivalent to [get x (fun x -> text (string_of_bool x))]. *)
+
+val vars: string variable -> t
+  (** Print a string variable.
+
+      [vars x] is equivalent to [get x text]. *)
+
+val vart: t variable -> t
+  (** Print a variable containing a LaTeX AST.
+
+      [vart x] is equivalent to [get x (fun x -> x)]. *)
+
 (** {3 References and Labels} *)
 
 (** Example (using the Melt pre-processor):
