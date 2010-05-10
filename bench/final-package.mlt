@@ -1,0 +1,7 @@
+let c = variable 0
+
+(* This is tricky because [box_] calls [set] to add the [latexsym] package,
+   but [set] are not valid in [final]s. *)
+let body = final c (fun _ -> box_)
+
+let () = emit (document body)
