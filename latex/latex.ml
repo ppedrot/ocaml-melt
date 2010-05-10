@@ -58,31 +58,15 @@ let brace = Brace
 let nobr = NoBr
 
 type t =
-  | Command of (string * string) list * string *
-      (mode * arg_kind * t) list * mode
+  | Command of string * (mode * arg_kind * t) list * mode
   | Text of string
-  | Environment of (string * string) list * string * (mode * t) option *
-      (mode * t) list * (mode * t) * mode
+  | Environment of string * (mode * t) option * (mode * t) list *
+      (mode * t) * mode
   | Concat of t list
   | Mode of mode * t
   | Set of (unit -> unit)
   | Get of (unit -> t)
   | Final of (unit -> t)
-
-let unusual_command ?(packages = []) name args mode =
-  Command(packages, name, args, mode)
-let command ?(packages=[]) name ?opt args mode =
-    let opt = Opt.map (fun (m,t) -> (m,Bracket,t)) opt in
-    let args = List.map (fun (m,t) -> (m,Brace,t)) args in
-    let args = Opt.cons opt args in
-    unusual_command ~packages name args mode
-
-let text s = Text s
-let environment ?(packages = []) name ?opt ?(args = []) body mode =
-  Environment(packages, name, opt, args, body, mode)
-let concat l = Concat l
-let (^^) x y = concat [x; y]
-let mode mode x = Mode(mode, x)
 
 (******************************************************************************)
 (*                                  Variables                                 *)
@@ -109,17 +93,17 @@ let final r f = Final (fun () -> f !r)
 (* Evaluate intermediate values of variables. This returns a new tree with
    no Set or Get node. *)
 let rec compute_get_and_set_nodes = function
-  | Command (packages, name, args, mode) ->
+  | Command (name, args, mode) ->
       let args =
         List.map
           (fun (mode, kind, node) ->
              (mode, kind, compute_get_and_set_nodes node))
           args
       in
-      Command (packages, name, args, mode)
+      Command (name, args, mode)
   | Text _ as x ->
       x
-  | Environment (packages, name, opt, args, (body_mode, body_node), mode) ->
+  | Environment (name, opt, args, (body_mode, body_node), mode) ->
       let opt =
         Opt.map
           (fun (mode, node) -> mode, compute_get_and_set_nodes node)
@@ -131,7 +115,7 @@ let rec compute_get_and_set_nodes = function
           args
       in
       let body_node = compute_get_and_set_nodes body_node in
-      Environment (packages, name, opt, args, (body_mode, body_node), mode)
+      Environment (name, opt, args, (body_mode, body_node), mode)
   | Concat nodes ->
       Concat (List.map compute_get_and_set_nodes nodes)
   | Mode (mode, node) ->
@@ -157,11 +141,68 @@ let setf x f = get x (fun v -> set x (f v))
 let incr_var x = setf x (fun x -> x + 1)
 let decr_var x = setf x (fun x -> x - 1)
 
+let text s = Text s
+
 let vari x = get x (fun v -> text (string_of_int v))
 let varf x = get x (fun v -> text (string_of_float v))
 let varb x = get x (fun v -> text (string_of_bool v))
 let vars x = get x text
 let vart x = get x (fun v -> v)
+
+(******************************************************************************)
+(*                           Packages and Commands                            *)
+(******************************************************************************)
+
+module PackageSet = Set.Make(struct
+  type u = t * t
+  type t = u
+  let compare = compare
+end)
+
+let package_collector = variable PackageSet.empty
+
+let concat l = Concat l
+
+let require_package acc package =
+  concat [
+    setf package_collector (PackageSet.add package);
+    acc;
+  ]
+
+let require_package_string acc (a, b) =
+  require_package acc (text a, text b)
+
+let unusual_command ?(packages = []) name args mode =
+  List.fold_left require_package_string (Command (name, args, mode)) packages
+
+let command ?(packages=[]) name ?opt args mode =
+    let opt = Opt.map (fun (m,t) -> (m,Bracket,t)) opt in
+    let args = List.map (fun (m,t) -> (m,Brace,t)) args in
+    let args = Opt.cons opt args in
+    unusual_command ~packages name args mode
+
+let environment ?(packages = []) name ?opt ?(args = []) body mode =
+  List.fold_left
+    require_package_string
+    (Environment(name, opt, args, body, mode))
+    packages
+
+let (^^) x y = concat [x; y]
+let mode mode x = Mode(mode, x)
+
+let usepackage ?opt name =
+  let opt = Opt.map (fun x -> T, x) opt in
+  command "usepackage" ?opt [T, name] T
+
+let empty = concat []
+
+let final_usepackages =
+  final package_collector
+    (fun pc ->
+       concat
+         (PackageSet.fold
+            (fun (name, opt) acc -> usepackage ~opt name :: acc)
+            pc []))
 
 (******************************************************************************)
 
@@ -275,10 +316,10 @@ let ensure_mode pp from_mode to_mode f = match from_mode, to_mode with
 
 (* bol: "beginning of line" *)
 let rec out toplevel mode pp = function
-  | Command(_, "par", [], T) when toplevel ->
+  | Command("par", [], T) when toplevel ->
       Pp.bol pp;
       Pp.newline ~force: true pp
-  | Command(_, name, args, rm) ->
+  | Command(name, args, rm) ->
       ensure_mode pp rm mode begin fun () ->
         if args = [] && mode = T then Pp.char pp '{';
         Pp.char pp '\\';
@@ -287,7 +328,7 @@ let rec out toplevel mode pp = function
         if args = [] && mode = T then Pp.char pp '}';
         out_args pp args
       end
-  | Environment(_, name, opt, args, (bodymode, body), rm) ->
+  | Environment(name, opt, args, (bodymode, body), rm) ->
       ensure_mode pp rm mode begin fun () ->
         Pp.bol pp;
         Pp.string pp "\\begin{";
@@ -427,8 +468,6 @@ let latex_of_size size = text (string_of_size size)
 
 let latex_of_int x = text (string_of_int x)
 
-let empty = concat []
-
 (* Since variables have been added, this function is a bit meh. But it is not
    too much of a problem, because none_if_empty is only used in two cases:
    - for empty packages options (and it was already hackish anyway)
@@ -476,51 +515,10 @@ let place_label l = command "label" [T, text l] T
 
 (******************************************************************************)
 
-module PackageSet = Set.Make(struct
-  type u = t * t
-  type t = u
-  let compare = compare
-end)
-
-let packageset_of_list ?(acc = PackageSet.empty) =
-  List.fold_left (fun acc p -> PackageSet.add p acc) acc
-
-(* FIXME: allow Get, Set and Final to use commands which use packages. *)
-let rec packages_used acc = function
-  | Text _ ->
-      acc
-  | Command(packs, _, params, _) ->
-      let packs = List.map (fun (x, y) -> text x, text y) packs in
-      let acc = packageset_of_list ~acc packs in
-      let params = List.map (fun (_,_,x) -> x) params in
-      List.fold_left packages_used acc params
-  | Environment(packs, _, Some(_, opt), params, body, _) ->
-      let packs = List.map (fun (x, y) -> text x, text y) packs in
-      let acc = packageset_of_list ~acc packs in
-      let params = body::params in
-      List.fold_left packages_used (packages_used acc opt) (List.map snd params)
-  | Environment(packs, _, None, params, body, _) ->
-      let packs = List.map (fun (x, y) -> text x, text y) packs in
-      let acc = packageset_of_list ~acc packs in
-      let params = body::params in
-      List.fold_left packages_used acc (List.map snd params)
-  | Concat l ->
-      List.fold_left packages_used acc l
-  | Mode(_, x) ->
-      packages_used acc x
-  | Get _ | Set _ | Final _ ->
-      (*assert false*) acc
-
-(******************************************************************************)
-
 type documentclass = 
     [ `Article | `Report | `Book | `Letter | `Slides | `Beamer
     | `Custom of string ]
 type documentoptions = [ `Landscape | `A4paper ]
-
-let usepackage ?opt name =
-  let opt = Opt.map (fun x -> T, x) opt in
-  command "usepackage" ?opt [T, name] T
 
 let input file = command "input" [T,file] T
 
@@ -536,13 +534,6 @@ let renewcommand count name body =
 
 let document ?(documentclass=`Article) ?(options=[]) ?title ?author
     ?date ?(prelude=empty) ?(packages=[]) body =
-  let packages = packageset_of_list packages in
-  let packages = packages_used packages body in
-  let packages = Opt.fold packages_used packages title in
-  let packages = Opt.fold packages_used packages author in
-  let packages = Opt.fold packages_used packages date in
-  let packages = packages_used packages prelude in
-  let packages = PackageSet.elements packages in
   let dc = match documentclass with
     | `Article -> "article"
     | `Report -> "report"
@@ -560,9 +551,8 @@ let document ?(documentclass=`Article) ?(options=[]) ?title ?author
   concat [
     command "documentclass" ?opt: options [T, text dc] T;
     par;
-    concat begin
-      List.map (fun (n, o) -> usepackage ?opt: (none_if_empty o) n) packages
-    end;
+    List.fold_left require_package empty packages;
+    final_usepackages;
     par;
     prelude;
     par;

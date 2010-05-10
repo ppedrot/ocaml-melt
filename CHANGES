@@ -30,6 +30,9 @@ document function are now taken into account
 - variables (similar in use to LaTeX counters, but evaluated when
   pretty-printing the .tex file)
 
+Other:
+* module Version renamed to Melt_version
+
 Version 1.2.0
 =============
 
