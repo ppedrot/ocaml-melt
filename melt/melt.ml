@@ -30,7 +30,9 @@
 
 open Melt_common
 
-let emit ?(file = name ^ ".tex") x = Latex.to_file file x
+let emit ?(file = name ^ ".tex") x =
+  Latex.reinitialize_variables ();
+  Latex.to_file file x
 
 let rec list_split_when f ?(acc = []) = function
   | [] -> raise Not_found

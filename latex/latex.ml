@@ -91,7 +91,10 @@ let get r f = Get (fun () -> f !r)
 let final r f = Final (fun () -> f !r)
 
 (* Evaluate intermediate values of variables. This returns a new tree with
-   no Set or Get node. *)
+   no Set or Get node.
+   This function is called by [to_buffer] (which is itself called by other
+   [to_*] functions). The [out] function it in charge of dealing with Final
+   nodes. *)
 let rec compute_get_and_set_nodes = function
   | Command (name, args, mode) ->
       let args =
@@ -128,14 +131,8 @@ let rec compute_get_and_set_nodes = function
   | Final _ as x ->
       x
 
-(* Initialize all variables, evaluate them, and return the new tree which is
-   free of Get and Set nodes. Final nodes are untouched.
-   This function is called by [to_buffer] (which is itself called by other
-   [to_*] functions). The [out] function it in charge of dealing with Final
-   nodes. *)
-let compute_variables t =
-  List.iter (fun f -> f ()) !initializers;
-  compute_get_and_set_nodes t
+let reinitialize_variables t =
+  List.iter (fun f -> f ()) !initializers
 
 let setf x f = get x (fun v -> set x (f v))
 let incr_var x = setf x (fun x -> x + 1)
@@ -378,7 +375,7 @@ and out_args =
   List.iter (out_arg pp) args
 
 let to_buffer ?(mode = T) buf x =
-  out true mode (Pp.make buf) (compute_variables x)
+  out true mode (Pp.make buf) (compute_get_and_set_nodes x)
 
 let to_channel ?mode c x =
   let buf = Buffer.create 69 in

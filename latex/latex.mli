@@ -148,10 +148,21 @@ val final: 'a variable -> ('a -> t) -> t
       [final x f]: return a node which depends on the final value of
       variable [x]. This is similar to [get], except that the resulting node
       is [f v] where [v] is the value of [x] at the end of the evaluation
-      of the whole AST.
+      of the AST which is being printed.
+
+      If you print your document using multiple calls to {!to_buffer},
+      {!to_channel}, {!to_file}, {!to_string} or [Melt.emit], final
+      values will actually be intermediate values between each of these calls.
 
       Function [f] may not call [set] nor [get].
       It can call [final], however. *)
+
+val reinitialize_variables: unit -> unit
+  (** Reinitialize all variables.
+
+      All variables are set to the value which was given at their creation.
+      Call this function if you emit multiple documents in the same program.
+      The [Melt.emit] function also calls [reinitialize_variables]. *)
 
 (** {4 Useful Stuff About Variables} *)
 
