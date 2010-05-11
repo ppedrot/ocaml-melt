@@ -113,3 +113,36 @@ module Verbatim = struct
 end
 
 include Mlpost_specific
+
+module Arg =
+struct
+  open Latex
+
+  let parameter_present name =
+    let rec aux i =
+      if i = Array.length Sys.argv
+      then false
+      else (aux (i+1)) || ( Sys.argv.(i) = ( "-" ^ (to_string name)))
+    in
+    aux 1
+
+  let parameter_value default f name =
+    let rec aux i =
+      if i = Array.length Sys.argv - 1
+      then default
+      else
+	if ( Sys.argv.(i) = ( "-" ^ (to_string name)))
+	then f (Sys.argv.(i + 1))
+	else aux (i+1)
+    in
+    aux 1
+
+  let bool name = parameter_present name
+
+  let int ?(default=0) name = parameter_value default int_of_string name
+
+  let float ?(default=0.) name = parameter_value default float_of_string name
+
+  let text ?(default=(text "")) name = parameter_value default (fun x -> text x) name
+
+end

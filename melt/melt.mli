@@ -79,3 +79,25 @@ of the first [`V] item and at the end of the last [`V] item. *)
 end
 
 include Mlpost_specific.Signature
+
+module Arg :
+sig
+  (** simple command line parameters handling *)
+
+  val bool : Latex.t -> bool
+    (** [bool "text"] is true iff the command line contains "-text" *)
+
+  val int : ?default:int -> Latex.t -> int
+    (** [int "text"] is n if the command line contains "-text n".
+	The value defaults to 0 if unspecified *)
+
+  val float : ?default:float -> Latex.t -> float
+    (** [float "text"] is n if the command line contains "-text n"
+	The value defaults to 0. if unspecified *)
+
+  val text : ?default:Latex.t -> Latex.t -> Latex.t
+    (** [float "text"] is [Latex.text s] if the command line contains
+	"-text s" The value defaults to the empty string if
+	unspecified *)
+
+end

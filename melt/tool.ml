@@ -88,6 +88,12 @@ let add_include x = includes := x :: !includes
 let latex_link = ref []
 let add_latex_link x = latex_link := x :: !latex_link
 
+let resto = ref ""
+let set_rest s =
+  match !resto with
+    | "" -> resto := s
+    | r -> resto := r ^ " " ^ s
+
 let () =
   try
     let libmelt_dir = exec_line "ocamlfind" ["query"; "melt"; "2> /dev/null"] in
@@ -142,6 +148,7 @@ all symbolic links of the current directory linking into _melt \
 (cleaning is done before anything else)";
 
   "-version", Arg.Unit Melt_version.print, " Print version";
+  "--", Arg.Rest set_rest, "Remaining arguments are fed to the generated program";
 ]
 let anon s =
   main_file := s;
@@ -233,7 +240,7 @@ let ml_to_tex f =
       else ""
   in
   if !mlpost then
-    cmd "%s -v%s%s%s%s%s%s%s%s%s%s%s %s"
+    cmd "%s -v%s%s%s%s%s%s%s%s%s%s%s%s %s"
       !mlpost_bin
       mlpost_preludeo
       (if mlpost_version_ge "0.7" && mlpost_version_le "0.7.1" then
@@ -241,20 +248,21 @@ let ml_to_tex f =
        else "")
       mlpost_includes
       pdfo
+      (" -execopt \"" ^ (String.escaped !resto) ^ "\"")
       (if !cairo then " -cairo -execopt \"-cairo\"" else pdfeo)
       ocamlbuildo nativeo
       strlibo latexlibo meltlibo nameeo f
   else if !ocamlbuild then
-    cmd "ocamlbuild%s%s%s%s%s%s%s %s.%s --%s%s"
+    cmd "ocamlbuild%s%s%s%s%s%s%s %s.%s --%s%s%s"
       classicdisplayo
       ocamlbuild_includes
-      strlibo unixlibo latexlibo mlpostlibo meltlibo bf ext pdfo nameo
+      strlibo unixlibo latexlibo mlpostlibo meltlibo bf ext pdfo nameo !resto
   else begin
     cmd "ocaml%s%s%s%s%s%s%s %s -o %s.%s"
       (if !native then "opt" else "c")
       ocamlc_includes
       strlibo unixlibo latexlibo mlpostlibo meltlibo f bf ext;
-    cmd "./%s.%s%s%s" bf ext pdfo nameo
+    cmd "./%s.%s%s%s%s" bf ext pdfo nameo !resto
   end
 
 let produce_tex f =
