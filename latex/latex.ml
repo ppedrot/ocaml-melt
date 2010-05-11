@@ -493,21 +493,6 @@ let labelo l = optcmd "label" (Opt.map text l)
 
 let par = text "\\par "
 
-(* My stuffs, je ne sais pas ou tu préferais que ce soit, alors je les mets en tas *)
-
-(* le prolème avec part, c'est que ça ne marche qu'avec le style report je crois *)
-let part ?label title =
-  command "part" [T, title] T ^^ labelo label
-
-let today = command "today" [] T
-let maketitle = command "maketitle" [] T
-
-(* ça devrait impliquer l'utilisation de bibtex, il y a moyen de faire ça depuis
-   une document ?, et bibliography devrait aussi impliquer l'option -T truc.bib
-   pour que le fichier soit accessible ( sans avoir a mettre "../truc.bib" ) *)
-let bibliographystyle style = command "bibliographystyle" [T, style] T
-let bibliography l = command "bibliography" [T, Concat (list_insert (Text ",") l)] T
-
 (*******************************************************************************)
 
 type label = string
@@ -584,6 +569,9 @@ let exponent x y = mode M (block x ^^ text "^" ^^ block y)
 let index_exponent x y z =
   mode M (block x ^^ text "_" ^^ block y ^^ text "^" ^^ block z)
 
+let part ?label title =
+  command "part" [T, title] T ^^ labelo label
+
 let chapter ?label title =
   command "chapter" [T, title] T ^^ labelo label
 
@@ -606,6 +594,9 @@ let equation ?label x =
   environment "equation" (M, labelo label ^^ x) T
 
 let emph x = command "emph" [T, x] T
+
+let today = command "today" [] T
+let maketitle = command "maketitle" [] T
 
 let texttt x = command "texttt" [T, x] T
 let textsc x = command "textsc" [T, x] T

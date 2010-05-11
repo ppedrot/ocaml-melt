@@ -112,7 +112,8 @@ Melt pre-processor";
 (this option is passed to the Melt pre-processor)";
   "-I", Arg.String add_include, "<dir> Look for libraries in <dir> \
 (this option is passed to the OCaml compiler)";
-  "-L", Arg.String add_latex_link, "<path> add a link to the path";
+  "-L", Arg.String add_latex_link,
+  "<path> Add a link to the path in the _melt directory";
 
   "-classic-display", Arg.Set classic_display,
   " Call Ocamlbuild with -classic-display (do not work with Mlpost)";
@@ -127,7 +128,8 @@ Melt pre-processor";
   "-dvi", Arg.Set dvi, " Produce a DVI instead of a PS";
   "-ps", Arg.Clear pdf, " Produce a PS file (this is the default behavior)";
   "-pdf", Arg.Set pdf, " Produce a PDF instead of a PS";
-  "-ps2pdf", Arg.Set ps2pdf, " Produce a PDF using ps2pdf command";
+  "-ps2pdf", Arg.Set ps2pdf,
+  " Produce a PS, then convert it to PDF using ps2pdf";
   "-cairo", Arg.Unit (fun () -> cairo := true; pdf := true),
   " Use the Cairo backend of Mlpost (implies -pdf)";
   "-quiet", Arg.Set quiet, " Be quiet";
@@ -148,7 +150,8 @@ all symbolic links of the current directory linking into _melt \
 (cleaning is done before anything else)";
 
   "-version", Arg.Unit Melt_version.print, " Print version";
-  "--", Arg.Rest set_rest, "Remaining arguments are fed to the generated program";
+  "--", Arg.Rest set_rest,
+  " Pass the remaining arguments to the generated program";
 ]
 let anon s =
   main_file := s;

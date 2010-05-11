@@ -323,6 +323,14 @@ val tableofcontents: t
 val listoffigures: t
 val listoftables: t
 
+val today: t
+
+val maketitle: t
+  (** You should not need [maketitle] if you use {!document}. *)
+
+val part: ?label: label -> t -> t
+  (** For the report style. *)
+
 val chapter: ?label: label -> t -> t
 val section: ?label: label -> t -> t
 val subsection: ?label: label -> t -> t
@@ -949,11 +957,3 @@ val to_buffer: ?mode: mode -> Buffer.t -> t -> unit
 val to_channel: ?mode: mode -> out_channel -> t -> unit
 val to_file: ?mode: mode -> string -> t -> unit
 val to_string: ?mode: mode -> t -> string
-
-(* My stuffs *)
-
-val part: ?label: label -> t -> t
-val today: t
-val maketitle: t
-val bibliographystyle: t -> t
-val bibliography: t list -> t
