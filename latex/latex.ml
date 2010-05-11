@@ -832,27 +832,51 @@ let sharp  =command "sharp" [] M
 
 let emptyset = command "emptyset" [] M
 
-type delimiter = [ `None | `Brace | `Paren | `Vert | `Bracket ]
+type doublable_delimiter =
+    [ `Down | `Up | `Up_down | `Vert ]
+type delimiter =
+    [ `None | `Brace | `Paren | `Bracket | `Angle | `Floor | `Ceil | `Slash
+    | doublable_delimiter | `Double of doublable_delimiter ]
 
-let left d =
-  let ds = match d with
-    | `None -> "."
-    | `Brace -> "\\{"
-    | `Paren -> "("
-    | `Vert -> "\\|"
-    | `Bracket -> "["
-  in
-  command (sprintf "left%s" ds) [] M
+let ambidexter_delimiter_to_text = function
+  | `Down            -> "\\downarrow"
+  | `Up              -> "\\uparrow"
+  | `Up_down         -> "\\updownarrow"
+  | `Vert            -> "|"
+  | `Double `Down    -> "\\Downarrow"
+  | `Double `Up      -> "\\Uparrow"
+  | `Double `Up_down -> "\\Updownarrow"
+  | `Double `Vert    -> "\\|"
 
-let right d =
-  let ds = match d with
-    | `None -> "."
-    | `Brace -> "\\}"
-    | `Paren -> ")"
-    | `Vert -> "\\|"
-    | `Bracket -> "]"
-  in
-  command (sprintf "right%s" ds) [] M
+let delimiter_to_left_text: delimiter -> string = function
+  | `None    -> "."
+  | `Brace   -> "\\{"
+  | `Paren   -> "("
+  | `Bracket -> "["
+  | `Angle   -> "\\langle"
+  | `Floor   -> "\\lfloor"
+  | `Ceil    -> "\\lceil"
+  | `Slash   -> "/"
+  | `Down | `Up | `Up_down | `Vert | `Double _ as x ->
+      ambidexter_delimiter_to_text x
+
+let delimiter_to_right_text = function
+  | `None    -> "."
+  | `Brace   -> "\\}"
+  | `Paren   -> ")"
+  | `Bracket -> "]"
+  | `Angle   -> "\\rangle"
+  | `Floor   -> "\\rfloor"
+  | `Ceil    -> "\\rceil"
+  | `Slash   -> "\\backslash"
+  | `Down | `Up | `Up_down | `Vert | `Double _ as x ->
+      ambidexter_delimiter_to_text x
+
+let left d = command (sprintf "left%s" (delimiter_to_left_text d)) [] M
+let right d = command (sprintf "right%s" (delimiter_to_right_text d)) [] M
+let just_left d x = mode M (concat [left d; x; right `None])
+let just_right d x = mode M (concat [left `None; x; right d])
+let between d x = mode M (concat [left d; x; right d])
 
 let oe = command "oe" [] T
 
@@ -1106,6 +1130,59 @@ let rrbracket = cmd_stmaryrd "rrbracket" [] M
 
 let slide x =
   environment "slide" (T, x) T
+
+(*******************************************************************************)
+
+(* Some contributions from Vincent Aravantinos *)
+
+let cmd_no_arg ?(packages=[]) cmd =
+  command ~packages cmd [] T
+let cmd_one_arg ?(packages=[]) cmd arg =
+  command ~packages cmd [T,arg] T
+let cmd_two_args ?(packages=[]) cmd arg1 arg2 =
+  command ~packages cmd [T,arg1;T,arg2] T
+let math_cmd_no_arg ?(packages=[]) cmd =
+  command ~packages cmd [] M
+let math_cmd_one_arg ?(packages=[]) cmd arg =
+  command ~packages cmd [M,arg] M
+let math_cmd_two_args ?(packages=[]) cmd arg1 arg2 =
+  command ~packages cmd [M,arg1;M,arg2] M
+
+(* Misc *)
+let par_ = cmd_no_arg "S"
+let hyphen = cmd_no_arg "-"
+let quote txt = environment "quote" (T,txt) T
+let appendix = cmd_no_arg "appendix"
+let neg = math_cmd_no_arg "neg"
+let mathrm = math_cmd_one_arg "mathrm"
+let mathfrak = math_cmd_one_arg "mathfrak"
+let frontmatter = cmd_no_arg "frontmatter"
+let backmatter = cmd_no_arg "backmatter"
+let mainmatter = cmd_no_arg "mainmatter"
+let geq = math_cmd_no_arg "geq"
+let leq = math_cmd_no_arg "leq"
+let dots = cmd_no_arg "dots"
+let ldots = math_cmd_no_arg "ldots"
+let underbrace x y = (math_cmd_no_arg "underbrace")^^(index x y)
+let overbrace x y = (math_cmd_no_arg "overbrace")^^(exponent x y)
+let not_ = (^^) (math_cmd_no_arg "not")
+let neq = ne
+let to_ = rightarrow
+
+(* Low-Level *)
+let atbegindocument = cmd_one_arg "AtBeginDocument"
+let addcontentsline toc section name =
+  command "addcontentsline" [T,toc; T,section; T,name] T
+let vfill = text "\\vfill "
+let vfil = text "\\vfil "
+let pagestyle = cmd_one_arg "pagestyle"
+let thispagestyle = cmd_one_arg "thispagestyle"
+
+(* AMS *)
+let black_triangle_left =
+  math_cmd_no_arg  ~packages:["amsmath",""] "blacktriangleleft"
+let black_triangle_right =
+  math_cmd_no_arg ~packages:["amsmath",""] "blacktriangleright"
 
 (*******************************************************************************)
 

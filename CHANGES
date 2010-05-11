@@ -29,6 +29,9 @@ document function are now taken into account
 - index_exponent
 - variables (similar in use to LaTeX counters, but evaluated when
   pretty-printing the .tex file)
+- empty
+- more delimiters, just_left, just_right, between
+- and various other latex commands
 
 Other:
 * module Version renamed to Melt_version

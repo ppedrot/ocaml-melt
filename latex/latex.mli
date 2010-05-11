@@ -306,6 +306,9 @@ val subfloat: ?label: label -> ?caption: t -> t -> t
 
 (** {3 Miscellaneous Commands} *)
 
+val hyphen: t
+  (** Tell LaTeX where to cut words at the end of lines. *)
+
 val index: t -> t -> t
   (** [index x y] produces [{x}_{y}] *)
 
@@ -322,6 +325,8 @@ val index_exponent: t -> t -> t -> t
 val tableofcontents: t
 val listoffigures: t
 val listoftables: t
+
+val appendix: t
 
 val today: t
 
@@ -340,6 +345,8 @@ val par: t
 val displaymath: t -> t
 val equation: ?label: label -> t -> t
 val hfill: t
+val vfill: t
+val vfil: t
 val footnote: t -> t
 val latex_of_int: int -> t
 val itemize: t list -> t
@@ -366,6 +373,8 @@ val symbolc: char -> t
 val center: t -> t
 
 val minipage: size -> t -> t
+
+val quote: t -> t
 
 val stackrel: t -> t -> t
 
@@ -404,6 +413,16 @@ type array_line
 val array: array_column list -> array_line list -> t
 val array_line: ?sep: size -> t list -> array_line
 
+(* Actually, I don't know what these do. *)
+val neg: t
+val not_: t -> t
+val mathfrak: t -> t
+val frontmatter: t
+val backmatter: t
+val mainmatter: t
+val underbrace: t -> t -> t
+val overbrace: t -> t -> t
+
 (** {3 Fonts} *)
 
 (** {4 Font Styles} *)
@@ -419,6 +438,7 @@ val textsf: t -> t (** Sans serif *)
 
 val mathit: t -> t (** Italic (for math mode) *)
 val mathbf: t -> t (** Bold (for math mode) *)
+val mathrm: t -> t (** Roman (for math mode) *)
 val mathcal: t -> t (** Caligraphic *)
 
 (** {4 Font Sizes} *)
@@ -505,7 +525,9 @@ val omega_: t
 (** {4 Binary Relations} *)
 
 val le: t (** lesser or equal *)
+val leq: t (** lesser or equal (same as {!le}) *)
 val ge: t (** greater or equal *)
+val geq: t (** greater or equal (same as {!ge}) *)
 val equiv: t (** = with 3 bars *)
 val ll: t (** << *)
 val gg: t (** >> *)
@@ -542,6 +564,7 @@ val frown: t
 val asymp: t (** frown with smile on top *)
 val notin: t (** not in set *)
 val ne: t (** not equal *)
+val neq: t (** not equal (same as {!ne}) *)
 
 (** {4 Binary Operators} *)
 
@@ -603,6 +626,7 @@ val bigotimes: t
 
 val leftarrow: t (** <- *)
 val rightarrow: t (** -> *)
+val to_: t (** -> (same as {!rightarrow}) *)
 val leftrightarrow: t (** <-> *)
 val leftarrow_: t (** <= *)
 val rightarrow_: t (** => *)
@@ -660,14 +684,29 @@ val bot : t
 
 val sharp : t
 
-val cdots: t
+val dots: t
+val cdots: t (** Centered dots [...] *)
+val ldots: t
 
 val emptyset: t
 
-type delimiter = [ `None | `Brace | `Paren | `Vert | `Bracket ]
+type doublable_delimiter =
+    [ `Down | `Up | `Up_down | `Vert ]
+type delimiter =
+    [ `None | `Brace | `Paren | `Bracket | `Angle | `Floor | `Ceil | `Slash
+    | doublable_delimiter | `Double of doublable_delimiter ]
 
 val left: delimiter -> t
 val right: delimiter -> t
+
+val just_left: delimiter -> t -> t
+  (** [just_left d x]: concatenation of [left d], [x] and [right `None]. *)
+
+val just_right: delimiter -> t -> t
+  (** [just_right d x]: concatenation of [left `None], [x] and [right d]. *)
+
+val between: delimiter -> t -> t
+  (** [between d x]: concatenation of [left d], [x] and [right d]. *)
 
 val oe: t (** French e in o as in "coeur", "noeud"... *)
 
@@ -685,6 +724,11 @@ val split : t -> t
 val proof : ?opt:t -> t -> t
 
 val twoheadrightarrow : t (** ->> *)
+
+val par_: t (** The paragraph symbol. *)
+
+val black_triangle_left: t
+val black_triangle_right: t
 
 (** {4 Mathpartir} *)
 
@@ -847,6 +891,11 @@ type mode = M | T | A
 
 (** {3 Constructors} *)
 
+val empty: t
+  (** The empty LaTeX tree.
+
+      Equivalent to [concat []] or [text ""]. *)
+
 (** Raw LaTeX. *)
 val text: string -> t
 
@@ -947,6 +996,13 @@ val place_label: label -> t
   (** [place_label lbl] places label [lbl]. Normally you would prefer using
 the various [~label] optional arguments available, and only use [place_label]
 for unimplemented features or if you are feeling hackish. *)
+
+val atbegindocument: t -> t
+val addcontentsline: t -> t -> t -> t
+  (** [addcontentsline toc section name] *)
+
+val pagestyle: t -> t
+val thispagestyle: t -> t
 
 (** {2 Printing} *)
 
