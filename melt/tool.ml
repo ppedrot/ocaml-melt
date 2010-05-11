@@ -84,7 +84,7 @@ let add_plugin_include x = plugin_includes := x :: !plugin_includes
 let includes = ref []
 let add_include x = includes := x :: !includes
 
-(* -T add links for latex *)
+(* -L add links for latex *)
 let latex_link = ref []
 let add_latex_link x = latex_link := x :: !latex_link
 
@@ -112,7 +112,7 @@ Melt pre-processor";
 (this option is passed to the Melt pre-processor)";
   "-I", Arg.String add_include, "<dir> Look for libraries in <dir> \
 (this option is passed to the OCaml compiler)";
-  "-T", Arg.String add_latex_link, "<path> add a link to the path";
+  "-L", Arg.String add_latex_link, "<path> add a link to the path";
 
   "-classic-display", Arg.Set classic_display,
   " Call Ocamlbuild with -classic-display (do not work with Mlpost)";
