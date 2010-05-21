@@ -30,9 +30,26 @@
 
 open Melt_common
 
+let print_tex_dependencies basefile depends =
+  if print_depends then begin
+    let file = basefile ^ ".depends" in
+    (* We sort the dependencies so the order of the files does not effect
+       the .depends file. *)
+    let depends = List.sort String.compare depends in
+    let ch = open_out file in
+    List.iter
+      (fun dep ->
+         let hash = Digest.file dep in
+         Digest.output ch hash)
+      depends;
+    close_out ch
+  end
+
 let emit ?(file = name ^ ".tex") x =
+  tex_dependencies := [];
   Latex.reinitialize_variables ();
-  Latex.to_file file x
+  Latex.to_file file x;
+  print_tex_dependencies file !tex_dependencies
 
 let rec list_split_when f ?(acc = []) = function
   | [] -> raise Not_found

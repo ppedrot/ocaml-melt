@@ -70,6 +70,8 @@ open Melt_common
 
 let latex l = Mlpost.Picture.tex (Latex.to_string l)
 
+let dummy_variable = Latex.variable ()
+
 let mlpost_gen includegraphics ?(mode = mode) ?file f =
   let file = match file with
     | None -> next_name ()
@@ -80,8 +82,12 @@ let mlpost_gen includegraphics ?(mode = mode) ?file f =
     | Ps -> ".1"
     | Cairo -> ".pdf"
   in
+  let full_name = file ^ ext in
   Mlpost.Metapost.emit file f;
-  includegraphics (Latex.text (file ^ ext))
+  Latex.get dummy_variable
+    (fun () ->
+       tex_dependencies := full_name :: !tex_dependencies;
+       includegraphics (Latex.text full_name))
 
 let mlpost = mlpost_gen Latex.includegraphics
 

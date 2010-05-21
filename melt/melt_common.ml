@@ -55,8 +55,20 @@ let name =
   done;
   !name
 
+let print_depends =
+  let b = ref false in
+  for i = 1 to Array.length Sys.argv - 1 do
+    if Sys.argv.(i) = "-depends" then
+      b := true
+  done;
+  !b
+
 let next_name =
   let cnt = ref 0 in
   fun () ->
     incr cnt;
     Printf.sprintf "%s-melt-figure%d" name !cnt
+
+(* The document may depend on other files than the .tex, for instance,
+   Mlpost figures. This is a list of these files. *)
+let tex_dependencies: string list ref = ref []

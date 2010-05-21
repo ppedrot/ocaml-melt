@@ -13,7 +13,13 @@ made no sense.
 - Bugfix: \n in verbatim mode is now handle correctly.
 * \\ now yields a single \ in the .ml file
 
-Melt tool:
+Melt tool and library:
+- Programs which are compiled and linked with the Melt library now accept
+  the -depends option on the command line. It produces, along with the
+  X.tex file, a X.tex.depends file containing a hash of all Mlpost figures.
+  If you have your own Makefile, you may add a dependency between the
+  .ps or .pdf to this .tex.depends file to ensure the final document is
+  recompiled if a figure changes.
 - -classic-display is not passed to recent mlpost versions which do not
 handle it
 
