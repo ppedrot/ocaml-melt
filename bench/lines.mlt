@@ -1,0 +1,68 @@
+(* This example shows how to make a verbatim mode which number code lines.
+   You may then reference a specific line in a safe way (i.e. if the line
+   moves the reference is updated). *)
+
+let rec list_mapi ?(acc = []) ?(n = 0) f = function
+  | [] -> List.rev acc
+  | x :: r -> list_mapi ~acc: (f n x :: acc) ~n: (n + 1) f r
+
+let current_line = variable 0
+
+let number_lines verb_fun s =
+  let lines =
+    list_mapi
+      (fun i line ->
+         array_line [
+           latex_of_int (i + 1);
+           "{set current_line (i + 1)}{verb_fun line}";
+         ])
+      (Verbatim.split_lines (Verbatim.trim ['\n'] s))
+  in
+  array [ `R; `Vert; `L ] lines
+
+let pseudo_caml x =
+  textsf (Verbatim.keywords [ \"let\"; \"in\" ] x)
+
+let caml x = "
+{par}
+{addvspace (`Cm 0.5)}
+{number_lines pseudo_caml x}
+{par}
+{addvspace (`Cm 0.5)}
+"
+
+let new_line_label () =
+  variable 0
+
+let label_line var =
+  get current_line (fun x -> set var x)
+
+let ref_line var =
+  final var latex_of_int
+
+let lbl_toto = new_line_label ()
+let lbl_bli = new_line_label ()
+
+let () = emit (document "
+Here is some code. Line~{ref_line lbl_toto} is toto.
+<:caml:#
+let f x = x + 1
+
+let g x = x + 2
+
+let toto =#{label_line lbl_toto}#
+  let tata = f 1 + f 2 in
+  let tutu = f 3 + f 4 in
+  tata + tutu
+
+let bli =#{label_line lbl_bli}#
+  let blo =
+    let bla =
+      2
+    in
+    bla + 3
+  in
+  blo + 5
+#>
+Is is beautiful or what? Line~{ref_line lbl_bli} is bli.
+")
