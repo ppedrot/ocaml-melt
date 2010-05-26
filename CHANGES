@@ -35,7 +35,7 @@ document function are now taken into account
 - index_exponent
 - variables (similar in use to LaTeX counters, but evaluated when
   pretty-printing the .tex file)
-- empty
+- empty, is_empty
 - more delimiters, just_left, just_right, between
 - and various other latex commands
 

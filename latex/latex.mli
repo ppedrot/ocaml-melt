@@ -896,6 +896,17 @@ val empty: t
 
       Equivalent to [concat []] or [text ""]. *)
 
+val is_empty: t -> bool
+  (** Test whether a LaTeX tree is empty.
+
+      A concatenation of empty trees is also empty.
+
+      A tree containing a {!set} node is not empty.
+
+      A tree containing {!get} or {!final} nodes is
+      not empty, even if the call will produce an empty tree when
+      evaluating variables. *)
+
 (** Raw LaTeX. *)
 val text: string -> t
 

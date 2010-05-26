@@ -465,25 +465,24 @@ let latex_of_size size = text (string_of_size size)
 
 let latex_of_int x = text (string_of_int x)
 
-(* Since variables have been added, this function is a bit meh. But it is not
-   too much of a problem, because none_if_empty is only used in two cases:
-   - for empty packages options (and it was already hackish anyway)
-   - by the block function (and printing {} is not the end of the world *)
-let rec none_if_empty x = match x with
-  | Text "" | Concat [] -> None
+let rec is_empty = function
+  | Text "" | Concat [] -> true
   | Concat l ->
-      if List.for_all Opt.is_none (List.map none_if_empty l) then
-        None
+      if List.for_all is_empty l then
+        true
       else
-        Some x
+        false
   | Mode(_, y) ->
-      if none_if_empty y = None then None else Some x
-  | Command _ | Environment _ | Text _ -> Some x
+      is_empty y
+  | Command _ | Environment _ | Text _
   | Get _ | Set _ | Final _ ->
       (* You would assume that these should disappear after [compute_variables]
          is called. However, when building the AST, this is not actually
          the case, yet. *)
-      Some x
+      false
+
+let none_if_empty x =
+  if is_empty x then None else Some x
 
 let optcmd name = function
   | Some arg -> command name [T, arg] T
