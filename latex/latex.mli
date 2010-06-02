@@ -524,8 +524,8 @@ val omega_: t
 
 (** {4 Binary Relations} *)
 
-val le: t (** lesser or equal *)
-val leq: t (** lesser or equal (same as {!le}) *)
+val le: t (** less or equal *)
+val leq: t (** less or equal (same as {!le}) *)
 val ge: t (** greater or equal *)
 val geq: t (** greater or equal (same as {!ge}) *)
 val equiv: t (** = with 3 bars *)
