@@ -414,9 +414,6 @@ val array: array_column list -> array_line list -> t
 val array_line: ?sep: size -> t list -> array_line
 
 (* Actually, I don't know what these do. *)
-val neg: t
-val not_: t -> t
-val mathfrak: t -> t
 val frontmatter: t
 val backmatter: t
 val mainmatter: t
@@ -562,19 +559,20 @@ val perp: t (** _|_ *)
 val smile: t
 val frown: t
 val asymp: t (** frown with smile on top *)
-val notin: t (** not in set *)
-val ne: t (** not equal *)
+val not_: t -> t (** generic negation of binary symbol. [not_ in_] will print as ∉ *)
+val notin: t (** not in set (∉) *)
+val ne: t (** not equal (≠)*)
 val neq: t (** not equal (same as {!ne}) *)
 
 (** {4 Binary Operators} *)
 
-val pm: t (** - with + on top *)
-val mp: t (** + with - on top *)
-val triangleleft: t
+val pm: t (** - with + on top (∓) *)
+val mp: t (** + with - on top (±)*)
+val triangleleft: t (** ◃ *)
 val cdot: t (** centered . *)
-val div: t (** - with . on top and . on the bottom *)
-val triangleright: t
-val times: t
+val div: t (** - with . on top and . on the bottom (÷)*)
+val triangleright: t (** ▹ *)
+val times: t (** × *)
 val setminus: t (** backslash *)
 val star: t (** 5-branches star *)
 val cup: t (** set union *)
@@ -666,27 +664,28 @@ val box_: t
   (** A square box, for instance to end proofs (QED).
       Adds package [latexsym]. *)
 
-val langle: t
-val rangle: t
-val lceil: t
-val rceil: t
+val langle: t (** ⟨ *)
+val rangle: t (** ⟩ *)
+val lceil: t (** ⌈ *)
+val rceil: t (** ⌉ *)
 
 val frac: t -> t -> t
 
 val land_: t (** /\ *)
 val lor_: t (** \/ *)
-val lnot: t
-val forall: t
-val exists: t
+val lnot: t (** ¬ *)
+val neg: t (** ¬ (like {!lnot}) *)
+val forall: t (** ∀ *)
+val exists: t (** ∃ *)
 
-val top : t
-val bot : t
+val top : t (** ⊤ *)
+val bot : t (** ⊥ *)
 
 val sharp : t
 
 val dots: t
 val cdots: t (** Centered dots [...] *)
-val ldots: t
+val ldots: t (** elipsis, works in math and text mode *)
 
 val emptyset: t
 
@@ -713,6 +712,7 @@ val oe: t (** French e in o as in "coeur", "noeud"... *)
 (** {4 AMS} *)
 
 val mathbb: t -> t
+val mathfrak: t -> t
 val align : t -> t
 (** the AMS align environment to align equations using & *)
 val align_ : t -> t
