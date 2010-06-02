@@ -607,6 +607,7 @@ let textsf x = command "textsf" [T, x] T
 let mathit x = command "mathit" [M, x] M
 let mathbf x = command "mathbf" [M, x] M
 let mathcal x = command "mathcal" [M, x] M
+let mathsf t = command "mathsf" [M,t] M
 
 let tiny x = block (command "tiny" [T, x] T)
 let scriptsize x = block (command "scriptsize" [T, x] T)
@@ -745,6 +746,8 @@ let minipage size x =
   environment ~args: [A, latex_of_size size] "minipage" (T, x) T
 
 let center x = environment "center" (T, x) T
+let flushleft x = environment "flushleft" (T,x) T
+let flushright x = environment "flushright" (T,x) T
 
 let array c l =
   let cols = concat begin List.map begin function
@@ -909,6 +912,7 @@ let theta = command "theta" [] M
 let vartheta = command "vartheta" [] M
 let iota = command "iota" [] M
 let kappa = command "kappa" [] M
+let varkappa = command "varkappa" ~packages:["amssymb",""] [] M
 let lambda = command "lambda" [] M
 let mu = command "mu" [] M
 let nu = command "nu" [] M
@@ -927,6 +931,8 @@ let chi = command "chi" [] M
 let psi = command "psi" [] M
 let omega = command "omega" [] M
 
+let digamma = command "digamma" ~packages:["amssymb",""] [] M
+
 let gamma_ = command "Gamma" [] M
 let delta_ = command "Delta" [] M
 let theta_ = command "Theta" [] M
@@ -939,10 +945,17 @@ let phi_ = command "Phi" [] M
 let psi_ = command "Psi" [] M
 let omega_ = command "Omega" [] M
 
+let aleph = command "aleph" [] M
+let beth = command "beth" ~packages:["amssymb",""] [] M
+let gimel = command "gimel" ~packages:["amssymb",""] [] M
+let daleth = command "daleth" ~packages:["amssymb",""] [] M
+
 (*******************************************************************************)
 
 let le = command "le" [] M
 let ge = command "ge" [] M
+let leqslant = command "leqslant" ~packages:["amssymb",""] [] M
+let geqslant = command "geqslant" ~packages:["amssymb",""] [] M
 let equiv = command "equiv" [] M
 let ll = command "ll" [] M
 let gg = command "gg" [] M
@@ -1087,6 +1100,7 @@ let proof ?opt t =
   environment "proof" ?opt (T, t) T
 
 let twoheadrightarrow = command "twoheadrightarrow" [] M
+let square = command ~packages:["amssymb",""] "square" [] M
 
 (*******************************************************************************)
 
@@ -1151,6 +1165,7 @@ let math_cmd_two_args ?(packages=[]) cmd arg1 arg2 =
 let par_ = cmd_no_arg "S"
 let hyphen = cmd_no_arg "-"
 let quote txt = environment "quote" (T,txt) T
+let quotation txt = environment "quotation" (T,txt) T
 let appendix = cmd_no_arg "appendix"
 let neg = math_cmd_no_arg "neg"
 let mathrm = math_cmd_one_arg "mathrm"

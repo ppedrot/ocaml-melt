@@ -371,10 +371,13 @@ val symbolc: char -> t
   (** Convert a [char] into an [int] and apply [symbol]. *)
 
 val center: t -> t
+val flushleft: t -> t
+val flushright: t -> t
 
 val minipage: size -> t -> t
 
 val quote: t -> t
+val quotation: t -> t
 
 val stackrel: t -> t -> t
 
@@ -436,6 +439,7 @@ val textsf: t -> t (** Sans serif *)
 val mathit: t -> t (** Italic (for math mode) *)
 val mathbf: t -> t (** Bold (for math mode) *)
 val mathrm: t -> t (** Roman (for math mode) *)
+val mathsf: t -> t (** Sans serif (for math mode) *)
 val mathcal: t -> t (** Caligraphic *)
 
 (** {4 Font Sizes} *)
@@ -485,6 +489,7 @@ val theta: t
 val vartheta: t
 val iota: t
 val kappa: t
+val varkappa: t
 val lambda: t
 val mu: t
 val nu: t
@@ -503,6 +508,8 @@ val chi: t
 val psi: t
 val omega: t
 
+val digamma: t
+
 (** {4 Uppercase} *)
 
 val gamma_: t
@@ -517,14 +524,23 @@ val phi_: t
 val psi_: t
 val omega_: t
 
+(** {3 Hebrew Letters} *)
+
+val aleph: t
+val beth: t
+val gimel: t
+val daleth: t
+
 (** {3 Mathematical Symbols} *)
 
 (** {4 Binary Relations} *)
 
 val le: t (** less or equal *)
 val leq: t (** less or equal (same as {!le}) *)
+val leqslant: t (** less or equal (with equal bar parallel to the 'less than' sign *)
 val ge: t (** greater or equal *)
 val geq: t (** greater or equal (same as {!ge}) *)
+val geqslant: t (** greater or equal (with equal bar parallel to the 'less than' sign *)
 val equiv: t (** = with 3 bars *)
 val ll: t (** << *)
 val gg: t (** >> *)
@@ -724,6 +740,7 @@ val split : t -> t
 val proof : ?opt:t -> t -> t
 
 val twoheadrightarrow : t (** ->> *)
+val square: t
 
 val par_: t (** The paragraph symbol. *)
 
