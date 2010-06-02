@@ -328,6 +328,20 @@ val listoftables: t
 
 val appendix: t
 
+(** [printindex] output an index listing the various point which have
+      been referenced by [place_index key]. [key] can be a phrase
+      in which case it appears as-is in the index, or some more complex
+      instruction (documentation for index
+      keys can be found in the Not So Short Introduction to Latex (available
+      online) or the Latex Companion).
+
+      If you use at least one of [place_index] or [printindex], a file .idx
+      will be produced at the same time as the .aux. It needs to be processed
+      by the program makeindex (makeindex file.idx). Then (pdf)latex
+      needs to be run again. *)
+val place_index: t -> t
+val printindex: t
+
 val today: t
 
 val maketitle: t

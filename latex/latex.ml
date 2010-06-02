@@ -511,6 +511,23 @@ let place_label l = command "label" [T, text l] T
 
 (******************************************************************************)
 
+(* Index construction *)
+
+let needs_indexing = variable false
+let place_index key =
+  (set needs_indexing true)^^
+  command "index" ~packages:["makeidx",""] [T,key] T
+let printindex =
+  (set needs_indexing true)^^
+  command "printindex" ~packages:["makeidx",""] [] T
+let start_indexing = 
+  final needs_indexing begin function
+    | true -> text "\\makeindex"
+    | false -> empty
+  end
+
+(******************************************************************************)
+
 type documentclass = 
     [ `Article | `Report | `Book | `Letter | `Slides | `Beamer
     | `Custom of string ]
@@ -528,6 +545,8 @@ let renewcommand count name body =
     ?opt: (if count = 0 then None else Some(T, latex_of_int count))
     [T, name; T, body] T
 
+(* spiwack: tous les "par" avant le begin document devrait être remplacer
+    par des newlines, non ? *)
 let document ?(documentclass=`Article) ?(options=[]) ?title ?author
     ?date ?(prelude=empty) ?(packages=[]) body =
   let dc = match documentclass with
@@ -550,6 +569,7 @@ let document ?(documentclass=`Article) ?(options=[]) ?title ?author
     List.fold_left require_package empty packages;
     final_usepackages;
     par;
+    start_indexing; par;
     prelude;
     par;
     optcmd "title" title;
