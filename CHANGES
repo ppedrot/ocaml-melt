@@ -37,7 +37,9 @@ document function are now taken into account
   pretty-printing the .tex file)
 - empty, is_empty
 - more delimiters, just_left, just_right, between
-- and various other latex commands
+- index functionalities
+- support of multicolumn via the 'layout' optional argument of 'array_line'
+- and (many) various other latex commands
 
 Other:
 * module Version renamed to Melt_version
