@@ -648,17 +648,37 @@ let tableofcontents = command "tableofcontents" [] T
 let listoffigures = command "listoffigures" [] T
 let listoftables = command "listoftables" [] T
 
-type array_column = [ `L | `C | `R | `Vert | `Sep of t]
+type alignment = [ `L | `C | `R ]
+type array_column =  [ alignment | `Vert | `Sep of t]
 
 type array_line = {
-  al_columns: t list;
+  al_columns: (int*[alignment | `I]*t) list;
   al_sep: size option;
 }
 
-let array_line ?sep x = {
-  al_columns = x;
-  al_sep = sep;
-}
+let array_line ?sep ?layout xs = 
+  let xs =
+    match layout with
+    | None -> List.map (fun x -> (1,`I,x)) xs
+    | Some l -> 
+	try List.map2 (fun x (i,a) -> (i,a,x)) xs l
+	with Invalid_argument _ ->
+	  failwith (sprintf "array_line: %d columns but layout only supports %d."
+                  (List.length xs) (List.length l))
+  in
+  { al_columns = xs;
+    al_sep = sep 
+  }
+
+let array_line_width al =
+  List.fold_left (fun acc (w,_,_) -> acc+w) 0 al.al_columns
+let array_line_mapi f al =
+  let rec array_line_mapi al i =
+    match al with
+    | [] -> []
+    | (w,_,_) as x :: l -> (f i x)::(array_line_mapi l (i+w))
+  in
+  array_line_mapi al.al_columns 0
 
 let newline = text "\\\\\n"
 let newline_size x = text (Printf.sprintf "\\\\[%s]\n" (string_of_size x))
@@ -769,20 +789,35 @@ let center x = environment "center" (T, x) T
 let flushleft x = environment "flushleft" (T,x) T
 let flushright x = environment "flushright" (T,x) T
 
+let latex_of_array_column = function
+  | `L -> text "l"
+  | `C -> text "c"
+  | `R -> text "r"
+  | `Vert -> text "|"
+  | `Sep t -> concat [ text "@{" ; t ; text "}"] 
+let multicolumn w a x =
+  command "multicolumn" [(A,latex_of_int w); (A,latex_of_array_column a); (A,x)] A
 let array c l =
-  let cols = concat begin List.map begin function
-    | `L -> text "l"
-    | `C -> text "c"
-    | `R -> text "r"
-    | `Vert -> text "|"
-    | `Sep t -> concat [ text "@{" ; t ; text "}"] 
-  end c end in
-  let numcols = List.length (List.filter (function `L | `C | `R -> true | _ -> false) c) in
+  let cols = concat begin List.map latex_of_array_column c end in
+  let alignments = 
+    Array.of_list (List.filter (function #alignment -> true | _ -> false) c)
+  in
+  let numcols = Array.length alignments in
+  let multicolumn i (w,a,x)=
+    match a with
+    | `I -> 
+	if w = 1 then (*spiwack: do we need to take care of cases <1? *)
+	  x
+	else
+	  multicolumn w (alignments.(i)) x
+    | #array_column as a -> multicolumn w a x
+  in
   let lines = List.map begin fun al ->
-    let lc = al.al_columns in
-    if List.length lc <> numcols then
+    let width = array_line_width al in
+    if width <> numcols then
       failwith (sprintf "array: line with %d columns instead of %d"
-                  (List.length lc) numcols);
+                  width numcols);
+    let lc = array_line_mapi multicolumn al in
     concat (list_insert (text " & ") lc) ^^ newlinegen al.al_sep
   end l in
   let body = concat lines (*(list_insert newline lines)*) in

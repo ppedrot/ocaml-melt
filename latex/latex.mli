@@ -424,11 +424,17 @@ val makebox : size -> ?halign:halignment -> t -> t
 val framebox : size -> ?halign:halignment -> t -> t
   (** Same as [makebox] but draws a frame around the box. *)
 
-type array_column = [ `L | `C | `R | `Vert | `Sep of t ]
+
+type alignment = [ `L | `C | `R ]
+type array_column =  [ alignment | `Vert | `Sep of t]
 type array_line
 
 val array: array_column list -> array_line list -> t
-val array_line: ?sep: size -> t list -> array_line
+val array_line: ?sep: size -> ?layout:(int*[alignment|`I]) list -> t list -> array_line
+  (** Extra alignment [`I] in layout means that the column inherits the alignment
+        of the first corresponding column in the array layout.
+        The integers in the layout correspond to over how many of the array's column
+        will the cell will span.*)
 
 (* Actually, I don't know what these do. *)
 val frontmatter: t
