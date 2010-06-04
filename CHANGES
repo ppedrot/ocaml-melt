@@ -41,6 +41,7 @@ document function are now taken into account
 - more delimiters, just_left, just_right, between
 - index functionalities
 - support of multicolumn via the 'layout' optional argument of 'array_line'
+- Beamer columns
 - and (many) various other latex commands
 
 Other:

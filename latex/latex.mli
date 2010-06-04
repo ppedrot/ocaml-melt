@@ -803,6 +803,8 @@ module type BEAMER = sig
   | `HideOtherSubsections | `PauseSections | `PauseSubsections ]
 
   val frame: ?title: t -> ?subtitle: t -> t -> t
+    (** One slide. *)
+
   val setbeamertemplate: beamertemplate -> t -> t
 
   val insertpagenumber: t
@@ -839,6 +841,33 @@ module type BEAMER = sig
   val only: overlays_spec list -> t -> t
 
   val includegraphics: ?only: overlays_spec list -> t -> t
+    (** Same as {!Latex.includegraphics} but with the [only] parameter. *)
+
+  (** {2 Columns} *)
+
+  type column_alignment = [ `T | `C | `B ]
+    (** Vertical alignment of a column: top, center or bottom. *)
+
+  val columns: ?align: column_alignment -> t -> t
+    (** Put your columns in this environment.
+
+        The [align] argument is the default vertical alignment for each
+        column.
+
+        The last argument must be a concatenation of several {!column}s. *)
+
+  val column: ?align: column_alignment -> size -> t -> t
+    (** One column.
+
+        Columns must be put inside the {!columns} environment. *)
+
+  val equi_columns: ?align: column_alignment -> t list -> t
+    (** Several columns with the same size each.
+
+        The size of each column is [`Textwidth (1. /. c)] where [c] is the
+        length of the list. The [align]ment is the same for each column.
+
+        Example with two columns: [equi_columns ["Hello"; "World"]]*)
 end
 
 module Beamer : BEAMER

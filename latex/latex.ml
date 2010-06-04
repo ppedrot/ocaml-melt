@@ -30,6 +30,9 @@
 
 open Printf
 
+(* Use this to report errors. *)
+let error x = ksprintf failwith x
+
 module Opt = struct
   let iter f = function
     | Some x -> f x
@@ -665,8 +668,8 @@ let array_line ?sep ?layout xs =
     | Some l -> 
 	try List.map2 (fun x (i,a) -> (i,a,x)) xs l
 	with Invalid_argument _ ->
-	  failwith (sprintf "array_line: %d columns but layout only supports %d."
-                  (List.length xs) (List.length l))
+	  error "array_line: %d columns but layout only supports %d."
+            (List.length xs) (List.length l)
   in
   { al_columns = xs;
     al_sep = sep 
@@ -1299,6 +1302,11 @@ module type BEAMER = sig
   val only: overlays_spec list -> t -> t
 
   val includegraphics: ?only: overlays_spec list -> t -> t
+
+  type column_alignment = [ `T | `C | `B ]
+  val columns: ?align: column_alignment -> t -> t
+  val column: ?align: column_alignment -> size -> t -> t
+  val equi_columns: ?align: column_alignment -> t list -> t
 end
 
 module Beamer = struct
@@ -1406,6 +1414,24 @@ module Beamer = struct
 
   let includegraphics ?only filename =
     command ?only "includegraphics" [ T, filename ] T
+
+  type column_alignment = [ `T | `C | `B ]
+  let letter_of_column_alignment = function
+    | `T -> A, text "t"
+    | `C -> A, text "c"
+    | `B -> A, text "b"
+  let columns ?align x =
+    environment "columns" ?opt: (Opt.map letter_of_column_alignment align)
+      (T, x) T
+  let column ?align size x =
+    environment "column" ?opt: (Opt.map letter_of_column_alignment align)
+      ~args: [A, latex_of_size size] (T, x) T
+  let equi_columns ?align cols =
+    let count = List.length cols in
+    if count <= 0 then error "equi_columns requires at least 1 column";
+    let size = `Textwidth (1. /. float_of_int count) in
+    let cols = List.map (column size) cols in
+    columns ?align (concat cols)
 end
 
 module Verbatim = struct
