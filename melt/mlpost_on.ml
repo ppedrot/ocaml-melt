@@ -35,7 +35,7 @@ module type Signature = sig
     (** The value of [compiled_with_mlpost] is [true]. *)
 
   (** Convert some LaTeX into a picture. *)
-  val latex: Latex.t -> Mlpost.Picture.t
+  val picture_of_latex: Latex.t -> Mlpost.Picture.t
 
   (** Emit a figure to use it in a LaTeX document. *)
   val mlpost: ?mode: Melt_common.mode ->
@@ -68,7 +68,7 @@ let compiled_with_mlpost = true
 
 open Melt_common
 
-let latex l = Mlpost.Picture.tex (Latex.to_string l)
+let picture_of_latex l = Mlpost.Picture.tex (Latex.to_string l)
 
 let dummy_variable = Latex.variable ()
 

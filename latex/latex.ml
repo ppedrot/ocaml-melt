@@ -187,6 +187,8 @@ let environment ?(packages = []) name ?opt ?(args = []) body mode =
 let (^^) x y = concat [x; y]
 let mode mode x = Mode(mode, x)
 
+let latex = command "LaTeX" [] T
+
 let usepackage ?opt name =
   let opt = Opt.map (fun x -> T, x) opt in
   command "usepackage" ?opt [T, name] T

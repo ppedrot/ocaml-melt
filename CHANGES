@@ -21,7 +21,9 @@ Melt tool and library:
   .ps or .pdf to this .tex.depends file to ensure the final document is
   recompiled if a figure changes.
 - -classic-display is not passed to recent mlpost versions which do not
-handle it
+  handle it
+* function "latex" has been renamed to "picture_of_latex", the "latex" value
+  is now the \LaTeX command which prints the LaTeX logo
 
 Latex library:
 - packages used by commands in ~title, ~author, ~date and ~prelude of the

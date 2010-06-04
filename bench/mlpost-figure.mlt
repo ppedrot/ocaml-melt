@@ -12,9 +12,9 @@ let _ = emit begin document
 {mlpost
   (Tree.draw (
      bin ~ls: (cm 1.5) ~cs: (cm 0.6)
-       (pic (latex "Cou{alpha}cou"))
-       (leaf (pic (latex "Arf")))
-       (leaf (pic (latex "Plop")))
+       (pic (picture_of_latex "Cou{alpha}cou"))
+       (leaf (pic (picture_of_latex "Arf")))
+       (leaf (pic (picture_of_latex "Plop")))
    ))}
 Does it work?"
 end

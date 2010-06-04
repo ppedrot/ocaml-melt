@@ -1015,6 +1015,9 @@ the result is [x] coerced using [mbox] or [$ ... $]. *)
 
 (** {3 Miscellaneous} *)
 
+val latex: t
+  (** "LaTeX" written in a fancy but official way. *)
+
 val usepackage: ?opt: t -> t -> t
   (** You can use this in the [~prelude] of your [document], but it is better
 to use the [~packages] argument of [document]. Note that some commandes
