@@ -32,8 +32,6 @@
   open Parser
   open Lexing
 
-
-
   type mode =
     | C
     | M

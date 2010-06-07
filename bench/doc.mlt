@@ -47,8 +47,6 @@ let ocaml_code_base x =
     ~underscore: (Str.regexp \"__\")
     x
 
-let dquote = String.make 1 '\"'
-
 let ocaml_code x =
   Verbatim.regexps [
     Str.regexp \"\034\\\\([\\\\]\034\\\\|[^\034]\\\\)*\034\",
@@ -183,7 +181,6 @@ As you can see, the string <%"Hello, world!"%> is no longer a string but a
 value of type <%Latex.t%>. You can then compile this {ocaml} program.
 Once executed, it will produce a file <#hello.tex#> looking like this:
 {listing "<#\documentclass{article}
-\author{}
 \begin{document}
   Hello, world!
 \end{document}#>"}
