@@ -820,8 +820,7 @@ let array c l =
   let lines = List.map begin fun al ->
     let width = array_line_width al in
     if width <> numcols then
-      failwith (sprintf "array: line with %d columns instead of %d"
-                  width numcols);
+      error "array: line with %d columns instead of %d" width numcols;
     let lc = array_line_mapi multicolumn al in
     concat (list_insert (text " & ") lc) ^^ newlinegen al.al_sep
   end l in
@@ -830,6 +829,9 @@ let array c l =
 
 let list_env l name = 
 (*  let items = List.map ((^^) (command "item" [] T)) l in*)
+  (* Latex produces an error with empty itemize or enumerate. We might as
+     well produce the error ourself. *)
+  if l = [] then error "itemize or enumerate: no item given";
   let items = List.map ((^^) (text "\\item ")) l in
   let body = concat (list_insert (text "\n") items) in
   environment name (T, body) T
