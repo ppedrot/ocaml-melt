@@ -1,0 +1,750 @@
+(**************************************************************************)
+(* Copyright (c) 2009, Romain BARDOU                                      *)
+(* All rights reserved.                                                   *)
+(*                                                                        *)
+(* Redistribution and  use in  source and binary  forms, with  or without *)
+(* modification, are permitted provided that the following conditions are *)
+(* met:                                                                   *)
+(*                                                                        *)
+(* * Redistributions  of  source code  must  retain  the above  copyright *)
+(*   notice, this list of conditions and the following disclaimer.        *)
+(* * Redistributions in  binary form  must reproduce the  above copyright *)
+(*   notice, this list of conditions  and the following disclaimer in the *)
+(*   documentation and/or other materials provided with the distribution. *)
+(* * Neither the  name of Melt nor  the names of its  contributors may be *)
+(*   used  to endorse  or  promote products  derived  from this  software *)
+(*   without specific prior written permission.                           *)
+(*                                                                        *)
+(* THIS SOFTWARE  IS PROVIDED BY  THE COPYRIGHT HOLDERS  AND CONTRIBUTORS *)
+(* "AS  IS" AND  ANY EXPRESS  OR IMPLIED  WARRANTIES, INCLUDING,  BUT NOT *)
+(* LIMITED TO, THE IMPLIED  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR *)
+(* A PARTICULAR PURPOSE  ARE DISCLAIMED. IN NO EVENT  SHALL THE COPYRIGHT *)
+(* OWNER OR CONTRIBUTORS BE  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, *)
+(* SPECIAL,  EXEMPLARY,  OR  CONSEQUENTIAL  DAMAGES (INCLUDING,  BUT  NOT *)
+(* LIMITED TO, PROCUREMENT OF SUBSTITUTE  GOODS OR SERVICES; LOSS OF USE, *)
+(* DATA, OR PROFITS; OR BUSINESS  INTERRUPTION) HOWEVER CAUSED AND ON ANY *)
+(* THEORY OF  LIABILITY, WHETHER IN  CONTRACT, STRICT LIABILITY,  OR TORT *)
+(* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING  IN ANY WAY OUT OF THE USE *)
+(* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.   *)
+(**************************************************************************)
+
+(* Here are some slides I used to give a talk about Melt to my research team. *)
+
+open Beamer
+
+let slides ?title ?author ?date list =
+  (* Disable Beamer navigation symbols. *)
+  let prelude = setbeamertemplate `NavigationSymbols "" in
+  (* Compute the slides. *)
+  let contents = List.map (fun (title, body) -> frame ~title body) list in
+  let contents = concat contents in
+  (* Print the slides. *)
+  emit (document ~documentclass: `Beamer ?title ?author ?date ~prelude contents)
+
+let rec list_mapi ?(acc = []) ?(n = 0) f = function
+  | [] -> List.rev acc
+  | x :: r -> list_mapi ~acc: (f n x :: acc) ~n: (n + 1) f r
+
+let list_insert sep = function
+  | [] | [_] as x -> x
+  | x::rem -> List.flatten ([x]::(List.map (fun x -> [sep; x]) rem))
+
+let toc, section =
+  let sections = variable [] in (* accumulate the list of section titles *)
+
+  (* produce a table of contents page, highlighting section number
+     [index] (starting from 1) if specified *)
+  let toc ?index all_sections =
+    (* Colorize titles. *)
+    let blue = `RGB (0., 0., 0.7) in
+    let colors =
+      match index with
+        | None -> List.map (fun _ -> blue) all_sections
+        | Some index ->
+            list_mapi
+              (fun i title -> if i+1 = index then blue else `Gray)
+              all_sections
+    in
+    let all_sections = List.map2 color colors all_sections in
+    (* Make them bigger. *)
+    let all_sections = List.map large2 all_sections in
+    (* Insert some space. *)
+    let all_sections = list_insert "{par}{bigskip}" all_sections in
+    concat all_sections
+  in
+
+  (* toc_slide *)
+  (fun () -> "", final sections toc),
+
+  (* section *)
+  (fun title ->
+     setf sections (fun sections -> sections @ [ title ]),
+     get sections (fun now -> final sections (toc ~index: (List.length now))))
+
+(* Macros *)
+let ocaml = "OCaml"
+let emph = color `Red
+let display = parbox (`Textwidth 1.)
+let display_box x = framebox (`Textwidth 1.) (parbox (`Textwidth 0.98) x)
+let one_item x = itemize [x]
+
+let my_enumerate items =
+  let items =
+    list_mapi
+      (fun i item ->
+        "{textbf "{latex_of_int i})"} {item}\\")
+      items
+  in
+  concat items
+
+let verbatim_keywords =
+  Latex.Verbatim.keywords ~apply: (fun _ -> texttt (symbolc '_')) [\"_\"]
+
+let ocaml_code_base x =
+  Latex.Verbatim.pseudocode
+    ~trim: (fun s -> s)
+    ~id_apply: (fun i -> textsf (verbatim_keywords (to_string i)))
+    ~kw_apply: (fun x -> textbf (textsf x))
+    ~rem_apply: (fun s -> texttt (Latex.Verbatim.verbatim s))
+    ~keywords: [\"let\"; \"in\"; \"val\"; \"fun\"; \"type\"; \"open\"]
+    ~symbols: [\"->\", rightarrow]
+    ~underscore: (Str.regexp \"__\")
+    x
+
+let string_color = `RGB (0., 0., 0.75)
+let comment_color = `RGB (0.75, 0., 0.)
+
+let ocaml_code ?(trim = true) x =
+  Verbatim.regexps [
+    Str.regexp \"\034\\\\([\\\\]\034\\\\|[^\034]\\\\)*\034\",
+      (fun s -> color string_color (texttt (Latex.Verbatim.verbatim s)));
+    Str.regexp \"\\\\\036\\\\([\\\\]\\\\\036\\\\|[^\\\\\036]\\\\)*\\\\\036\",
+      (fun s -> color string_color (texttt (Latex.Verbatim.verbatim s)));
+    Str.regexp \"(\\\\*\\\\([^*]\\\\|\\\\*[^)]\\\\)*\\\\*)\",
+      (fun s -> color comment_color (textit (text s)));
+    Str.regexp \"'a\", (fun _ -> alpha);
+  ] ocaml_code_base (if trim then Verbatim.trim ['\n'] x else x)
+
+let split_modes_str x =
+  let stack = ref [] in
+  let current = ref `C in
+  let begin_pos = ref 0 in
+  let queue = ref [] in
+  let atom mode end_pos =
+    let sub = String.sub x !begin_pos (end_pos - !begin_pos + 1) in
+    begin_pos := end_pos + 1;
+    queue := (mode, sub) :: !queue
+  in
+  let begin_mode mode pos =
+    atom !current (pos - 1);
+    stack := !current :: !stack;
+    current := mode
+  in
+  let end_mode pos =
+    atom !current pos;
+    current := List.hd !stack;
+    stack := List.tl !stack
+  in
+  let len = String.length x in
+  for i = 0 to len - 1 do
+    match !current, x.[i] with
+      | `C, '\125' -> end_mode i
+      | `C, '\036' -> begin_mode `M i
+      | `C, '\034' -> begin_mode `T i
+      | `M, '\123' -> begin_mode `C i
+      | `M, '\036' -> end_mode i
+      | `M, '\034' -> begin_mode `T i
+      | `T, '\123' -> begin_mode `C i
+      | `T, '\036' -> begin_mode `M i
+      | `T, '\034' -> end_mode i
+      | _ -> ()
+  done;
+  atom !current (len - 1);
+  List.rev !queue
+
+let math_color = `RGB (0., 0.6, 0.)
+let text_color = string_color
+
+let melt_code x =
+  let x =
+    List.map
+      (function
+         | `C, x -> ocaml_code ~trim: false [`V x]
+         | `M, x -> color math_color (texttt (Latex.Verbatim.verbatim x))
+         | `T, x -> color text_color (texttt (Latex.Verbatim.verbatim x)))
+      (split_modes_str x)
+  in
+  concat x
+
+let bool =
+  Verbatim.pseudocode
+    ~symbols: [
+      \"/\\\\\", land_;
+      \"\\\\/\", lor_;
+      \"<=>\", iff;
+      \"==>\", rightarrow_;
+      \"<==\", leftarrow_;
+    ]
+    ~keyword_symbols: [\"xor\", oplus; \"xand\", otimes]
+
+(* Figures *)
+open Mlpost
+open Num
+
+let texpic = picture_of_latex
+let texbox ?dx ?dy ?name ?brush ?stroke ?pen ?dash ?fill ?style x =
+  Box.pic ?dx ?dy ?name ?brush ?stroke ?pen ?dash ?fill ?style (texpic x)
+
+let melt_box x =
+  Box.round_rect
+    ~stroke: (Some Color.black) ~fill: (Color.rgb 0.75 1. 0.75)
+    (texbox x)
+
+let file_box x = texbox (texttt x)
+
+let fig_meltpp =
+  (* make boxes *)
+  let meltpp_box = melt_box "MeltPP" in
+  let mlt_box = file_box "toto.mlt" in
+  let ml_box = file_box "toto.ml" in
+  (* place boxes *)
+  let mlt_box = Box.place ~padding: (cm 1.) `West meltpp_box mlt_box in
+  let ml_box = Box.place ~padding: (cm 1.) `East meltpp_box ml_box in
+  (* draw *)
+  Command.seq [
+    Box.draw meltpp_box;
+    Box.draw mlt_box;
+    Box.draw ml_box;
+    Arrow.box_to_box mlt_box meltpp_box;
+    Arrow.box_to_box meltpp_box ml_box;
+  ]
+
+let fig_tool =
+  (* make boxes *)
+  let meltpp_box = melt_box "Melt Tool" in
+  let mlt_box = file_box "toto.mlt" in
+  let ml_box = file_box "toto.pdf" in
+  (* place boxes *)
+  let mlt_box = Box.place ~padding: (cm 1.) `West meltpp_box mlt_box in
+  let ml_box = Box.place ~padding: (cm 1.) `East meltpp_box ml_box in
+  (* draw *)
+  Command.seq [
+    Box.draw meltpp_box;
+    Box.draw mlt_box;
+    Box.draw ml_box;
+    Arrow.box_to_box mlt_box meltpp_box;
+    Arrow.box_to_box meltpp_box ml_box;
+  ]
+
+let fancy_text_rotation text =
+  let angles = [ 5.; 10.; 15.; 20.; 25.; 30.; 35. ] in
+  let angles_neg = List.map ((-.) 0.) angles in
+  let angles = List.rev angles_neg @ [ 0. ] @ angles in
+  let count = List.length angles in
+  let boxes =
+    list_mapi
+      (fun i angle ->
+         let n = float_of_int i /. float_of_int count in
+         let n = 1. -. n *. n *. n in
+         let col = `RGB (n, n, n) in
+         let pic = texpic (Latex.Beamer.color col text) in
+         let tr = Transform.rotate_around (Picture.ctr pic) angle in
+         Picture.transform [ tr ] pic)
+      angles
+  in
+  let draws = List.map Command.draw_pic boxes in
+  Command.seq draws
+
+let big_melt_box x =
+  Box.round_rect
+    ~dx: (cm 0.2)
+    ~dy: (cm 0.2)
+    ~stroke: (Some Color.black) ~fill: (Color.rgb 0.9 1. 0.9)
+    (Box.group x)
+
+let other_box x =
+  Box.round_rect
+    ~stroke: (Some Color.black) ~fill: (Color.rgb 1. 1. 1.)
+    x
+
+let lines_box l =
+  let l = List.map texbox l in
+  Box.vbox l
+
+let fig_full_diagram =
+  (* make boxes *)
+  let meltpp_box = melt_box "meltpp" in
+  let ml_box = file_box "toto.ml" in
+  let lines = lines_box [
+    "ocamlbuild";
+    tiny "or";
+    "ocamlc";
+    tiny "or";
+    "mlpost";
+  ] in
+  let compile_box = other_box lines in
+  let byte_box = file_box "toto.byte" in
+  let run_box = other_box (texbox "run") in
+  let tex_box = file_box "toto.tex" in
+  let pdflatex_box = other_box (texbox "pdflatex") in
+  let latexlib_box = melt_box "Latex lib." in
+  let meltlib_box = melt_box "Melt lib." in
+  (* place boxes *)
+  let ml_box = Box.place ~padding: (cm 1.5) `South meltpp_box ml_box in
+  let compile_box = Box.place ~padding: (cm 1.) `East ml_box compile_box in
+  let byte_box = Box.place ~padding: (cm 1.) `North compile_box byte_box in
+  let run_box = Box.place ~padding: (cm 1.) `East byte_box run_box in
+  let tex_box = Box.place ~padding: (cm 1.) `South run_box tex_box in
+  let latexlib_box = Box.place ~padding: (cm 1.) `Southwest compile_box
+    latexlib_box in
+  let meltlib_box = Box.place ~padding: (cm 1.) `South compile_box
+    meltlib_box in
+  (* bug if south of tex_box *)
+  let pdflatex_box = Box.place ~padding: (cm 2.3) `South run_box pdflatex_box in
+  (* make more boxes *)
+  let melt_box = big_melt_box [
+    meltpp_box;
+    ml_box;
+    compile_box;
+    byte_box;
+    run_box;
+    tex_box;
+    pdflatex_box;
+    latexlib_box;
+    meltlib_box;
+  ] in
+  let mlt_box = file_box "toto.mlt" in
+  let pdf_box = file_box "toto.pdf" in
+  (* place more boxes *)
+  let mlt_box = Box.place ~padding: (cm 1.) `North meltpp_box mlt_box in
+  (* bug if south of tex_box or run_box *)
+  let pdf_box = Box.place ~padding: (cm 0.7) `South melt_box pdf_box in
+  let pdf_box = Box.shift (Point.pt (cm 2.54, cm 0.)) pdf_box in
+  (* draw *)
+  Command.seq [
+    Box.draw melt_box;
+    Box.draw mlt_box;
+    Box.draw ml_box;
+    Box.draw pdf_box;
+    Arrow.box_to_box mlt_box meltpp_box;
+    Arrow.box_to_box meltpp_box ml_box;
+    Arrow.box_to_box ml_box compile_box;
+    Arrow.box_to_box compile_box byte_box;
+    Arrow.box_to_box byte_box run_box;
+    Arrow.box_to_box run_box tex_box;
+    Arrow.box_to_box tex_box pdflatex_box;
+    Arrow.box_to_box pdflatex_box pdf_box;
+    Arrow.box_to_box latexlib_box compile_box;
+    Arrow.box_to_box meltlib_box compile_box;
+  ]
+
+(* Verbatim Style Abbreviations *)
+let tt x = texttt (Verbatim.verbatim (Verbatim.trim ['\n'] x))
+let caml = ocaml_code
+let melt x = Verbatim.convert melt_code (Verbatim.trim ['\n'] x)
+let tex = tt
+
+let () =
+  slides
+    ~title: "Melt: {latex} with {ocaml}"
+    ~author: "Romain Bardou"
+    ~date: "GT ProVal\\June 11, 2010"
+    [
+
+"{latex} versus {ocaml}",
+equi_columns ~align: `T ["
+  {latex}:
+  {itemize [
+    "Beautiful documents";
+    "Lots of macros";
+    "Lots of packages";
+  ]}
+"; "
+  {ocaml}:
+  {itemize [
+    "Great programming language";
+  ]}
+"];
+
+"Motivations for Document Programming",
+"Macros are good practise
+{display_box "<:tex:<
+\newcommand{\ty}{\tau}
+\newcommand{\subst}[3]{#1[#2/#3]}
+>>"}
+
+{bigskip}
+Document-specific environments
+
+{bigskip}
+{latex} libraries
+
+{bigskip}
+Compute results in the paper itself
+
+{bigskip}
+Science-fiction (or is it?):
+{itemize [
+  "Type your theorems";
+  "Check your proofs";
+]}";
+
+"{latex} as a Programming Language",
+display "<:tex:*
+\long\def\@makecaption#1#2{
+  \vskip \abovecaptionskip
+  \setbox\@tempboxa
+    \hbox{{\sf\footnotesize \textbf{#1.} #2}}
+  \ifdim \wd\@tempboxa >\hsize
+    {\sf\footnotesize \textbf{#1.} #2\par}
+  \else
+    \hbox to\hsize{\hfil\box\@tempboxa\hfil}
+  \fi}
+*>";
+
+"{ocaml} as a Programming Language",
+"Great:
+{itemize [
+  "Typed";
+  "Clear semantics";
+  "Expressive (higher-order iterators, algebraic types...)";
+  "Readable errors";
+  "Nice syntax";
+  "You already use it";
+]}
+But:
+{itemize [
+  "Do not produce documents";
+]}";
+
+"Melt",
+"An attempt to combine
+{itemize [
+  "the {emph "beauty"} of {latex} type-setting";
+  "the {emph "expressivity"} of {ocaml}";
+]}";
+
+section "Basic Documents";
+
+"Hello, World!",
+"<:tt:<hello.mlt>>:
+{display_box "<:melt:<
+emit (document "Hello, world!")
+>>"}
+
+{bigskip}
+Compile:
+{display_box "<:tt:<melt -pdf hello.mlt>>"}
+
+{bigskip}
+Obtain <:tt:<hello.pdf>>:
+{display_box (textrm "Hello, world!")}";
+
+"Intermediate Files",
+"After Melt pre-processor, <:tt:<hello.ml>>:
+{display_box "<:caml:<
+open Latex;;
+open Melt;;
+# 1 "../vide.mlt"
+emit (document (mode T ((text "tata"))))
+>>"}
+
+{bigskip}
+After compiling and running, <:tt:<hello.tex>>:
+{display_box "<:tex:<
+\documentclass{article}
+\begin{document}
+  Hello, world!
+\end{document}
+>>"}";
+
+"Text, Math and Code Modes",
+"Text mode: <:tt:<"...">>
+{display_box "<:melt:<
+"Hello, world!"
+>>"}
+
+{bigskip}
+Math mode: <:tt:<$...$>>
+{display_box "<:melt:<
+$3.141592$
+>>"}
+
+{bigskip}
+Code mode (default): <:tt:<{...}>>
+{display_box "<:melt:<
+let x = "some macro" in
+"Some text with {x}"
+>>"}";
+
+"Arbitrary Nesting",
+"{display_box "<:melt:<
+"I know that $1+2={latex_of_int (1+2)}$"
+>>"}
+
+{bigskip}
+Produces:
+{display_box (textrm "I know that $1+2={latex_of_int (1+2)}$")}
+";
+
+"Example: Recoding Enumerate",
+"{display_box "<:melt:#
+let list_mapi f l = ...
+
+let enumerate items =
+  let print_item i item =
+    "{textbf "{latex_of_int i})"} {item}\\"
+  in
+  concat (list_mapi print_item items)
+#>"}
+
+{bigskip}
+Example result:
+{display_box (textrm (my_enumerate ["first"; "second"; "third"]))}
+";
+
+section "The Melt Distribution";
+
+"The Melt Pre-Processor",
+"Provides easy concatenation of text, math and code
+
+(optional) Adds <:caml:<open Latex;; open Melt;;>>
+
+{bigskip}
+{center (mlpost fig_meltpp)}";
+
+"The Latex Library",
+"Provides bindings for:
+{itemize [
+  "Many {emph "environments"}
+{itemize [
+  texttt "document, array, itemize, figure, center...";
+]}";
+  "Text type-setting {emph "commands"}
+{itemize [
+  texttt "section, tableofcontents, texttt, tiny, large...";
+]}";
+  "Mathematical {emph "symbols"}";
+  "{gamma_}{rho}{epsilon}{epsilon}{kappa} {emph "letters"},
+hebrew {aleph}{beth}{gimel}{daleth} and {widetilde "accents"}";
+  emph "Beamer";
+  "{latex} labels and {emph "references"}";
+  "Low-level stuff ({texttt "hfill, vspace, ..."})";
+]}
+and more.";
+
+"The Melt Tool",
+"Call the pre-processor
+
+{bigskip}
+Compile, link and execute the {ocaml} program
+
+{bigskip}
+Run <:tt:<latex>> or <:tt:<pdflatex>> and <:tt:<bibtex>>
+
+{bigskip}
+{center (mlpost fig_tool)}
+
+{bigskip}
+All intermediate files in <:tt:<_melt>> directory";
+
+"The Melt Library",
+"{center (mlpost (fancy_text_rotation "Easy integration of Mlpost figures"))}
+
+{bigskip}
+...and some dirty stuff for the Melt tool";
+
+"Another Mlpost Diagram",
+center (mlpost fig_full_diagram);
+
+section "Mlpost Integration";
+
+"Mlpost Integration",
+"{display_box "<:caml:#
+val picture_of_latex: Latex.t -> Mlpost.Picture.t
+val mlpost: Mlpost.Command.t -> Latex.t
+#>"}
+
+{bigskip}
+Write your figures in your document:
+{display_box "<:melt:<
+let fancy_text_rotation text =
+  let pic = picture_of_latex text in
+  ...
+
+let () = emit (document "
+  Here is a figure:
+  {mlpost (fancy_text_rotation "Text to rotate")}
+")
+>>"}
+";
+
+section "Verbatim Modes";
+
+"Basic Verbatim",
+"Allows to print any symbol.
+{display_box "<:melt:#
+"My webpage: <<http://www.lri.fr/~bardou>>"
+#>"}
+
+{bigskip}
+Generated {latex}:
+{display_box "<:tex:<
+My webpage: http\symbol{58}\symbol{47}\symbol{47}
+www\symbol{46}lri\symbol{46}fr\symbol{47}
+\symbol{126}bardou
+>>"}
+
+{bigskip}
+Produces:
+{display_box
+(textrm "My webpage: <<http://www.lri.fr/~bardou>>")
+}
+
+{bigskip}
+Much {emph "safer"} than <:tex:<\verb>> or <:tex:<\begin{verbatim}>>.
+";
+
+"Pretty-Printed Verbatim",
+"{display_box "<:melt:#
+let url (x: string) = texttt (Verbatim.verbatim x) in
+"My webpage: <:url:<http://www.lri.fr/~bardou>>"
+#>"}
+
+{bigskip}
+Produces:
+{display_box
+(textrm "My webpage: {texttt "<<http://www.lri.fr/~bardou>>"}")
+}
+
+{bigskip}
+In these slides:
+{itemize [
+  "a {latex} pretty-printer";
+  "an {ocaml} pretty-printer";
+  "a Melt pretty-printer";
+]}
+";
+
+"Using Verbatim to Ease Writing",
+"A pretty-printer for boolean formulas:
+{display_box "<:melt:%
+let bool =
+  Verbatim.pseudocode
+    ~symbols: [
+      \"/\\\\\", land_;
+      \"\\\\/\", lor_;
+      \"<=>\", iff;
+      \"==>\", rightarrow_;
+      \"<==\", leftarrow_;
+    ]
+    ~keyword_symbols: [\"xor\", oplus; \"xand\", otimes]
+%>"}
+";
+
+"Using Verbatim to Ease Writing",
+"Let's use our boolean formula pretty-printer:
+{display_box (footnotesize "<:melt:#
+"<:bool:%A /\ B \/ (C_1 xor C_2) <=> (D ==> E_1 xand E_2)%>"
+#>")}
+
+{bigskip}
+Produces:
+{display_box
+(textrm "<:bool:#A /\ B \/ (C_1 xor C_2) <=> (D ==> E_1 xand E_2)#>")
+}
+";
+
+section "Variables";
+
+"Motivations for Variables",
+"Collect data following document {emph "flow"}
+
+Use {emph "final value"} before the end
+
+{bigskip}
+Examples:
+{itemize [
+  "theorem {emph "counters"}";
+  "line numbers in code listings";
+  "titles for a {emph "table"} of contents";
+  "{emph "packages"} used by commands";
+]}";
+
+"Variables: Interface",
+display_box "<:caml:#
+type 'a variable
+
+val variable: 'a -> 'a variable
+val set: 'a variable -> 'a -> t
+val get: 'a variable -> ('a -> t) -> t
+val final: 'a variable -> ('a -> t) -> t
+#>";
+
+"Variables: Example",
+display_box "<:caml:#
+let sections = variable []
+
+let section title =
+  concat [
+    Latex.section title;
+    get sections (fun s -> set sections (title :: s));
+  ]
+
+let enumerate_sections =
+  final sections enumerate
+#>";
+
+"Variables: Implementation",
+"Compute a {emph "fixpoint"} on a {emph "heterogeneous"} list of variables
+
+{longrightarrow_} a bit tricky";
+
+section "Conclusion";
+
+"Is it usable in practise?",
+"Yes:
+{itemize [
+  "all of my {emph "slides"}";
+  "all of my {emph "research notes"}";
+  "parts of a {emph "paper"}";
+  "{emph "this very presentation"}";
+  "the Melt {emph "documentation"}";
+  "several {emph "PhDs"}";
+]}
+are all written or being written with Melt.";
+
+"Will it suit your needs?",
+"You won't be stuck with Melt
+{itemize [
+  "you can {emph "mix"} {latex} and Melt parts";
+  "produced <:tt:<.tex>> files are {emph "readable"} unless lots of verbatim";
+]}
+
+{bigskip}
+Several possible programming styles
+";
+
+"Try it now!",
+"{bigskip}
+Webpage:
+{display_box "<:tt:<http://melt.forge.ocamlcore.org/>>"}
+
+{bigskip}
+Darcs repository:
+{display_box "<:tt:<darcs get http://darcs.ocamlcore.org/repos/melt>>"}
+
+{bigskip}
+Mailing-list:
+{display_box (footnotesize "<:tt:<https://lists.forge.ocamlcore.org/cgi-bin/listinfo/melt-general>>")}
+
+{bigskip}
+{center (mlpost (fancy_text_rotation (huge2 "Melt")))}";
+
+]
+
+(*
+Local Variables:
+compile-command: "melt slides.mlt -pdf && evince slides.pdf"
+End:
+*)
