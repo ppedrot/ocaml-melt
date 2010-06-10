@@ -1,8 +1,3 @@
-When Mlpost 0.7 is released
-===========================
-
-* Cairo (Melt compilation)
-
 TO DO
 =====
 
@@ -15,8 +10,6 @@ should become
 and this fresh name should be used instead.
 
 * Find a Unicode lexer. Menhir? Ulex of Alain Frisch?
-
-* \left and \right for other kinds of parentheses
 
 * itemize: newline after => latex error, par after => nothing (no par)
 

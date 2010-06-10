@@ -489,17 +489,19 @@ Produces:
 
 "Example: Recoding Enumerate",
 "{display_box "<:melt:#
-let list_mapi f l = ...
-
 let enumerate items =
   let print_item i item =
     "{textbf "{latex_of_int i})"} {item}\\"
   in
   concat (list_mapi print_item items)
+
+...
+
+enumerate ["first"; "second"; "third"]
 #>"}
 
 {bigskip}
-Example result:
+Result:
 {display_box (textrm (my_enumerate ["first"; "second"; "third"]))}
 ";
 
