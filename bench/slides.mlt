@@ -414,7 +414,7 @@ display "<:tex:*
 ]}
 But:
 {itemize [
-  "Do not produce documents";
+  "Does not produce documents";
 ]}";
 
 "Melt",
@@ -536,13 +536,13 @@ hebrew {aleph}{beth}{gimel}{daleth} and {widetilde "accents"}";
 and more.";
 
 "The Melt Tool",
-"Call the pre-processor
+"Calls the pre-processor
 
 {bigskip}
-Compile, link and execute the {ocaml} program
+Compiles, links and executes the {ocaml} program
 
 {bigskip}
-Run <:tt:<latex>> or <:tt:<pdflatex>> and <:tt:<bibtex>>
+Runs <:tt:<latex>> or <:tt:<pdflatex>> and <:tt:<bibtex>>
 
 {bigskip}
 {center (mlpost fig_tool)}
@@ -704,15 +704,15 @@ let enumerate_sections =
 
 section "Conclusion";
 
-"Is it usable in practise?",
+"Is it usable in practice?",
 "Yes:
 {itemize [
   "all of my {emph "slides"}";
   "all of my {emph "research notes"}";
-  "parts of a {emph "paper"}";
   "{emph "this very presentation"}";
   "the Melt {emph "documentation"}";
-  "several {emph "PhDs"}";
+  "several full {emph "papers"}";
+  "several {emph "PhD"} theses";
 ]}
 are all written or being written with Melt.";
 
@@ -725,6 +725,10 @@ are all written or being written with Melt.";
 
 {bigskip}
 Several possible programming styles
+
+{bigskip}
+Based on {latex}
+{one_item "use the styles and classes given by your publisher"}
 ";
 
 "Try it now!",
