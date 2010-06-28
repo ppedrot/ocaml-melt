@@ -375,7 +375,7 @@ let latex = command "LaTeX" [] T
 
 let usepackage ?opt name =
   let opt = Opt.map (fun x -> T, x) opt in
-  command "usepackage" ?opt [T, name] T
+  command "usepackage" ?opt [T, name] T ^^ text"\n"
 
 let final_usepackages =
   get ~position:finalpos package_collector
@@ -497,7 +497,7 @@ let ensure_mode pp from_mode to_mode f = match from_mode, to_mode with
 
 (* bol: "beginning of line" *)
 let rec out toplevel mode pp = function
-  | Command("par", [], T) when toplevel ->
+  | Text "\\par " when toplevel ->
       Pp.bol pp;
       Pp.newline ~force: true pp
   | Command(name, args, rm) ->
@@ -778,9 +778,9 @@ let document ?(documentclass=`Article) ?(options=[]) ?title ?author
     required_packages; par;
     prelude;
     par;
-    optcmd "title" title;
-    Opt.default empty (Opt.map (fun a -> command "author" [T, a] T) author);
-    optcmd "date" date;
+    optcmd "title" title; text"\n";
+    optcmd "author" author; text"\n";
+    optcmd "date" date; text"\n";
     par;
     documentmatter body;
   ]
