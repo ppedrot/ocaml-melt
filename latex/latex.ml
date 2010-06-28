@@ -438,6 +438,7 @@ type size = [
 | `Unitlength of float
 
 | `Fill
+| `Stretch of int
 ]
 
 let string_of_size size =
@@ -465,6 +466,7 @@ let string_of_size size =
     | `Unitlength x -> sprintf "%f\\unitlength" x
 
     | `Fill -> sprintf "\\fill"
+    | `Stretch x -> sprintf "\\stretch{%i}" x
 
 let latex_of_size size = text (string_of_size size)
 

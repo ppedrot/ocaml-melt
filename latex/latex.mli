@@ -59,6 +59,7 @@ type size = [
 | `Unitlength of float
 
 | `Fill
+| `Stretch of int
 ]
   (** The type of LaTeX sizes.
 - [`In]: inches
@@ -83,7 +84,10 @@ type size = [
 - [`Textheight]: the height of text on the page
 - [`Unitlength]: units of length in picture environment
 
-- [`Fill]: rubber length; take as much space as possible
+- [`Fill]: rubber length; takes as much space as possible
+- [`Stretch]: rubber length; if multiple [`Stretch]-sized commands are issued
+  on the same line (or vertical box) they stretch in proportion of their respective
+  factor.
 *)
 
 val latex_of_size : size -> t
