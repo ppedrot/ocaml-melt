@@ -367,6 +367,7 @@ val vfill: t
 val vfil: t
 val footnote: t -> t
 val latex_of_int: int -> t
+val latex_of_float: float -> t
 val itemize: t list -> t
 val enumerate: t list -> t
 val newline: t

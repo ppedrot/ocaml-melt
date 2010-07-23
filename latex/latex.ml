@@ -471,6 +471,7 @@ let string_of_size size =
 let latex_of_size size = text (string_of_size size)
 
 let latex_of_int x = text (string_of_int x)
+let latex_of_float x = text (string_of_float x)
 
 let rec is_empty = function
   | Text "" | Concat [] -> true
