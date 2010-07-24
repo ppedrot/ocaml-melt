@@ -1047,6 +1047,31 @@ val mode: mode -> t -> t
 (** [mode m x] returns [x] if its mode is already [m]. If its mode is not [m],
 the result is [x] coerced using [mbox] or [$ ... $]. *)
 
+(** {3 Basic blocks to make custom [document] functions} *)
+
+val documentclass : ?opt:(mode*t) -> t -> t
+  (** All document must start with a single document class declaration,
+optionnally with arguments. [documentclass cls] means that [cls]
+(represented as a [Latex.t]) is the class of the document. The optional
+argument is given as a [Latex.t] as well, for generality. *)
+
+val required_packages : t
+  (** Your prelude must contain the list of packages required by your
+document. That is a single occurence of [required_packages]. Note that
+it does not make sense out of the document's prelude. *)
+
+val require_packages : (t*t) list -> t
+  (** [require_packages] takes as argument a list of pairs
+[package,option]. Each [package] is required (see {!packages}) with
+option [option]. The argument [~packages] of {!document} is implemented
+as a [require_package]. This command can be used anywhere in a document,
+if needed. *)
+
+val documentmatter : t -> t
+  (** [documentmatter body] renders your actual document, [body],
+according to the rules specified in the prelude. It is simply
+LaTeX's [document] command. *)
+
 (** {3 Miscellaneous} *)
 
 val latex: t

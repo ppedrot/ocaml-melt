@@ -162,12 +162,16 @@ end)
 let package_collector = variable PackageSet.empty
 
 let concat l = Concat l
+let empty = concat []
 
 let require_package acc package =
   concat [
     setf package_collector (PackageSet.add package);
     acc;
   ]
+
+let require_packages packages =
+  List.fold_left require_package empty packages
 
 let require_package_string acc (a, b) =
   require_package acc (text a, text b)
@@ -195,8 +199,6 @@ let latex = command "LaTeX" [] T
 let usepackage ?opt name =
   let opt = Opt.map (fun x -> T, x) opt in
   command "usepackage" ?opt [T, name] T
-
-let empty = concat []
 
 let final_usepackages =
   final package_collector
@@ -553,8 +555,18 @@ let renewcommand count name body =
     ?opt: (if count = 0 then None else Some(T, latex_of_int count))
     [T, name; T, body] T
 
-(* spiwack: tous les "par" avant le begin document devrait être remplacer
-    par des newlines, non ? *)
+let required_packages = concat [
+  final_usepackages ;
+  par;
+  start_indexing; 
+]
+
+let documentclass ?opt cl = command "documentclass" ?opt [T,cl] T
+let documentmatter x = environment "document" (T, x) T
+
+(* to be able to use a [documentclass] label *)
+let _documentclass = documentclass
+
 let document ?(documentclass=`Article) ?(options=[]) ?title ?author
     ?date ?(prelude=empty) ?(packages=[]) body =
   let dc = match documentclass with
@@ -572,19 +584,17 @@ let document ?(documentclass=`Article) ?(options=[]) ?title ?author
   end options in
   let body = if title <> None then command "maketitle" [] T ^^ body else body in
   concat [
-    command "documentclass" ?opt: options [T, text dc] T;
+    _documentclass ?opt:options (text dc);
     par;
-    List.fold_left require_package empty packages;
-    final_usepackages;
-    par;
-    start_indexing; par;
+    require_packages packages;
+    required_packages; par;
     prelude;
     par;
     optcmd "title" title;
     Opt.default empty (Opt.map (fun a -> command "author" [T, a] T) author);
     optcmd "date" date;
     par;
-    environment "document" (T, body) T;
+    documentmatter body;
   ]
 
 let within_braces x = text "{" ^^ x ^^ text "}"
