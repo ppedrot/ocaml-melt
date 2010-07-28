@@ -370,7 +370,7 @@ and command_argument pp (mode, x) before after =
 
 and command_argument_braces pp ca = command_argument pp ca "{" "}"
 and command_argument_brackets pp ca = command_argument pp ca "[" "]"
-and command_argument_nobr pp ca = command_argument pp ca "" ""
+and command_argument_nobr pp ca = command_argument pp ca " " ""
 
 and out_args =
   let out_arg pp = function
