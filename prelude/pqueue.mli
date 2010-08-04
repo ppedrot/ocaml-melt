@@ -5,6 +5,9 @@ type 'a t
 (** Raised by operations which do not support empty queues as argument. *)
 exception Empty
 
+(** [empty] is the empty queue. *)
+val empty : 'a t
+
 (** [is_empty q] returns [true] if and only if [q] is the empty queue. *)
 val is_empty : 'a t -> bool
 
