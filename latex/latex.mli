@@ -317,7 +317,7 @@ val index: t -> t -> t
   (** [index x y] produces [{x}_{y}] *)
 
 val exponent: t -> t -> t
-  (** [index x y] produces [{x}^{y}] *)
+  (** [exponent x y] produces [{x}^{y}] *)
 
 val index_exponent: t -> t -> t -> t
   (** [index_exponent x y z] produces [{x}_{y}^{z}].
