@@ -144,25 +144,15 @@ let bracket = Bracket
 let brace = Brace
 let nobr = NoBr
 
-type t =
+type elt =
   | Command of string * (mode * arg_kind * t) list * mode
   | Text of string
   | Environment of string * (mode * t) option * (mode * t) list *
       (mode * t) * mode
-  | Concat of t list
   | Mode of mode * t
-  | Set of ( env -> env )
-  (* update the environment in the remaining ast, replaced by [Concat
-     []] in fixpoint *)
-  | Get of ( env -> t )
-  (* fixpoint apply the function to the current environment to obtain
-     [t], then replace this node by [t] then
-     traverse [t]. *)
-  | Get_position of ( env -> t ) * position
-  (* like Get, but the environment is taken at the given position *)
-  | Place of position
-  (* fixpoint store the current environment under the name [position]
-     and replace this node by [Concat []] *)
+  | Set of (unit -> unit)
+  | Get of (unit -> t)
+  | Final of (unit -> t)
 
 (******************************************************************************)
 (*                                  Variables                                 *)
@@ -189,55 +179,33 @@ let position : ?name:string -> unit -> position =
     in
     { pos_name = name ; pos_id = !id }
 
-let get_in_env v env = v.get env
+let set r v = Set (fun () -> r := v)
+let get r f = Get (fun () -> f !r)
 
-exception Multiple_place of position
-exception Fixpoint_divergent of position list list
+(* Function [f] should not return a tree containing Set or Get nodes. *)
+let final r f = Final (fun () -> f !r)
 
-let fixpoint ?(env=Environment.empty) ?(iterations=10) t =
-  (* TODO: controler le nombre d'iterations par une option de melt
-     et mettre une fonction 'set number of iterations' *)
-  let placed_tbl = Hashtbl.create 0 in
-  (* table of already placed positions *)
-  let position_tbl = Hashtbl.create 0 in
-  (* position -> env *)
-  let get_position_env pos =
-    try Hashtbl.find position_tbl pos.pos_id
-    with
-      | Not_found -> Environment.empty
-  in
-  let assert_not_placed i =
-    if Hashtbl.mem placed_tbl i
-    then raise ( Multiple_place i )
-    else Hashtbl.add placed_tbl i ()
-  in
-  let positions_changed = ref [] in
-  (* list of position that changed during the current/last application of iter*)
-  let changelog = ref [] in
-  (* list of list of position that changed during each iteration *)
-  let rec iter env = function (* go througt the ast updating the environment and
-				 appliying Get functions *)
-    | Command (s, l , mode) ->
-      let l,env =
-	let aux (l,env) (mode,kind,t) =
-	  let (t,env) = iter env t in
-	  ((mode,kind,t)::l,env)
-	in
-	List.fold_left aux ([],env) l
+(* Evaluate intermediate values of variables. This returns a new tree with
+   no Set or Get node.
+   This function is called by [to_buffer] (which is itself called by other
+   [to_*] functions). The [out] function it in charge of dealing with Final
+   nodes. *)
+let rec compute_get_and_set_nodes = function
+  | Command (name, args, mode) ->
+      let args =
+        List.map
+          (fun (mode, kind, node) ->
+             (mode, kind, compute_get_and_set_nodes node))
+          args
       in
-      Command (s, List.rev l, mode),env
-    | Mode (mode, t) ->
-      let t,env = iter env t in
-      Mode (mode, t),env
-    | Environment (s , opt, l, (mode, t), mode') ->
-      (* l'ordre d'évaluation est gratuit, je ne sais pas si c'est le
-	 bon *)
-      let opt,env =
-	match opt with
-	  | None -> opt,env
-	  | Some (mode,t) ->
-	    let t,env = iter env t in
-	    Some (mode,t),env
+      Command (name, args, mode)
+  | Text _ as x ->
+      x
+  | Environment (name, opt, args, (body_mode, body_node), mode) ->
+      let opt =
+        Opt.map
+          (fun (mode, node) -> mode, compute_get_and_set_nodes node)
+          opt
       in
       let l,env =
 	let aux (l,env) (mode,t) =
@@ -246,52 +214,19 @@ let fixpoint ?(env=Environment.empty) ?(iterations=10) t =
 	in
 	List.fold_left aux ([],env) l
       in
-      let t,env = iter env t in
-      Environment (s, opt, List.rev l, (mode, t), mode' ),env
-    | Text s -> (Text s,env)
-    | Concat l ->
-      let aux (l,env) t = let (t,env) = iter env t in (t::l,env) in
-      let l,env = List.fold_left aux ([],env) l in
-      Concat (List.rev l), env
-    | Set setter ->
-      (Concat []),(setter env)
-    | Get maker ->
-      iter env (maker env)
-    | Get_position (maker,position) ->
-      let t = maker (get_position_env position) in
-      iter env t
-    | Place position ->
-      assert_not_placed position;
-      ( if Environment.equal (get_position_env position) env
-	then ()
-	else ( Hashtbl.replace position_tbl position.pos_id env;
-	       positions_changed := position :: !positions_changed ));
-      (* TODO récupérer les variables qui ont changé *)
-      (Concat []),env
-  in
-  let rec apply n =
-    if n = 0 then raise (Fixpoint_divergent !changelog)
-    else
-      let (t,env) = iter env t in
-      match !positions_changed with
-	| [] -> t,env
-	| l -> ( positions_changed := [];
-		changelog := l :: !changelog;
-		Hashtbl.clear placed_tbl;
-		apply (n-1) )
-  in
-  apply iterations
-
-let setf var f =
-  Set (fun env -> var.set env (f (var.get env)))
-
-let setf2 var1 var2 f =
-  Set (fun env -> var2.set env (f (var1.get env) (var2.get env)))
-
-let get ?position var f =
-  match position with
-    | None -> Get (fun env -> f (var.get env))
-    | Some p -> Get_position ((fun env -> f (var.get env)),p)
+      let body_node = compute_get_and_set_nodes body_node in
+      Environment (name, opt, args, (body_mode, body_node), mode)
+  | Concat nodes ->
+      Concat (List.map compute_get_and_set_nodes nodes)
+  | Mode (mode, node) ->
+      Mode (mode, compute_get_and_set_nodes node)
+  | Set f ->
+      f ();
+      Text ""
+  | Get f ->
+      compute_get_and_set_nodes (f ())
+  | Final _ as x ->
+      x
 
 let place position =
   Place position
@@ -300,7 +235,7 @@ let set x v = setf x (fun _ -> v)
 let incr_var x = setf x (fun x -> x + 1)
 let decr_var x = setf x (fun x -> x - 1)
 
-let text s = Text s
+let text s = Clist.singleton (Text s)
 
 let vari x = get x (fun v -> text (string_of_int v))
 let varf x = get x (fun v -> text (string_of_float v))
@@ -338,8 +273,8 @@ let package_collector =
   variable ~eq:PackageSet.equal
     ~name:"package collector" ~printer PackageSet.empty
 
-let concat l = Concat l
-let empty = concat []
+let concat l = Clist.list_concat l
+let empty = Clist.empty
 
 let require_package acc package =
   concat [
@@ -354,7 +289,8 @@ let require_package_string acc (a, b) =
   require_package acc (text a, text b)
 
 let unusual_command ?(packages = []) name args mode =
-  List.fold_left require_package_string (Command (name, args, mode)) packages
+  let thecommand = Clist.singleton (Command (name, args, mode)) in
+  List.fold_left require_package_string thecommand packages
 
 let command ?(packages=[]) name ?opt args mode =
     let opt = Opt.map (fun (m,t) -> (m,Bracket,t)) opt in
@@ -363,13 +299,16 @@ let command ?(packages=[]) name ?opt args mode =
     unusual_command ~packages name args mode
 
 let environment ?(packages = []) name ?opt ?(args = []) body mode =
+  let theenvironment =
+    Clist.singleton (Environment(name, opt, args, body, mode))
+  in
   List.fold_left
     require_package_string
-    (Environment(name, opt, args, body, mode))
+    theenvironment
     packages
 
-let (^^) x y = concat [x; y]
-let mode mode x = Mode(mode, x)
+let (^^) x y = Clist.app x y
+let mode mode x = Clist.singleton (Mode(mode, x))
 
 let latex = command "LaTeX" [] T
 
@@ -496,7 +435,7 @@ let ensure_mode pp from_mode to_mode f = match from_mode, to_mode with
   | T, M -> Pp.string pp "\\mbox{"; f (); Pp.char pp '}'
 
 (* bol: "beginning of line" *)
-let rec out toplevel mode pp = function
+let rec out_elt toplevel mode pp = function
   | Text "\\par " when toplevel ->
       Pp.bol pp;
       Pp.newline ~force: true pp
@@ -533,10 +472,12 @@ let rec out toplevel mode pp = function
       ensure_mode pp m mode (fun () -> out false m pp x)
   | Concat l ->
       List.iter (out toplevel mode pp) l
-  | Set _
-  | Get _
-  | Get_position _
-  | Place _ -> assert false
+  | Get _ ->
+      raise GetInsideFinal
+  | Set _ ->
+      raise SetInsideFinal
+  | Final f ->
+      out toplevel mode pp (f ())
 
 and command_argument pp (mode, x) before after =
   Pp.string pp before;
@@ -657,21 +598,17 @@ let latex_of_size size = text (string_of_size size)
 let latex_of_int x = text (string_of_int x)
 let latex_of_float x = text (string_of_float x)
 
-let rec is_empty = function
-  | Text "" | Concat [] -> true
-  | Concat l ->
-      if List.for_all is_empty l then
-        true
-      else
-        false
-  | Mode(_, y) ->
-      is_empty y
+let rec is_empty_elt = function
+  | Text "" -> true
+  | Mode(_, y) -> is_empty y
   | Command _ | Environment _ | Text _
   | Set _ | Get _ | Get_position _ | Place _ ->
       (* You would assume that these should disappear after [compute_variables]
          is called. However, when building the AST, this is not actually
          the case, yet. *)
       false
+and is_empty x =
+  Clist.forall is_empty_elt x
 
 let none_if_empty x =
   if is_empty x then None else Some x

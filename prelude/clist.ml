@@ -36,8 +36,9 @@ let app l1 l2 = match l1,l2 with
   | _,E -> l1
   | E,_ -> l2
   | Cons (x,l1),_ -> link x l1 (Lazy.lazy_from_val l2)
+let singleton x = Cons (x,Pqueue.empty)
 let cons x l =
-  app (Cons (x,Pqueue.empty)) l
+  app (singleton x) l
 
 
 let head = function
@@ -47,9 +48,24 @@ let tail = function
   | E -> raise Empty
   | Cons (_,q) -> linkall q
 
-let concat ls =
+let rec fold_left f a l =
+  if is_empty l then a
+  else fold_left f (f a (head l)) (tail l)
+
+let list_concat ls =
   List.fold_left app empty ls
+
+let concat ls =
+  fold_left app empty ls
 
 let rec iter f l =
   if is_empty l then ()
-  else f (head l); iter f (tail l)
+  else (f (head l); iter f (tail l))
+
+let rec map f l =
+  if is_empty l then empty
+  else cons (f (head l)) (map f (tail l))
+
+let rec forall p l =
+  if is_empty l then true
+  else p (head l) && forall p (tail l)

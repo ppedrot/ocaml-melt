@@ -1,6 +1,6 @@
 (*** Persistent, constant time queues ***)
 
-type 'a t
+type +'a t
 
 (** Raised by operations which do not support empty queues as argument. *)
 exception Empty
