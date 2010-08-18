@@ -40,11 +40,8 @@ module type Signature = sig
   (** Emit a figure to use it in a LaTeX document. *)
   val mlpost: ?mode: Melt_common.mode ->
     ?file: string -> Mlpost.Command.t -> Latex.t
-  (**  The default  value  of [~pdf]  is  [true] if  the command  line
-contain  [-pdf], and  [false] otherwise.  It should  be [true]  if the
-figure will be  used in a PDF file, and  [false] otherwise. The [melt]
-tool adds the [-pdf] option automatically if it is himself called with
-the [-pdf] option.
+  (**  The default  value  of [~mode]  is  the mode specified via the
+command line (either to the melt tool or directly to the executable).
 
 The [~file] parameter may be used if you want to specify the file name
 used  for the  figure Metapost  script. Otherwise,  a default  name is
@@ -81,6 +78,7 @@ let mlpost_gen includegraphics ?(mode = mode) ?file f =
     | Pdf -> ".mps"
     | Ps -> ".1"
     | Cairo -> ".pdf"
+    | Mps -> ".mps"
   in
   let full_name = file ^ ext in
   Mlpost.Metapost.emit file f;

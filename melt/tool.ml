@@ -57,6 +57,7 @@ let dvi = ref false
 let pdf = ref false
 let ps2pdf = ref false
 let cairo = ref false
+let mps = ref false
 let quiet = ref false
 let continue = ref false
 let fake = ref false
@@ -132,6 +133,8 @@ Melt pre-processor";
   " Produce a PS, then convert it to PDF using ps2pdf";
   "-cairo", Arg.Unit (fun () -> cairo := true; pdf := true),
   " Use the Cairo backend of Mlpost (implies -pdf)";
+  "-mps", Arg.Unit (fun () -> cairo := true; pdf := true),
+  " Use the native Mps backend of Mlpost (implies -pdf)";
   "-quiet", Arg.Set quiet, " Be quiet";
   "-q", Arg.Set quiet, " Same as -quiet";
   "-continue", Arg.Set continue, " Continue on errors";
@@ -252,7 +255,9 @@ let ml_to_tex f =
       mlpost_includes
       pdfo
       (" -execopt \"" ^ (String.escaped !resto) ^ "\"")
-      (if !cairo then " -cairo -execopt \"-cairo\"" else pdfeo)
+      (if !cairo then " -cairo -execopt \"-cairo\"" 
+       else if !mps then " -mps -execopt \"-mps\""
+       else pdfeo)
       ocamlbuildo nativeo
       strlibo latexlibo meltlibo nameeo f
   else if !ocamlbuild then
