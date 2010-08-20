@@ -52,6 +52,12 @@ let rec fold_left f a l =
   if is_empty l then a
   else fold_left f (f a (head l)) (tail l)
 
+let list_cons l t =
+  List.fold_right cons l t
+
+let of_list l =
+  list_cons l empty
+
 let list_concat ls =
   List.fold_left app empty ls
 
