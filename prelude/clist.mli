@@ -19,6 +19,11 @@ val singleton : 'a -> 'a t
 (** [app l r] appends [r] at the end of [l]. *)
 val app : 'a t -> 'a t -> 'a t
 
+(** [of_list l] returns the Clist.t equivalent to [l]. *)
+val of_list : 'a list -> 'a t
+(** [list_cons [x1;...;xn] l] returns [(cons x1 ... (cons xn l)  ...)]. *)
+val list_cons : 'a list -> 'a t -> 'a t
+
 (** first element of the list. *)
 val head : 'a t -> 'a
 (** the list without its first element. *)
