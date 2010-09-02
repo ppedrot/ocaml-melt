@@ -1,0 +1,42 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.TH MELTPP 1 "September 2010"
+.\" Please adjust this date whenever revising the manpage.
+.SH NAME
+meltpp \- The Melt pre-processor
+.SH SYNOPSIS
+.B meltpp
+.RI [OPTIONS] " " [PLUGINS] " files"
+.SH DESCRIPTION
+.PP
+\fBmeltpp\fP is a pre-processor which takes Melt source codes (.mlt) and convert them to OCaml source codes (.ml). It is modular as it accepts user PLUGINS as arguments.
+.SH OPTIONS
+.TP
+.B \-P <path>
+Specify the location of plugins.
+.TP
+.B \-o <file>
+Specify the name of the output file. Cannot be used when compiling multiple files at the same time.
+.TP
+.B \-open <Module>
+Add "open Module;;" at the beginning of the file.
+.TP
+.B \-dir <path>
+Add path to file locations when printing error messages. Useful to trick your IDE when compiling in a temporary directory.
+.TP
+.B \-version
+Print the version number of Melt.
+.TP
+.B \-\-
+Pass the remaining arguments to the generated program.
+.TP
+.B \-help, \-\-help
+Display the list of options
+.SH SEE ALSO
+.BR melt (1),
+.BR ocamlc (1).
+.br
+.SH AUTHOR
+Melt was written by Romain Bardou. Contributors include Vincent Aravantinos, Francois Bobot, Pierre Chambart and Arnaud Spiwack.
+.PP
+This manual page was written by Romain Bardou (but may be used by others).
+

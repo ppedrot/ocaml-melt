@@ -1,0 +1,117 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.TH MELT 1 "September 2010"
+.\" Please adjust this date whenever revising the manpage.
+.SH NAME
+melt \- compiles Melt sources into DVI, PostScript or PDF files
+.SH SYNOPSIS
+.B melt
+.RI [OPTIONS] " " [OTHER_FILES] " MAIN_FILE"
+.SH DESCRIPTION
+.PP
+\fBmelt\fP compiles Melt sources (.mlt files) into DVI, PostScript (.ps) or PDF files. It first calls the Melt preprocessor
+.BR meltpp.
+It then calls the OCaml compiler, either directly or through Ocamlbuild or Mlpost. The program is linked with the Melt and Latex libraries. The program is then executed, producing .tex files. Then
+.BR latex
+or
+.BR pdflatex
+is called to produce the document.
+
+The MAIN_FILE is the main file of your document. It is the one which will be compiled, executed, and whose produced .tex file will be compiled. OTHER_FILES will be copied into the _melt directory. They are additional files needed to compile your document, such as modules, class styles or included figures.
+.SH OPTIONS
+.TP
+.B \-meltpp <binary>
+Specify the location and name of the Melt pre-processor binary.
+.TP
+.B \-latop <binary>
+Specify the location and name of the Latop binary.
+.TP
+.B \-mlpost <binary>
+Specify the location and name of the Mlpost wrapper binary.
+.TP
+.B \-mlpost-no-prelude
+Do not pass a -latex option to the Mlpost wrapper. By default, the .tex file produced by your Melt document is given to Mlpost so it can compute a prelude to be used when compiling images. This option disables this behavior.
+
+The prelude is the contents of the .tex file before the document environment begins.
+.TP
+.B \-P <path>
+Specify the location of pre-processor plugins. This option is passed to the Melt pre-processor.
+.TP
+.B \-I <path>
+Look for additional OCaml libraries in the given directory. This option is passed to the OCaml compiler.
+.TP
+.B \-L <path>
+Add a link to the path in the _melt directory. Useful if you don't want to copy the contents of the directory.
+.TP
+.B \-classic-display
+Give the -classic-display option to Ocamlbuild. Useful if your terminal does not handle the Ocamlbuild animation or if you want to keep a trace of the sequence of commands which are called. Has no effect if it is Mlpost that calls Ocamlbuild.
+.TP
+.B \-no-mlpost
+Do not use the Mlpost wrapper, call Ocamlbuild directly instead (or the OCaml compiler if -no-ocamlbuild is given too). Unspecified if your document produces Mlpost images.
+.TP
+.B \-no-ocamlbuild
+Do not use Ocamlbuild to compile your program. The OCaml compiler will be called directly. Usually only makes sense if your source code is made of only one file, and if you are using an OCaml version older than 3.10.2.
+.TP
+.B \-no-final
+Do not produce the final document, i.e. do not call latex.
+.TP
+.B \-no-link
+By default, a symbolic link to the produced DVI, PS or PDF document is created in the current directory. This option disables this behavior.
+.TP
+.B \-byte
+Compile the program to bytecode instead of native code. Usually, this is actually faster: the program runs slower but is much faster to compile in bytecode. This may become the default in a future version.
+.TP
+.B \-dvi
+Produce a DVI instead of a PS file.
+.TP
+.B \-ps
+Produce a PS file. This is the default behavior.
+.TP
+.B \-pdf
+Produce a PDF instead of a PS file.
+.TP
+.B \-ps2pdf
+Produce a PS file, then convert it to PDF using ps2pdf. Useful if pdflatex won't compile your document.
+.TP
+.B \-cairo
+Use the Cairo backend of Mlpost, instead of Metapost. Implies -pdf.
+.TP
+.B \-mps
+Use the native MPS backend of Mlpost, instead of Metapost. Implies -pdf.
+.TP
+.B \-quiet, \-q
+Be quiet. Less messages will be printed on the terminal, if any.
+.TP
+.B \-continue
+Continue on errors.
+.TP
+.B \-fake, \-n
+Do not actually execute commands. Useful if you want to know what the Melt tool would execute to compile your document.
+.TP
+.B \-melt-dir <path>
+Change the name used for the _melt directory.
+.TP
+.B \-clean
+Remove the _melt directory and, if not -no-link, all symbolic links of the current directory linking into _melt. Cleaning is done before anything else.
+.TP
+.B \-version
+Print the version number of Melt.
+.TP
+.B \-\-
+Pass the remaining arguments to the generated program.
+.TP
+.B \-help, \-\-help
+Display the list of options
+.SH SEE ALSO
+.BR meltpp (1),
+.BR latop (1),
+.BR mlpost (1),
+.BR ocamlc (1),
+.BR ocamlbuild (1),
+.BR latex (1),
+.BR pdflatex (1).
+.br
+.SH AUTHOR
+Melt was written by Romain Bardou. Contributors include Vincent Aravantinos, Francois Bobot, Pierre Chambart and Arnaud Spiwack.
+.PP
+This manual page was written by Romain Bardou (but may be used by others).
+
