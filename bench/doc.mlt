@@ -211,7 +211,7 @@ as in {latex}:
 {listing "<#"Assume $x+y=42$."#>"}
 This will produce:
 {display "Assume $x+y=42$."}
-The world ``Assume'', as well as the ending dot, are printed in
+The word ``Assume'', as well as the ending dot, are printed in
 {emph "text"} mode, whereas the math formula is printed in {emph "math"} mode.
 You enter text mode using double quotes <#"#{cdots}#"#>, and you enter math
 mode using dollars <#$#{cdots}#$#>. Note that you can enter math mode
