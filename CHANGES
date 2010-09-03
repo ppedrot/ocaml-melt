@@ -46,6 +46,8 @@ document function are now taken into account
 
 Other:
 * module Version renamed to Melt_version
+- man pages have been written, they are installed with "make install"
+- fixed META file dependencies
 
 Version 1.2.0
 =============
