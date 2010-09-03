@@ -29,7 +29,7 @@ Specify the location and name of the Latop binary.
 Specify the location and name of the Mlpost wrapper binary.
 .TP
 .B \-mlpost-no-prelude
-Do not pass a -latex option to the Mlpost wrapper. By default, the .tex file produced by your Melt document is given to Mlpost so it can compute a prelude to be used when compiling images. This option disables this behavior.
+Do not pass a \-latex option to the Mlpost wrapper. By default, the .tex file produced by your Melt document is given to Mlpost so it can compute a prelude to be used when compiling images. This option disables this behavior.
 
 The prelude is the contents of the .tex file before the document environment begins.
 .TP
@@ -43,10 +43,10 @@ Look for additional OCaml libraries in the given directory. This option is passe
 Add a link to the path in the _melt directory. Useful if you don't want to copy the contents of the directory.
 .TP
 .B \-classic-display
-Give the -classic-display option to Ocamlbuild. Useful if your terminal does not handle the Ocamlbuild animation or if you want to keep a trace of the sequence of commands which are called. Has no effect if it is Mlpost that calls Ocamlbuild.
+Give the \-classic\-display option to Ocamlbuild. Useful if your terminal does not handle the Ocamlbuild animation or if you want to keep a trace of the sequence of commands which are called. Has no effect if it is Mlpost that calls Ocamlbuild.
 .TP
 .B \-no-mlpost
-Do not use the Mlpost wrapper, call Ocamlbuild directly instead (or the OCaml compiler if -no-ocamlbuild is given too). Unspecified if your document produces Mlpost images.
+Do not use the Mlpost wrapper, call Ocamlbuild directly instead (or the OCaml compiler if \-no\-ocamlbuild is given too). Unspecified if your document produces Mlpost images.
 .TP
 .B \-no-ocamlbuild
 Do not use Ocamlbuild to compile your program. The OCaml compiler will be called directly. Usually only makes sense if your source code is made of only one file, and if you are using an OCaml version older than 3.10.2.
@@ -73,10 +73,10 @@ Produce a PDF instead of a PS file.
 Produce a PS file, then convert it to PDF using ps2pdf. Useful if pdflatex won't compile your document.
 .TP
 .B \-cairo
-Use the Cairo backend of Mlpost, instead of Metapost. Implies -pdf.
+Use the Cairo backend of Mlpost, instead of Metapost. Implies \-pdf.
 .TP
 .B \-mps
-Use the native MPS backend of Mlpost, instead of Metapost. Implies -pdf.
+Use the native MPS backend of Mlpost, instead of Metapost. Implies \-pdf.
 .TP
 .B \-quiet, \-q
 Be quiet. Less messages will be printed on the terminal, if any.
@@ -91,7 +91,7 @@ Do not actually execute commands. Useful if you want to know what the Melt tool 
 Change the name used for the _melt directory.
 .TP
 .B \-clean
-Remove the _melt directory and, if not -no-link, all symbolic links of the current directory linking into _melt. Cleaning is done before anything else.
+Remove the _melt directory and, if not \-no\-link, all symbolic links of the current directory linking into _melt. Cleaning is done before anything else.
 .TP
 .B \-version
 Print the version number of Melt.
