@@ -36,13 +36,24 @@ let lib = ref ""
 let build = ref ""
 let uninstall = ref false
 let fake = ref false
+let mlpost = ref true
 
-let speclist = [
-  "-bin", Arg.Set_string bin, "Install directory (program binaries)";
-  "-lib", Arg.Set_string lib, "Install directory (OCaml libraries)";
-  "-build", Arg.Set_string build, "Base build directory";
-  "-uninstall", Arg.Set uninstall, "Uninstall instead of install";
-  "-fake", Arg.Set fake, "Do not execute commands, only print them.";
+let config_bool v s =
+  let value =
+    match String.uppercase s with
+      | "YES" | "ON" | "TRUE" | "1" -> true
+      | _ -> false
+  in
+  v := value
+
+let speclist = Arg.align [
+  "-mlpost", Arg.String (config_bool mlpost),
+  "<ON|OFF> Value of MLPOST value in Config file";
+  "-bin", Arg.Set_string bin, "<path> Install directory (program binaries)";
+  "-lib", Arg.Set_string lib, "<path> Install directory (OCaml libraries)";
+  "-build", Arg.Set_string build, "<path> Base build directory";
+  "-uninstall", Arg.Set uninstall, " Uninstall instead of install";
+  "-fake", Arg.Set fake, " Do not execute commands, only print them";
 ]
 let anon_fun x = raise (Arg.Bad ("Unknown parameter: "^x))
 let usage_msg = "ocaml install.ml -bin <dir> -lib <dir>"
@@ -137,11 +148,13 @@ let finish () =
 (*                            Ocamlfind META file                         *)
 (**************************************************************************)
 
-type meta = { description : string;
-              version : string;
-              requires : string list;
-              archive : ([`Byte |`Native] list * string list) list;
-              subpackage : (string * meta) list}
+type meta = {
+  description : string;
+  version : string;
+  requires : string list;
+  archive : ([`Byte |`Native] list * string list) list;
+  subpackage : (string * meta) list
+}
 
 let create_meta ?(filename="META") meta =
   (* CREATE META FILE *)
@@ -149,49 +162,56 @@ let create_meta ?(filename="META") meta =
     fprintf o "description = \"%s\"\n" meta.description;
     fprintf o "version = \"%s\"\n" meta.version;
     (match meta.requires with
-       | [] -> ()
-       | _ -> fprintf o "requires = \"%s\"\n"
-           (String.concat " " meta.requires);
+      | [] -> ()
+      | _ -> fprintf o "requires = \"%s\"\n"
+        (String.concat " " meta.requires);
     );
     List.iter (fun (preds,l) ->
-                 fprintf o "archive(%s) = \"%s\"\n"
-                   (String.concat ","
-                      (List.map (function
-                                   | `Byte -> "byte"
-                                   | `Native -> "native") preds))
-                   (String.concat " " l))
+      fprintf o "archive(%s) = \"%s\"\n"
+        (String.concat ","
+           (List.map (function
+             | `Byte -> "byte"
+             | `Native -> "native") preds))
+        (String.concat " " l))
       meta.archive;
     List.iter (fun (s,m) ->
-                 fprintf o "package \"%s\" (\n%a)\n" s print_meta m)
+      fprintf o "package \"%s\" (\n%a)\n" s print_meta m)
       meta.subpackage
   in
   add_fun (sprintf "META file created in %s" filename)
     (fun () ->
-       let o = open_out filename in
-       print_meta o meta;
-       close_out o;)
+      let o = open_out filename in
+      print_meta o meta;
+      close_out o)
 
 let do_meta () =
   if !uninstall then
     uninstall_file "META"
   else
-      let meta_latex =
-        {version=full;
-         description="Latex library for OCaml.";
-         archive=[[`Byte],["latex.cma"];
-                  [`Native],["latex.cmxa"]];
-         requires=[];
-         subpackage=[]} in
-      let meta_melt = {version=full;
-                       description=
+    let meta_latex =
+      { version = full;
+        description = "Latex library for OCaml.";
+        archive = [
+          [`Byte], ["latex.cma"];
+          [`Native], ["latex.cmxa"]
+        ];
+        requires = ["str"];
+        subpackage = [] }
+    in
+    let meta_melt =
+      { version = full;
+        description =
           "Melt allows you to write Latex documents using OCaml.";
-                       requires=["melt.latex"];
-                       archive=[[`Byte],["melt.cma"];
-                                [`Native],["melt.cmxa"]];
-                       subpackage=["latex",meta_latex]} in
-      create_meta
-        ~filename:(Filename.concat !lib "META")
-        meta_melt
+        requires = ["melt.latex"] @ (if !mlpost then ["mlpost"] else []);
+        archive = [
+          [`Byte], ["melt.cma"];
+          [`Native], ["melt.cmxa"]
+        ];
+        subpackage= ["latex", meta_latex] }
+    in
+    create_meta
+      ~filename:(Filename.concat !lib "META")
+      meta_melt
 
 let () =
   do_bin ["meltpp/main.native"; "meltpp/main.byte"] "meltpp";

@@ -66,10 +66,10 @@ noob.makefile: clean
 	$(OBCLASSIC) $(BYTE) $(NATIVE) $(DOC) | ob2make -r melt/mlpost_off.ml MLPOSTSPECIFIC -r melt/mlpost_on.ml MLPOSTSPECIFIC -Ivar OCAMLINCLUDES all >> $@
 
 install:
-	$(OCAML) install.ml -bin $(INSTALLBIN) -lib $(INSTALLLIB) -build $(BUILD)
+	$(OCAML) install.ml -mlpost $(MLPOST) -bin $(INSTALLBIN) -lib $(INSTALLLIB) -build $(BUILD)
 
 uninstall:
-	$(OCAML) install.ml -bin $(INSTALLBIN) -lib $(INSTALLLIB) -uninstall
+	$(OCAML) install.ml -mlpost $(MLPOST) -bin $(INSTALLBIN) -lib $(INSTALLLIB) -uninstall
 
 clean:
 	rm -rf $(BUILD) bench/_melt
