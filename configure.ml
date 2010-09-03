@@ -40,6 +40,7 @@ let () =
       force "MLPOST" "<path> Mlpost library directory";
       force "INSTALLBIN" "<path> Install directory (tool binaries)";
       force "INSTALLLIB" "<path> Install directory (OCaml libraries)";
+      force "INSTALLMAN" "<path> Install directory (man pages)";
     ]
     ();
 
@@ -166,6 +167,11 @@ compiler version (%s)" s v ocaml_version;
              with Exec_error _ -> l
             )
     "INSTALLLIB";
+
+  SVar.umake
+    ~query: "Install directory (man pages)"
+    ~guess: (fun () -> ["/usr/local/share/man/man1"])
+    "INSTALLMAN";
 
   let ocaml_includes l =
     let l = List.filter (fun s -> s <> "" && s <> ocaml_where) l in

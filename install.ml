@@ -33,6 +33,7 @@ open Printf
 
 let bin = ref ""
 let lib = ref ""
+let man = ref ""
 let build = ref ""
 let uninstall = ref false
 let fake = ref false
@@ -51,6 +52,7 @@ let speclist = Arg.align [
   "<ON|OFF> Value of MLPOST value in Config file";
   "-bin", Arg.Set_string bin, "<path> Install directory (program binaries)";
   "-lib", Arg.Set_string lib, "<path> Install directory (OCaml libraries)";
+  "-man", Arg.Set_string man, "<path> Install directory (man pages)";
   "-build", Arg.Set_string build, "<path> Base build directory";
   "-uninstall", Arg.Set uninstall, " Uninstall instead of install";
   "-fake", Arg.Set fake, " Do not execute commands, only print them";
@@ -104,6 +106,11 @@ let install_bin b final =
     add_com (sprintf "install -D %s %s/%s" b !bin final)
   with Not_found -> ()
 
+let install_man m final =
+  try
+    add_com (sprintf "install -D %s %s/%s" m !man final)
+  with Not_found -> ()
+
 let rm f =
   if Sys.file_exists f then
     add_com (sprintf "rm %s" f)
@@ -123,11 +130,15 @@ let uninstall_lib l =
   uninstall_file (Filename.basename l)
 
 let uninstall_bin _ final =
-  rm (Filename.concat (!bin) final)
+  rm (Filename.concat !bin final)
+
+let uninstall_man _ final =
+  rm (Filename.concat !man final)
 
 let do_file = if !uninstall then uninstall_file else install_file
 let do_lib = if !uninstall then uninstall_lib else install_lib
 let do_bin = if !uninstall then uninstall_bin else install_bin
+let do_man = if !uninstall then uninstall_man else install_man
 
 let check_code = function
   | 0 -> ()
@@ -229,6 +240,9 @@ let () =
     "meltpp/meltpp_plugin.cmi"
   ];
   do_meta ();
+  do_man "man/melt.1" "melt.1";
+  do_man "man/meltpp.1" "meltpp.1";
+  do_man "man/latop.1" "latop.1";
   if !uninstall then rm_dir !lib;
   finish ()
 
