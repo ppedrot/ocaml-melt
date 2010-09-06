@@ -24,6 +24,9 @@ Melt tool and library:
   handle it
 * function "latex" has been renamed to "picture_of_latex", the "latex" value
   is now the \LaTeX command which prints the LaTeX logo
+- Added -latex option to specify the latex command
+* The Melt tool no longer compiles and executes .ml files, only .mlt ones.
+  The .ml files will be compiled by Ocamlbuild anyway if they are needed.
 
 Latex library:
 - packages used by commands in ~title, ~author, ~date and ~prelude of the

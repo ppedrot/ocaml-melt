@@ -167,7 +167,8 @@ let usage =
   "Usage: " ^ Filename.basename Sys.argv.(0) ^
     " [options] [other_files] main_file\n
 All [other_files] will be copied in the _melt directory. In particular, this \
-allows you to use other modules or libraries.\n"
+allows you to use other modules, libraries or Ocamlbuild plugins. Files \
+with extension .mlt will be pre-processed, compiled and executed.\n"
 
 let cmd x = ksprintf begin fun s ->
   if not !quiet then printf "%s\n%!" s;
@@ -277,16 +278,10 @@ let ml_to_tex f =
     cmd "./%s.%s%s%s%s" bf ext pdfo nameo !resto
   end
 
-let produce_tex f =
+let handle_file f =
   if Filename.check_suffix f ".mlt" then begin
     let ml = melt_to_ml f in
     ml_to_tex ml
-  end else if Filename.check_suffix f ".ml" then
-    ml_to_tex f
-  else if not (Filename.check_suffix f ".tex"
-               || Filename.check_suffix f ".cls") then begin
-    if not !quiet then
-      Printf.eprintf "Warning: don't know what to do with %s.\n%!" f
   end
 
 let produce_final f =
@@ -390,7 +385,7 @@ let () =
   if !main_file <> "" then begin
     let cwd = Sys.getcwd () in
     make_temp_dir ();
-    Queue.iter produce_tex files;
+    Queue.iter handle_file files;
     if !final then produce_final !main_file;
     chdir cwd;
     if !final && !link then

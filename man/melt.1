@@ -17,6 +17,8 @@ or
 is called to produce the document.
 
 The MAIN_FILE is the main file of your document. It is the one which will be compiled, executed, and whose produced .tex file will be compiled. OTHER_FILES will be copied into the _melt directory. They are additional files needed to compile your document, such as modules, class styles or included figures.
+
+If one OTHER_FILE has extension .mlt, it will also be pre-processed, compiled and executed. Typically, a .mlt file has two usages. The first one is to define values usable by the main .mlt file. The second one is to call the emit function to produce .tex files that can be included in your main .tex file. This is especially useful if your main .tex file is not written in Melt.
 .SH OPTIONS
 .TP
 .B \-meltpp <binary>
