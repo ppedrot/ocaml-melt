@@ -69,6 +69,8 @@ let clean = ref false
 
 let melt_dir = ref "_melt"
 
+let latex = ref None
+
 let meltpp = ref "meltpp"
 let latop = ref "latop"
 let mlpost_bin = ref "mlpost"
@@ -109,6 +111,8 @@ Melt pre-processor";
   "<mlpost> Specify the location of the mlpost tool";
   "-mlpost-no-prelude", Arg.Set mlpost_no_prelude,
   " Do not pass a -latex option to mlpost";
+  "-latex", Arg.String(fun cmd -> latex := Some cmd),
+  "<latex> Specify the latex command to use";
   "-P", Arg.String add_plugin_include, "<dir> Look for plugins in <dir> \
 (this option is passed to the Melt pre-processor)";
   "-I", Arg.String add_include, "<dir> Look for libraries in <dir> \
@@ -300,12 +304,16 @@ let produce_final f =
   List.iter add_link !latex_link;
 
   let latex =
-    if !ps2pdf
-    then "latex"
-    else
-      if !pdf
-      then "pdflatex"
-      else "latex"
+    match !latex with
+      | None ->
+          if !ps2pdf
+          then "latex"
+          else
+            if !pdf
+            then "pdflatex"
+            else "latex"
+      | Some cmd ->
+          cmd
   in
   let latex =
     latex ^ " -interaction nonstopmode -file-line-error -halt-on-error"
