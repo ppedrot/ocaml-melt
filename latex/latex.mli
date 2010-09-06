@@ -97,7 +97,8 @@ val latex_of_size : size -> t
 
 type documentclass = 
     [ `Article | `Report | `Book | `Letter | `Slides | `Beamer | `Custom of string]
-type documentoptions = [ `Landscape | `A4paper ]
+type documentoptions = [ `Landscape | `A4paper | `TwoColumn | `Pt of
+    int ]
 
 val document:
   ?documentclass: documentclass ->
@@ -117,20 +118,66 @@ using several calls to [usepackage] in the [~prelude]. *)
 
 (** Variables are similar to LaTeX counters, except that they are computed
     when pretty-printing the LaTeX AST.
+    
+    The two basic operations on variables are [get] and [setf].
+    [get] outputs an ast depending on the current content of a
+    variable.
+    [setf] updates the content of a variable.
 
-    Each time you print a value of type {!t} using {!to_buffer}, {!to_channel},
-    {!to_file}, {!to_string} or using the [emit] function of the Melt library,
-    variables are re-initialized. They are then computed in the order they
-    appear in the tree. *)
+    [get] can also use the content of a variable at a different
+    position in the document.
+    To use a position, you first need to declare one with
+    [position]. then you can place that position in you document with
+    [place]. You must not place a position more than one time.
+    If a position isn't placed, the content of the variables at that
+    position will be the default one.
+
+    The final content of the variables is obtained by a fixpoint
+    computation wich is performed by the printing functions
+    {!to_buffer}, {!to_channel}, {!to_file}, {!to_string}. That
+    fixpoint may not terminate. In that case, the log will tell you which
+    variable did not converge. *)
 
 type 'a variable
 
-val variable: 'a -> 'a variable
-  (** Declare a new variable.
+val variable: ?eq:('a -> 'a -> bool) -> ?name:string -> ?printer:('a -> string) -> 'a -> 'a variable
+(** Declare a new variable.  The last argument is the default value of
+    the variable.
 
-      The argument is the initial value of the variable, i.e. the value of
-      the variable at the beginning of the pretty-printed AST (usually
-      the beginning of the document). *)
+    [eq] is the equality function on the type of the variable. the
+    default is [=].
+
+    [name] and [printer] are used to print informations when the
+    fixpoint calculation diverged. *)
+
+val setf: 'a variable -> ('a -> 'a) -> t
+(** Change the value of a variable in the following context *)
+
+val setf2: 'a variable -> 'b variable -> ('a -> 'b -> 'b) -> t
+(** [setf var_in var_out f]
+    Change the value of the variable [var_out] in the following
+    context using the content of [var_in] *)
+
+type position
+(** Type of position in the document. a position can be placed  *)
+
+val position: ?name:string -> unit -> position
+(** Declare a new position.
+    [name] is used to print informations when the fixpoint calculation
+    diverged. *)
+
+val place: position -> t
+(** [place p] place [p] at the current position ( in the document ) *)
+
+val get: ?position:position -> 'a variable -> ('a -> t) -> t
+(** Generate a bit of AST using the content of a variable.
+    if get has no parameter [position] then the current value of the
+    variable is taken.
+    else it is the value at [position]. *)
+
+(** {4 Useful Stuff About Variables} *)
+
+(** All these functions are defined using the above constructors. *)
 
 val set: 'a variable -> 'a -> t
   (** Change the value of a variable.
@@ -138,44 +185,9 @@ val set: 'a variable -> 'a -> t
       [set x v]: return a node which, when evaluated, changes the contents
       of variable [x] to value [v]. *)
 
-val get: 'a variable -> ('a -> t) -> t
-  (** Get the current value of a variable.
-
-      [get x f]: return a node which depends on the value [v] of variable [x]
-      at the moment the node is evaluated. The resulting node is [f v].
-
-      Function [f] may itself call [set], [get] or [final] in its body. *)
-
 val final: 'a variable -> ('a -> t) -> t
-  (** Get the final value of a variable.
-
-      [final x f]: return a node which depends on the final value of
-      variable [x]. This is similar to [get], except that the resulting node
-      is [f v] where [v] is the value of [x] at the end of the evaluation
-      of the AST which is being printed.
-
-      If you print your document using multiple calls to {!to_buffer},
-      {!to_channel}, {!to_file}, {!to_string} or [Melt.emit], final
-      values will actually be intermediate values between each of these calls.
-
-      Function [f] may not call [set] nor [get].
-      It can call [final], however. *)
-
-val reinitialize_variables: unit -> unit
-  (** Reinitialize all variables.
-
-      All variables are set to the value which was given at their creation.
-      Call this function if you emit multiple documents in the same program.
-      The [Melt.emit] function also calls [reinitialize_variables]. *)
-
-(** {4 Useful Stuff About Variables} *)
-
-(** All these functions are defined using the above constructors. *)
-
-val setf: 'a variable -> ('a -> 'a) -> t
-  (** Apply a function to a variable.
-
-      [setf x f] is equivalent to [get x (fun v -> set x (f v))]. *)
+  (** Like [get], but the value of the variable is taken at the end of
+      the document. *)
 
 val incr_var: int variable -> t
   (** Increment an integer variable.
@@ -211,6 +223,31 @@ val vart: t variable -> t
   (** Print a variable containing a LaTeX AST.
 
       [vart x] is equivalent to [get x (fun x -> x)]. *)
+
+val finali: int variable -> t
+  (** Print the last value of an integer variable.
+
+      [finali x] is equivalent to [final x (fun x -> text (string_of_int x))]. *)
+
+val finalf: float variable -> t
+  (** Print the last value of a float variable.
+
+      [finalf x] is equivalent to [final x (fun x -> text (string_of_float x))]. *)
+
+val finalb: bool variable -> t
+  (** Print the last value of a boolean variable.
+
+      [finalb x] is equivalent to [final x (fun x -> text (string_of_bool x))]. *)
+
+val finals: string variable -> t
+  (** Print the last value of a string variable.
+
+      [finals x] is equivalent to [final x text]. *)
+
+val finalt: t variable -> t
+  (** Print the last value of a variable containing a LaTeX AST.
+
+      [finalt x] is equivalent to [final x (fun x -> x)]. *)
 
 (** {3 References and Labels} *)
 
@@ -1116,10 +1153,17 @@ val thispagestyle: t -> t
 
 (** {2 Printing} *)
 
+type env
+(* environment used to keep track of the content of variables between
+   multiple applications of to_* functions *)
+
+val get_in_env: 'a variable -> env -> 'a
+
 (** All printing functions take the expected mode as a parameter
 (default is text). The printed expression will be coerced if its mode differs. *)
 
-val to_buffer: ?mode: mode -> Buffer.t -> t -> unit
-val to_channel: ?mode: mode -> out_channel -> t -> unit
-val to_file: ?mode: mode -> string -> t -> unit
+val to_buffer: ?mode: mode -> ?env: env -> Buffer.t -> t -> env
+val to_channel: ?mode: mode -> ?env: env -> out_channel -> t -> env
+val to_file: ?mode: mode -> ?env: env -> string -> t -> env
 val to_string: ?mode: mode -> t -> string
+val to_string_with_env: ?mode: mode -> ?env: env -> t -> string * env

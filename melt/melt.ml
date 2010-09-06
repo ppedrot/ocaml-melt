@@ -46,10 +46,8 @@ let print_tex_dependencies basefile depends =
   end
 
 let emit ?(file = name ^ ".tex") x =
-  tex_dependencies := [];
-  Latex.reinitialize_variables ();
-  Latex.to_file file x;
-  print_tex_dependencies file !tex_dependencies
+  let env = Latex.to_file file x in
+  print_tex_dependencies file (Latex.get_in_env tex_dependencies env)
 
 let rec list_split_when f ?(acc = []) = function
   | [] -> raise Not_found

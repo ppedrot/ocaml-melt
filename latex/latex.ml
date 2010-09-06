@@ -54,6 +54,90 @@ module Opt = struct
     | Some _ -> false
 end
 
+module IntMap = Map.Make(
+  struct
+    type t = int
+    let compare = compare
+  end)
+
+module Environment : 
+sig
+  type t
+
+  val empty : t
+  val new_variable : ?eq:('a -> 'a -> bool) -> 'a -> (t -> 'a -> t) * (t -> 'a)
+
+  val equal : t -> t -> bool
+
+end =
+struct
+
+  type t = (bool -> bool) IntMap.t
+    (* Those functions [f] hide a value in their closure.
+       It can be accessed thanks to their side effet.
+       [f true] is true iff the last function called, having the same
+       identifier, holded the same value as [f].
+       [f false] is true iff f hold the default value. *)
+
+  let empty = IntMap.empty
+
+  let new_id = 
+    let id = ref 0 in
+    fun () -> incr id; !id
+
+  let new_variable ?(eq=(=)) default =
+    let id = new_id () in
+    (* reference shared by all variable with the same id *)
+    let v = ref default in
+    (* add in the map [t] a function holding data [x] *)
+    let set t x =
+      let f test_x_equal_default =
+	let old = !v in
+	v := x;
+	if test_x_equal_default then eq x default else eq x old
+      in
+      IntMap.add id f t
+    in
+    (* recover the hidden value *)
+    let get t =
+      ( try ignore ((IntMap.find id t) false) with Not_found -> v := default );
+      !v
+    in
+    set,get
+
+  let equal t1 t2 =
+    (* fold returns keys in ascending order so to_list reverse to
+       descending order *)
+    let to_list t = IntMap.fold (fun k x l -> (k,x)::l) t [] in
+    let l1 = to_list t1 in
+    let l2 = to_list t2 in
+    let rec check l1 l2 =
+      match l1,l2 with
+	| [], [] -> true
+	| (k1,f1)::q1,(k2,f2)::q2 when k1 = k2 ->
+	  let _ = f1 false in
+	  (* now the shared reference [v] holds the value of f1 *)
+	  let eq = f2 false in
+	  (* f2 checks equality against the shared reference *)
+	  if eq then check q1 q2 else false
+	| (k1,f1)::q1,(k2,f2)::q2 when k1 > k2 ->
+	  (* keys are in descending order, so k1 > k2 means that l1
+	     has a key that l2 doesn't have *)
+	  let eq = f1 true in
+	  if eq then check q1 ((k2,f2)::q2) else false
+	| (_,f1)::q1,[] ->
+	  let eq = f1 true in
+	  if eq then check q1 [] else false
+	| l1,l2 ->
+	  check l2 l1
+    in
+    check l1 l2
+
+end
+
+type env = Environment.t
+type position = { pos_name : string; pos_id : int }
+
 type mode = M | T | A
 type arg_kind = Bracket | Brace | NoBr
 let bracket = Bracket
@@ -67,77 +151,152 @@ type t =
       (mode * t) * mode
   | Concat of t list
   | Mode of mode * t
-  | Set of (unit -> unit)
-  | Get of (unit -> t)
-  | Final of (unit -> t)
+  | Set of ( env -> env )
+  (* update the environment in the remaining ast, replaced by [Concat
+     []] in fixpoint *)
+  | Get of ( env -> t )
+  (* fixpoint apply the function to the current environment to obtain
+     [t], then replace this node by [t] then
+     traverse [t]. *)
+  | Get_position of ( env -> t ) * position
+  (* like Get, but the environment is taken at the given position *)
+  | Place of position
+  (* fixpoint store the current environment under the name [position]
+     and replace this node by [Concat []] *)
 
 (******************************************************************************)
 (*                                  Variables                                 *)
 (******************************************************************************)
 
-type 'a variable = 'a ref
+type 'a variable =
+    { set : Environment.t -> 'a -> Environment.t;
+      get : Environment.t -> 'a;
+      equal : 'a -> 'a -> bool;
+      var_name : string;
+      var_printer : 'a -> string }
 
-exception GetInsideFinal
-exception SetInsideFinal
+let variable ?(eq=(=)) ?(name="unnamed") ?(printer=fun _ -> "undefined printer" ) x =
+  let set,get = Environment.new_variable ~eq x in
+  { set = set; get = get; equal = eq; var_name = name; var_printer = printer }
 
-let initializers = ref []
+let position : ?name:string -> unit -> position =
+  let id = ref 0 in
+  fun ?name () -> incr id;
+    let name =
+      match name with
+	| None -> "unnamed position " ^ (string_of_int !id)
+	| Some n -> n
+    in
+    { pos_name = name ; pos_id = !id }
 
-let variable x =
-  let r = ref x in
-  initializers := (fun () -> r := x) :: !initializers;
-  r
+let get_in_env v env = v.get env
 
-let set r v = Set (fun () -> r := v)
-let get r f = Get (fun () -> f !r)
+exception Multiple_place of position
+exception Fixpoint_divergent of position list list
 
-(* Function [f] should not return a tree containing Set or Get nodes. *)
-let final r f = Final (fun () -> f !r)
-
-(* Evaluate intermediate values of variables. This returns a new tree with
-   no Set or Get node.
-   This function is called by [to_buffer] (which is itself called by other
-   [to_*] functions). The [out] function it in charge of dealing with Final
-   nodes. *)
-let rec compute_get_and_set_nodes = function
-  | Command (name, args, mode) ->
-      let args =
-        List.map
-          (fun (mode, kind, node) ->
-             (mode, kind, compute_get_and_set_nodes node))
-          args
+let fixpoint ?(env=Environment.empty) ?(iterations=10) t =
+  (* TODO: controler le nombre d'iterations par une option de melt
+     et mettre une fonction 'set number of iterations' *)
+  let placed_tbl = Hashtbl.create 0 in
+  (* table of already placed positions *)
+  let position_tbl = Hashtbl.create 0 in
+  (* position -> env *)
+  let get_position_env pos =
+    try Hashtbl.find position_tbl pos.pos_id
+    with
+      | Not_found -> Environment.empty
+  in
+  let assert_not_placed i =
+    if Hashtbl.mem placed_tbl i
+    then raise ( Multiple_place i )
+    else Hashtbl.add placed_tbl i ()
+  in
+  let positions_changed = ref [] in
+  (* list of position that changed during the current/last application of iter*)
+  let changelog = ref [] in
+  (* list of list of position that changed during each iteration *)
+  let rec iter env = function (* go througt the ast updating the environment and
+				 appliying Get functions *)
+    | Command (s, l , mode) ->
+      let l,env =
+	let aux (l,env) (mode,kind,t) =
+	  let (t,env) = iter env t in
+	  ((mode,kind,t)::l,env)
+	in
+	List.fold_left aux ([],env) l
       in
-      Command (name, args, mode)
-  | Text _ as x ->
-      x
-  | Environment (name, opt, args, (body_mode, body_node), mode) ->
-      let opt =
-        Opt.map
-          (fun (mode, node) -> mode, compute_get_and_set_nodes node)
-          opt
+      Command (s, List.rev l, mode),env
+    | Mode (mode, t) ->
+      let t,env = iter env t in
+      Mode (mode, t),env
+    | Environment (s , opt, l, (mode, t), mode') ->
+      (* l'ordre d'évaluation est gratuit, je ne sais pas si c'est le
+	 bon *)
+      let opt,env =
+	match opt with
+	  | None -> opt,env
+	  | Some (mode,t) ->
+	    let t,env = iter env t in
+	    Some (mode,t),env
       in
-      let args =
-        List.map
-          (fun (mode, node) -> mode, compute_get_and_set_nodes node)
-          args
+      let l,env =
+	let aux (l,env) (mode,t) =
+	  let (t,env) = iter env t in
+	  ((mode,t)::l,env)
+	in
+	List.fold_left aux ([],env) l
       in
-      let body_node = compute_get_and_set_nodes body_node in
-      Environment (name, opt, args, (body_mode, body_node), mode)
-  | Concat nodes ->
-      Concat (List.map compute_get_and_set_nodes nodes)
-  | Mode (mode, node) ->
-      Mode (mode, compute_get_and_set_nodes node)
-  | Set f ->
-      f ();
-      Text ""
-  | Get f ->
-      compute_get_and_set_nodes (f ())
-  | Final _ as x ->
-      x
+      let t,env = iter env t in
+      Environment (s, opt, List.rev l, (mode, t), mode' ),env
+    | Text s -> (Text s,env)
+    | Concat l ->
+      let aux (l,env) t = let (t,env) = iter env t in (t::l,env) in
+      let l,env = List.fold_left aux ([],env) l in
+      Concat (List.rev l), env
+    | Set setter ->
+      (Concat []),(setter env)
+    | Get maker ->
+      iter env (maker env)
+    | Get_position (maker,position) ->
+      let t = maker (get_position_env position) in
+      iter env t
+    | Place position ->
+      assert_not_placed position;
+      ( if Environment.equal (get_position_env position) env
+	then ()
+	else ( Hashtbl.replace position_tbl position.pos_id env;
+	       positions_changed := position :: !positions_changed ));
+      (* TODO récupérer les variables qui ont changé *)
+      (Concat []),env
+  in
+  let rec apply n =
+    if n = 0 then raise (Fixpoint_divergent !changelog)
+    else
+      let (t,env) = iter env t in
+      match !positions_changed with
+	| [] -> t,env
+	| l -> ( positions_changed := [];
+		changelog := l :: !changelog;
+		Hashtbl.clear placed_tbl;
+		apply (n-1) )
+  in
+  apply iterations
 
-let reinitialize_variables t =
-  List.iter (fun f -> f ()) !initializers
+let setf var f =
+  Set (fun env -> var.set env (f (var.get env)))
 
-let setf x f = get x (fun v -> set x (f v))
+let setf2 var1 var2 f =
+  Set (fun env -> var2.set env (f (var1.get env) (var2.get env)))
+
+let get ?position var f =
+  match position with
+    | None -> Get (fun env -> f (var.get env))
+    | Some p -> Get_position ((fun env -> f (var.get env)),p)
+
+let place position =
+  Place position
+
+let set x v = setf x (fun _ -> v)
 let incr_var x = setf x (fun x -> x + 1)
 let decr_var x = setf x (fun x -> x - 1)
 
@@ -149,6 +308,17 @@ let varb x = get x (fun v -> text (string_of_bool v))
 let vars x = get x text
 let vart x = get x (fun v -> v)
 
+let finalpos = position ~name:"final position" ()
+
+let final var f =
+  get ~position:finalpos var f
+
+let finali x = final x (fun v -> text (string_of_int v))
+let finalf x = final x (fun v -> text (string_of_float v))
+let finalb x = final x (fun v -> text (string_of_bool v))
+let finals x = final x text
+let finalt x = final x (fun v -> v)
+
 (******************************************************************************)
 (*                           Packages and Commands                            *)
 (******************************************************************************)
@@ -159,7 +329,14 @@ module PackageSet = Set.Make(struct
   let compare = compare
 end)
 
-let package_collector = variable PackageSet.empty
+let package_collector =
+  let printer _ =
+    (* TODO: il faudrait que to_string soit déclaré avant ca pour
+       faire un printer *)
+    "still to be written"
+  in
+  variable ~eq:PackageSet.equal
+    ~name:"package collector" ~printer PackageSet.empty
 
 let concat l = Concat l
 let empty = concat []
@@ -201,12 +378,12 @@ let usepackage ?opt name =
   command "usepackage" ?opt [T, name] T
 
 let final_usepackages =
-  final package_collector
+  get ~position:finalpos package_collector
     (fun pc ->
-       concat
-         (PackageSet.fold
-            (fun (name, opt) acc -> usepackage ~opt name :: acc)
-            pc []))
+      concat
+        (PackageSet.fold
+           (fun (name, opt) acc -> usepackage ~opt name :: acc)
+           pc []))
 
 (******************************************************************************)
 
@@ -356,12 +533,10 @@ let rec out toplevel mode pp = function
       ensure_mode pp m mode (fun () -> out false m pp x)
   | Concat l ->
       List.iter (out toplevel mode pp) l
-  | Get _ ->
-      raise GetInsideFinal
-  | Set _ ->
-      raise SetInsideFinal
-  | Final f ->
-      out toplevel mode pp (f ())
+  | Set _
+  | Get _
+  | Get_position _
+  | Place _ -> assert false
 
 and command_argument pp (mode, x) before after =
   Pp.string pp before;
@@ -381,23 +556,30 @@ and out_args =
   fun pp args ->
   List.iter (out_arg pp) args
 
-let to_buffer ?(mode = T) buf x =
-  out true mode (Pp.make buf) (compute_get_and_set_nodes x)
+let to_buffer ?(mode = T) ?env buf x =
+  let x,env = (fixpoint ?env (concat [x;place finalpos])) in
+  out true mode (Pp.make buf) x;
+  env
 
-let to_channel ?mode c x =
+let to_channel ?mode ?env c x =
   let buf = Buffer.create 69 in
-  to_buffer ?mode buf x;
-  Buffer.output_buffer c buf
+  let env = to_buffer ?env ?mode buf x in
+  Buffer.output_buffer c buf;
+  env
 
-let to_file ?mode f x =
+let to_file ?mode ?env f x =
   let oc = open_out f in
-  to_channel ?mode oc x;
-  close_out oc
+  let env = to_channel ?env ?mode oc x in
+  close_out oc;
+  env
+
+let to_string_with_env ?mode ?env x =
+  let buf = Buffer.create 69 in
+  let env = to_buffer ?env ?mode buf x in
+  Buffer.contents buf, env
 
 let to_string ?mode x =
-  let buf = Buffer.create 69 in
-  to_buffer ?mode buf x;
-  Buffer.contents buf
+  fst (to_string_with_env ?mode x)
 
 (*******************************************************************************)
 
@@ -485,7 +667,7 @@ let rec is_empty = function
   | Mode(_, y) ->
       is_empty y
   | Command _ | Environment _ | Text _
-  | Get _ | Set _ | Final _ ->
+  | Set _ | Get _ | Get_position _ | Place _ ->
       (* You would assume that these should disappear after [compute_variables]
          is called. However, when building the AST, this is not actually
          the case, yet. *)
@@ -523,25 +705,29 @@ let place_label l = command "label" [T, text l] T
 
 (* Index construction *)
 
-let needs_indexing = variable false
+let needs_indexing = variable ~name:"needs indexing" ~printer:string_of_bool false
 let place_index key =
-  (set needs_indexing true)^^
-  command "index" ~packages:["makeidx",""] [T,key] T
+  concat
+    [set needs_indexing true;
+     (command "index" ~packages:["makeidx",""] [T,key] T)]
 let printindex =
-  (set needs_indexing true)^^
-  command "printindex" ~packages:["makeidx",""] [] T
-let start_indexing = 
-  final needs_indexing begin function
-    | true -> text "\\makeindex"
-    | false -> empty
-  end
+  concat
+    [set needs_indexing true;
+     (command "printindex" ~packages:["makeidx",""] [] T)]
+let start_indexing =
+  get ~position:finalpos needs_indexing
+    begin function
+      | true -> text "\\makeindex"
+      | false -> empty
+    end
 
 (******************************************************************************)
 
 type documentclass = 
     [ `Article | `Report | `Book | `Letter | `Slides | `Beamer
     | `Custom of string ]
-type documentoptions = [ `Landscape | `A4paper ]
+type documentoptions = [ `Landscape | `A4paper | `TwoColumn | `Pt of
+    int ]
 
 let input file = command "input" [T,file] T
 
@@ -581,6 +767,8 @@ let document ?(documentclass=`Article) ?(options=[]) ?title ?author
   let options = make_option T begin function
     | `Landscape -> "landscape"
     | `A4paper -> "a4paper"
+    | `TwoColumn -> "twocolumn"
+    | `Pt i -> (string_of_int i)^"pt"
   end options in
   let body = if title <> None then command "maketitle" [] T ^^ body else body in
   concat [

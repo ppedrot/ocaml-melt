@@ -72,4 +72,4 @@ let next_name =
 
 (* The document may depend on other files than the .tex, for instance,
    Mlpost figures. This is a list of these files. *)
-let tex_dependencies: string list ref = ref []
+let tex_dependencies: string list Latex.variable = Latex.variable []
