@@ -120,19 +120,19 @@ using several calls to [usepackage] in the [~prelude]. *)
     when pretty-printing the LaTeX AST.
     
     The two basic operations on variables are [get] and [setf].
-    [get] outputs an ast depending on the current content of a
+    [get] outputs an ast depending on the current contents of a
     variable.
-    [setf] updates the content of a variable.
+    [setf] updates the contents of a variable.
 
-    [get] can also use the content of a variable at a different
+    [get] can also use the contents of a variable at a different
     position in the document.
-    To use a position, you first need to declare one with
+    To use a position, you need to declare one first with
     [position]. then you can place that position in you document with
     [place]. You must not place a position more than one time.
-    If a position isn't placed, the content of the variables at that
+    If a position isn't placed, the contents of the variables at that
     position will be the default one.
 
-    The final content of the variables is obtained by a fixpoint
+    The final contents of variables is obtained by a fixpoint
     computation wich is performed by the printing functions
     {!to_buffer}, {!to_channel}, {!to_file}, {!to_string}. That
     fixpoint may not terminate. In that case, the log will tell you which
@@ -140,40 +140,39 @@ using several calls to [usepackage] in the [~prelude]. *)
 
 type 'a variable
 
-val variable: ?eq:('a -> 'a -> bool) -> ?name:string -> ?printer:('a -> string) -> 'a -> 'a variable
+val variable: ?eq:('a -> 'a -> bool) -> ?name:string ->
+  ?printer:('a -> string) -> 'a -> 'a variable
 (** Declare a new variable.  The last argument is the default value of
     the variable.
 
-    [eq] is the equality function on the type of the variable. the
-    default is [=].
+    [eq] is the equality function on the type of the variable. Default is [=].
 
-    [name] and [printer] are used to print informations when the
+    [name] and [printer] are used to print information when the
     fixpoint calculation diverged. *)
 
 val setf: 'a variable -> ('a -> 'a) -> t
-(** Change the value of a variable in the following context *)
+(** Change the value of a variable in the rest of the document. *)
 
 val setf2: 'a variable -> 'b variable -> ('a -> 'b -> 'b) -> t
 (** [setf var_in var_out f]
-    Change the value of the variable [var_out] in the following
-    context using the content of [var_in] *)
+    Change the value of the variable [var_out] in the rest of the document
+    using the contents of [var_in]. *)
 
 type position
-(** Type of position in the document. a position can be placed  *)
+(** The type of positions in documents. *)
 
 val position: ?name:string -> unit -> position
 (** Declare a new position.
-    [name] is used to print informations when the fixpoint calculation
+    [name] is used to print information when the fixpoint computation
     diverged. *)
 
 val place: position -> t
-(** [place p] place [p] at the current position ( in the document ) *)
+(** Place a position in the document. *)
 
 val get: ?position:position -> 'a variable -> ('a -> t) -> t
-(** Generate a bit of AST using the content of a variable.
-    if get has no parameter [position] then the current value of the
-    variable is taken.
-    else it is the value at [position]. *)
+(** Use the contents of a variable to compute part of the document.
+    If [get] has no parameter [position] then the current value of the
+    variable is taken. Otherwise it is the value at [position]. *)
 
 (** {4 Useful Stuff About Variables} *)
 
