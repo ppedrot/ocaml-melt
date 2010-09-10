@@ -150,9 +150,22 @@ type elt =
   | Environment of string * (mode * t) option * (mode * t) list *
       (mode * t) * mode
   | Mode of mode * t
-  | Set of (unit -> unit)
-  | Get of (unit -> t)
-  | Final of (unit -> t)
+  | Set of ( env -> env )
+  (* update the environment in the remaining ast, replaced by [Concat
+     []] in fixpoint *)
+  | Get of ( env -> t )
+  (* fixpoint apply the function to the current environment to obtain
+     [t], then replace this node by [t] then
+     traverse [t]. *)
+  | Get_position of ( env -> t ) * position
+  (* like Get, but the environment is taken at the given position *)
+  | Place of position
+  (* fixpoint store the current environment under the name [position]
+     and replace this node by [Concat []] *)
+and t = elt Clist.t
+
+let concat l = Clist.list_concat l
+let empty = Clist.empty
 
 (******************************************************************************)
 (*                                  Variables                                 *)
@@ -179,33 +192,56 @@ let position : ?name:string -> unit -> position =
     in
     { pos_name = name ; pos_id = !id }
 
-let set r v = Set (fun () -> r := v)
-let get r f = Get (fun () -> f !r)
+let get_in_env v env = v.get env
 
-(* Function [f] should not return a tree containing Set or Get nodes. *)
-let final r f = Final (fun () -> f !r)
+exception Multiple_place of position
+exception Fixpoint_divergent of position list list
 
-(* Evaluate intermediate values of variables. This returns a new tree with
-   no Set or Get node.
-   This function is called by [to_buffer] (which is itself called by other
-   [to_*] functions). The [out] function it in charge of dealing with Final
-   nodes. *)
-let rec compute_get_and_set_nodes = function
-  | Command (name, args, mode) ->
-      let args =
-        List.map
-          (fun (mode, kind, node) ->
-             (mode, kind, compute_get_and_set_nodes node))
-          args
+
+let fixpoint ?(env=Environment.empty) ?(iterations=10) t =
+  (* TODO: controler le nombre d'iterations par une option de melt
+     et mettre une fonction 'set number of iterations' *)
+  let placed_tbl = Hashtbl.create 0 in
+  (* table of already placed positions *)
+  let position_tbl = Hashtbl.create 0 in
+  (* position -> env *)
+  let get_position_env pos =
+    try Hashtbl.find position_tbl pos.pos_id
+    with
+      | Not_found -> Environment.empty
+  in
+  let assert_not_placed i =
+    if Hashtbl.mem placed_tbl i
+    then raise ( Multiple_place i )
+    else Hashtbl.add placed_tbl i ()
+  in
+  let positions_changed = ref [] in
+  (* list of position that changed during the current/last application of iter*)
+  let changelog = ref [] in
+  (* list of list of position that changed during each iteration *)
+  let rec iter_elt env = function (* go througt the ast updating the environment and
+				 appliying Get functions *)
+    | Command (s, l , mode) ->
+      let l,env =
+	let aux (l,env) (mode,kind,t) =
+	  let (t,env) = iter env t in
+	  ((mode,kind,t)::l,env)
+	in
+	List.fold_left aux ([],env) l
       in
-      Command (name, args, mode)
-  | Text _ as x ->
-      x
-  | Environment (name, opt, args, (body_mode, body_node), mode) ->
-      let opt =
-        Opt.map
-          (fun (mode, node) -> mode, compute_get_and_set_nodes node)
-          opt
+      Clist.singleton (Command (s, List.rev l, mode)),env
+    | Mode (mode, t) ->
+      let t,env = iter env t in
+      Clist.singleton (Mode (mode, t)),env
+    | Environment (s , opt, l, (mode, t), mode') ->
+      (* l'ordre d'évaluation est gratuit, je ne sais pas si c'est le
+	 bon *)
+      let opt,env =
+	match opt with
+	  | None -> opt,env
+	  | Some (mode,t) ->
+	    let t,env = iter env t in
+	    Some (mode,t),env
       in
       let l,env =
 	let aux (l,env) (mode,t) =
@@ -214,22 +250,61 @@ let rec compute_get_and_set_nodes = function
 	in
 	List.fold_left aux ([],env) l
       in
-      let body_node = compute_get_and_set_nodes body_node in
-      Environment (name, opt, args, (body_mode, body_node), mode)
-  | Concat nodes ->
-      Concat (List.map compute_get_and_set_nodes nodes)
-  | Mode (mode, node) ->
-      Mode (mode, compute_get_and_set_nodes node)
-  | Set f ->
-      f ();
-      Text ""
-  | Get f ->
-      compute_get_and_set_nodes (f ())
-  | Final _ as x ->
-      x
+      let t,env = iter env t in
+      Clist.singleton begin
+	Environment (s, opt, List.rev l, (mode, t), mode' )
+      end,
+      env
+    | Text s -> (Clist.singleton (Text s),env)
+    | Set setter ->
+      empty,(setter env)
+    | Get maker ->
+      iter env (maker env)
+    | Get_position (maker,position) ->
+      let t = maker (get_position_env position) in
+      iter env t
+    | Place position ->
+      assert_not_placed position;
+      ( if Environment.equal (get_position_env position) env
+	then ()
+	else ( Hashtbl.replace position_tbl position.pos_id env;
+	       positions_changed := position :: !positions_changed ));
+      (* TODO récupérer les variables qui ont changé *)
+      empty,env
+  and iter env x =
+    Clist.fold_left begin fun (x,env) t ->
+      let (t,env) = iter_elt env t in (Clist.app x t,env)
+    end (Clist.empty,env) x
+  in
+  let rec apply n =
+    if n = 0 then raise (Fixpoint_divergent !changelog)
+    else
+      let (t,env) = iter env t in
+      match !positions_changed with
+	| [] -> t,env
+	| l -> ( positions_changed := [];
+		changelog := l :: !changelog;
+		Hashtbl.clear placed_tbl;
+		apply (n-1) )
+  in
+  apply iterations
+
+let setf var f =
+  Clist.singleton (Set (fun env -> var.set env (f (var.get env))))
+
+let setf2 var1 var2 f =
+  Clist.singleton (
+    Set (fun env -> var2.set env (f (var1.get env) (var2.get env)))
+  )
+
+let get ?position var f =
+  Clist.singleton begin match position with
+    | None -> Get (fun env -> f (var.get env))
+    | Some p -> Get_position ((fun env -> f (var.get env)),p)
+  end
 
 let place position =
-  Place position
+  Clist.singleton (Place position)
 
 let set x v = setf x (fun _ -> v)
 let incr_var x = setf x (fun x -> x + 1)
@@ -272,9 +347,6 @@ let package_collector =
   in
   variable ~eq:PackageSet.equal
     ~name:"package collector" ~printer PackageSet.empty
-
-let concat l = Clist.list_concat l
-let empty = Clist.empty
 
 let require_package acc package =
   concat [
@@ -470,14 +542,12 @@ let rec out_elt toplevel mode pp = function
       Pp.string pp s
   | Mode(m, x) ->
       ensure_mode pp m mode (fun () -> out false m pp x)
-  | Concat l ->
-      List.iter (out toplevel mode pp) l
-  | Get _ ->
-      raise GetInsideFinal
-  | Set _ ->
-      raise SetInsideFinal
-  | Final f ->
-      out toplevel mode pp (f ())
+  | Set _
+  | Get _
+  | Get_position _
+  | Place _ -> assert false
+and out toplevel mode pp x =
+  Clist.iter (out_elt toplevel mode pp) x
 
 and command_argument pp (mode, x) before after =
   Pp.string pp before;
