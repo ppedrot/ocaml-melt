@@ -59,7 +59,7 @@ Do not use the Mlpost wrapper, call Ocamlbuild directly instead (or the OCaml co
 Do not use Ocamlbuild to compile your program. The OCaml compiler will be called directly. Usually only makes sense if your source code is made of only one file, and if you are using an OCaml version older than 3.10.2.
 .TP
 .B \-no-final
-Do not produce the final document, i.e. do not call latex.
+Do not produce the final document, i.e. do not call latex. The MAIN_FILE will still be compiled and executed.
 .TP
 .B \-no-link
 By default, a symbolic link to the produced DVI, PS or PDF document is created in the current directory. This option disables this behavior.

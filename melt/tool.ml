@@ -329,6 +329,13 @@ let produce_final f =
     cmd "ps2pdf %s.ps" bf
   end
 
+let handle_main_file f =
+  if Filename.check_suffix f ".mlt" || Filename.check_suffix f ".ml" then begin
+    let ml = Filename.chop_extension f ^ ".ml" in
+    ml_to_tex ml;
+  end;
+  if !final then produce_final f
+
 let produce_link f =
   let bf = Filename.chop_extension f in
   let o =
@@ -383,7 +390,7 @@ let () =
     let cwd = Sys.getcwd () in
     make_temp_dir ();
     Queue.iter handle_auxiliary_file files;
-    if !final then produce_final !main_file;
+    handle_main_file !main_file;
     chdir cwd;
     if !final && !link then
       produce_link !main_file
