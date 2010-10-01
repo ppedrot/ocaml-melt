@@ -195,8 +195,7 @@ let mlpost_version_le s =
 let melt_to_ml f =
   let o = Filename.chop_extension f ^ ".ml" in
   cmd "%s%s -dir \"../\" -open Latex -open Melt %s -o %s" !meltpp
-    !meltpp_plugin_includes f o;
-  o
+    !meltpp_plugin_includes f o
 
 let libopt lib =
   let dot_cma = if !native then ".cmxa" else ".cma" in
@@ -278,11 +277,9 @@ let ml_to_tex f =
     cmd "./%s.%s%s%s%s" bf ext pdfo nameo !resto
   end
 
-let handle_file f =
-  if Filename.check_suffix f ".mlt" then begin
-    let ml = melt_to_ml f in
-    ml_to_tex ml
-  end
+let handle_auxiliary_file f =
+  if Filename.check_suffix f ".mlt" then
+    melt_to_ml f
 
 let produce_final f =
   let bf = Filename.chop_extension f in
@@ -385,7 +382,7 @@ let () =
   if !main_file <> "" then begin
     let cwd = Sys.getcwd () in
     make_temp_dir ();
-    Queue.iter handle_file files;
+    Queue.iter handle_auxiliary_file files;
     if !final then produce_final !main_file;
     chdir cwd;
     if !final && !link then

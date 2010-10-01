@@ -25,10 +25,17 @@ Melt tool and library:
 * function "latex" has been renamed to "picture_of_latex", the "latex" value
   is now the \LaTeX command which prints the LaTeX logo
 - Added -latex option to specify the latex command
-* The Melt tool no longer compiles and executes .ml files, only .mlt ones.
-  The .ml files will be compiled by Ocamlbuild anyway if they are needed.
+* .ml files are only copied into _melt, they are no longer compiled
+  nor executed. .mlt files are copied and preprocessed. They are not
+  compiled nor executed either.
+  If you need your auxiliary files to be compiled and preprocessed, just
+  add them as dependencies of your main file (using "open" for instance,
+  or adding a module initializer and calling it from your main file).
+  They will then be compiled and linked by Ocamlbuild.
 
 Latex library:
+- implementation uses lists with fast concatenation, which should in particular
+  help to prevent stack overflows
 - packages used by commands in ~title, ~author, ~date and ~prelude of the
 document function are now taken into account
 - figure caption may be placed at the side (?side_caption)
