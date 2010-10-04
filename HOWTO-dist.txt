@@ -1,0 +1,41 @@
+This file is only intended for developpers as a reminder of how to
+make a release.
+
+* Check that all text files are LICENSEd.
+
+grep -L Copyright `darcs query manifest` | grep -v .png | grep -v .xcf         
+
+Don't bother adding the LICENSE to very small files or files for which
+licensing does not really make sense.
+
+* Check the README.
+
+* Check that there is no new, unrecorded file.
+
+darcs whatsnew -ls
+
+* Open melt_version.ml and update the version number if needed.
+
+* Make the .tgz.
+
+make dist
+
+* Check that it compiles and executes.
+
+* Check noob.makefile. In particular, check that it does not contain
+  any absolute path, and check that it compiles and execute.
+
+* Check the list of changes and prepare a summary.
+
+darcs changes --from-tag x.y
+
+The CHANGES file should be up-to-date already, but this allows to make sure.
+
+* TAG the version.
+
+darcs tag x.y
+
+* Create a new version on the forge with the summary of changes, and
+  upload the .tar.gz to the OCaml Forge.
+
+* Anounce the new version with the summary of changes.

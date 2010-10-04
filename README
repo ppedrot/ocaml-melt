@@ -35,7 +35,7 @@ More information can be found on:
 Pre-requisites
 ==============
 
-You  need the  OCaml compiler.   Version  3.09 is  enough, maybe  some
+You need the OCaml compiler.  Version 3.09 is enough, maybe some
 previous versions will work too.  Version 3.10.2 is needed if you want
 to compile using Ocamlbuild.  Version 3.11 is needed if you want to be
 able to use native plugins for the Melt Preprocessor.
@@ -44,13 +44,13 @@ To compile Melt documents you need a LaTeX distribution.
 
 To compile Melt documents which use Mlpost figures you need the Mlpost
 library. Versions from 0.6 to 0.7.4 are compatible. You will also need
-its dependencies, such as  Metapost and the "context" package (Ubuntu,
+its dependencies, such as Metapost and the "context" package (Ubuntu,
 Debian, ...). Mlpost can be found at:
 
         http://mlpost.lri.fr
 
-You can  compile and  use Melt  without Mlpost, but  you will  need to
-compile your Melt documents using  the -no-mlpost option. If you later
+You can compile and use Melt without Mlpost, but you will need to
+compile your Melt documents using the -no-mlpost option. If you later
 install Mlpost and want to use it with Melt you will have to recompile
 Melt.
 
@@ -69,13 +69,13 @@ make -f noob.makefile install
 Configuration
 =============
 
-The configuration  tool is automatically  launched the first  time you
+The configuration tool is automatically launched the first time you
 run make. You can rerun it at any time by removing the Config file and
 running make again, or by running:
 
         ocaml configure.ml -i
 
-The  -i option  activates  interactive  mode.  If  you  don't use  it,
+The -i option activates interactive mode.  If you don't use it,
 default values will be used.
 
 You can also edit the Config file by hand.
@@ -83,7 +83,7 @@ You can also edit the Config file by hand.
 Documentation
 =============
 
-You can compile the documentation  of Melt yourself. The manual can be
+You can compile the documentation of Melt yourself. The manual can be
 compiled with:
 
         cd bench
@@ -91,7 +91,7 @@ compiled with:
 
 You obtain the file doc.pdf.
 
-The  library  documentation is  automatically  compiled  when you  run
+The library documentation is automatically compiled when you run
 make. It can be found in:
 
         _build/latex/latex.docdir/index.html
@@ -105,7 +105,18 @@ or, if you compiled without Ocamlbuild:
 Vim Plugin
 ==========
 
-Vincent Aravantinos made a Melt plugin for the Vim text editor. You can find
-it here:
+Vincent Aravantinos made a Melt plugin for the Vim text editor. You
+can find it here:
 
         http://www.vim.org/scripts/script.php?script_id=2787
+
+Author and contributions
+========================
+
+This project was started by Romain Bardou, and received several
+contributions from:
+
+  Vincent Aravantinos
+  François Bobot
+  Pierre Chambart
+  Arnaud Spiwack
