@@ -73,10 +73,10 @@ let mlpost_gen includegraphics ?(mode = mode) ?file f =
     | Some file -> file
   in
   let ext = match mode with
-    | Pdf -> ".mps"
-    | Ps -> ".1"
-    | Cairo -> ".pdf"
-    | Mps -> ".mps"
+    | `Pdf -> ".mps"
+    | `Ps -> ".1"
+    | `Cairo -> ".pdf"
+    | `Mps -> ".mps"
   in
   let full_name = file ^ ext in
   Mlpost.Metapost.emit file f;

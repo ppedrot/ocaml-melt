@@ -160,4 +160,7 @@ struct
 
   let text ?(default=(text "")) name = parameter_value default (fun x -> text x) name
 
+
+
+  let mode = Melt_common.mode
 end

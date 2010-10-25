@@ -31,15 +31,15 @@
 (* We don't use the Arg module in order not to force the user to handle
 the -pdf and -name options *)
 
-type mode = Pdf | Ps | Cairo | Mps
+type mode = [ `Pdf | `Ps | `Cairo | `Mps ]
 
-let mode =
-  let m = ref Ps in
+let mode : mode =
+  let m = ref `Ps in
   for i = 1 to Array.length Sys.argv - 1 do
-    if Sys.argv.(i) = "-pdf" then m := Pdf;
-    if Sys.argv.(i) = "-ps" then m := Ps;
-    if Sys.argv.(i) = "-cairo" then m := Cairo ;
-    if Sys.argv.(i) = "-mps" then m := Mps
+    if Sys.argv.(i) = "-pdf" then m := `Pdf;
+    if Sys.argv.(i) = "-ps" then m := `Ps;
+    if Sys.argv.(i) = "-cairo" then m := `Cairo ;
+    if Sys.argv.(i) = "-mps" then m := `Mps
   done;
   !m
 

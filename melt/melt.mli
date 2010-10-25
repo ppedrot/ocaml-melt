@@ -100,4 +100,10 @@ sig
 	"-text s" The value defaults to the empty string if
 	unspecified *)
 
+  val mode : [ `Pdf | `Ps | `Cairo | `Mps ]
+    (** [mode] reflects the mode in which [melt] is ran.
+	[`Pdf] for [-pdf]
+	[`Ps] for [-ps]
+	[`Cairo] for [-cairo]
+	[`Mps] for [-mps] *)
 end
