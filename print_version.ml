@@ -1,3 +1,3 @@
-#use "version.ml"
+#use "melt_version.ml"
 
 let () = print ()

@@ -22,6 +22,12 @@ make dist
 
 * Check that it compiles and executes.
 
+tar tf (file).tgz
+cd (dir)
+make bench
+
+(the slides need two passes, this is normal)
+
 * Check noob.makefile. In particular, check that it does not contain
   any absolute path, and check that it compiles and execute.
 

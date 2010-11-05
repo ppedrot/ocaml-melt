@@ -1,9 +1,18 @@
 Changes that may break existing programs are marked using a star *.
 
-Development Version
-===================
+Version 1.3.0
+=============
 
 The documentation has been updated and extended.
+
+Known bugs:
+* mlpost figures assume .1 filename extension when compiling with -ps.
+  It works fine with mlpost up to 0.8.1, but not with the development version
+  of mlpost which produce .mps files.
+* bench/slides.mlt does not compile using mlpost 8.1 (it does with the
+  development version) because the type of Box.pic changed. This should not
+  bother you as this is just an example.
+To sum up, choose your version of mlpost well.
 
 Preprocessor:
 * Percent character (%) now yields \% in .tex files, instead of just % which
