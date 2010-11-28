@@ -864,10 +864,14 @@ let listoftables = command "listoftables" [] T
 type alignment = [ `L | `C | `R ]
 type array_column =  [ alignment | `Vert | `Sep of t]
 
-type array_line = {
+type array_line_normal = {
   al_columns: (int*[alignment | `I]*t) list;
   al_sep: size option;
 }
+
+type array_line =
+  | ArrayNormal of array_line_normal
+  | ArrayCommand of t
 
 let array_line ?sep ?layout xs = 
   let xs =
@@ -879,9 +883,11 @@ let array_line ?sep ?layout xs =
 	  error "array_line: %d columns but layout only supports %d."
             (List.length xs) (List.length l)
   in
-  { al_columns = xs;
+  ArrayNormal { al_columns = xs;
     al_sep = sep 
   }
+
+let array_command x = ArrayCommand x
 
 let array_line_width al =
   List.fold_left (fun acc (w,_,_) -> acc+w) 0 al.al_columns
@@ -1026,11 +1032,16 @@ let array c l =
     | #array_column as a -> multicolumn w a x
   in
   let lines = List.map begin fun al ->
-    let width = array_line_width al in
-    if width <> numcols then
-      error "array: line with %d columns instead of %d" width numcols;
-    let lc = array_line_mapi multicolumn al in
-    concat (list_insert (text " & ") lc) ^^ newlinegen al.al_sep
+    match al with
+    | ArrayNormal al ->
+	begin
+	  let width = array_line_width al in
+	  if width <> numcols then
+	    error "array: line with %d columns instead of %d" width numcols;
+	  let lc = array_line_mapi multicolumn al in
+	  concat (list_insert (text " & ") lc) ^^ newlinegen al.al_sep
+	end
+    | ArrayCommand x -> x ^^ text"\n"
   end l in
   let body = concat lines (*(list_insert newline lines)*) in
   environment "array" ~args: [M, cols] (M, body) M

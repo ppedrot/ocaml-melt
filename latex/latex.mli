@@ -476,6 +476,10 @@ val array_line: ?sep: size -> ?layout:(int*[alignment|`I]) list -> t list -> arr
         of the first corresponding column in the array layout.
         The integers in the layout correspond to over how many of the array's column
         will the cell will span.*)
+val array_command : t -> array_line
+  (** [array_command x] is a low level command. It gives [x] as an array line to Latex.
+         Meant to define alternative commands to draw horizontal lines in arrays.*)
+(*spiwack: todo: horizontal line commands, like [hline], [midrule], etc… *)
 
 (* Actually, I don't know what these do. *)
 val frontmatter: t
