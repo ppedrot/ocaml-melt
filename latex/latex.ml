@@ -1009,7 +1009,7 @@ let latex_of_array_column = function
   | `Vert -> text "|"
   | `Sep t -> concat [ text "@{" ; t ; text "}"] 
 let multicolumn w a x =
-  command "multicolumn" [(A,latex_of_int w); (A,latex_of_array_column a); (A,x)] A
+  command "multicolumn" [(A,latex_of_int w); (A,latex_of_array_column a); (M,x)] A
 let array c l =
   let cols = concat begin List.map latex_of_array_column c end in
   let alignments = 
