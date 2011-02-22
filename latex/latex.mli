@@ -443,6 +443,9 @@ val hspace: size -> t
 val addvspace: size -> t
   (** Similar to [vspace], but an [addvspace x] followed by an [addvspace y]
 will produce an [addvspace] of [max x y]. *)
+val ignorespaces: t
+  (** Tells LaTeX to ignore following spaces and new lines. Useful at the
+      end of a display environment, for instance. *)
 val smallskip: t (** A small [vspace]. *)
 val medskip: t (** A medium [vspace]. *)
 val bigskip: t (** A big [vspace]. *)
