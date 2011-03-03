@@ -432,16 +432,6 @@ end = struct
   let bol x =
     if not x.bol then newline x
 
-  let rec string_split acc from c s =
-    let index = try String.index_from s from c with Not_found -> -1 in
-    if index = -1 then
-      let sub = String.sub s from (String.length s - from) in
-      List.rev (sub::acc)
-    else
-      let sub = String.sub s from (index-from) in
-      string_split (sub::acc) (index+1) c s
-  let string_split x = string_split [] 0 x
-
   let output_string x s =
     if String.length s <> 0 then begin
       Buffer.add_string x.buf s;
@@ -458,14 +448,6 @@ end = struct
     with Not_found -> () end;
     x.line_empty <- x.line_empty && !empty
 
-  let output_string x s =
-    match string_split '\n' s with
-      | [] -> ()
-      | [s] -> output_string x s
-      | s::rem ->
-          output_string x s;
-          List.iter (fun s -> bol x; output_string x s) rem
-
   let make buf = {
     buf = buf;
     bol = true;
@@ -480,8 +462,13 @@ end = struct
     x.bol <- false
 
   let string x s =
-    force_alinea x;
-    output_string x s
+    let s = Str.full_split (Str.regexp"\n\\|\r") s in
+    List.iter begin function
+      | Str.Delim "\n" -> newline ~force:true x
+      | Str.Delim "\r" -> newline ~force:false x
+      | Str.Delim _ -> assert false
+      | Str.Text l -> force_alinea x;output_string x l
+    end s
 
   let char x c =
     force_alinea x;
@@ -506,9 +493,15 @@ let ensure_mode pp from_mode to_mode f = match from_mode, to_mode with
   | M, T -> Pp.char pp '$'; f (); Pp.char pp '$'
   | T, M -> Pp.string pp "\\mbox{"; f (); Pp.char pp '}'
 
+
+(* [par] is defined here because it has a special use in the
+   prelude. *)
+let partext = "\r%\n\\par\n%\n"
+let par = text partext
+
 (* bol: "beginning of line" *)
 let rec out_elt toplevel mode pp = function
-  | Text "\\par " when toplevel ->
+  | Text x when toplevel && x = partext ->
       Pp.bol pp;
       Pp.newline ~force: true pp
   | Command(name, args, rm) ->
@@ -688,8 +681,6 @@ let optcmd name = function
   | None -> empty
 
 let labelo l = optcmd "label" (Opt.map text l)
-
-let par = text "\\par "
 
 (*******************************************************************************)
 
@@ -908,7 +899,7 @@ let array_line_mapi f al =
 let newline = text "\\\\\n"
 let newline_size x = text (Printf.sprintf "\\\\[%s]\n" (string_of_size x))
 
-let newpage = command "newpage" [] T
+let newpage = text"\r%\n%\n\\newpage\n%\n%\n"
 let clearpage = command "clearpage" [] T
 
 let newlinegen = function
