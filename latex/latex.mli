@@ -395,6 +395,16 @@ val section: ?label: label -> t -> t
 val subsection: ?label: label -> t -> t
 val subsubsection: ?label: label -> t -> t
 val paragraph: t -> t
+
+val chapter': ?label: label -> t -> t
+  (** Same as [chapter] but with no numbering. *)
+val section': ?label: label -> t -> t
+  (** Same as [section] but with no numbering. *)
+val subsection': ?label: label -> t -> t
+  (** Same as [subsection] but with no numbering. *)
+val subsubsection': ?label: label -> t -> t
+  (** Same as [subsubsection] but with no numbering. *)
+
 val par: t
 val displaymath: t -> t
 val equation: ?label: label -> t -> t

@@ -819,6 +819,18 @@ let subsubsection ?label title =
 let paragraph title =
   command "paragraph" [T, title] T
 
+let chapter' ?label title =
+  command "chapter*" [T, title] T ^^ labelo label
+
+let section' ?label title =
+  command "section*" [T, title] T ^^ labelo label
+
+let subsection' ?label title =
+  command "subsection*" [T, title] T ^^ labelo label
+
+let subsubsection' ?label title =
+  command "subsubsection*" [T, title] T ^^ labelo label
+
 let displaymath x =
   environment "displaymath" (M, x) T
 
