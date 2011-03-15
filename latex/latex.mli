@@ -1157,6 +1157,14 @@ val addcontentsline: t -> t -> t -> t
 val pagestyle: t -> t
 val thispagestyle: t -> t
 
+val list_insert: 'a -> 'a list -> 'a list
+  (** Inserts an element between each elements of a list.
+
+      Examples:
+      - [list_insert 1 [] = []]
+      - [list_insert 1 [2] = [2]]
+      - [list_insert 1 [2; 3; 4] = [2; 1; 3; 1; 4]] *)
+
 (** {2 Printing} *)
 
 type env
