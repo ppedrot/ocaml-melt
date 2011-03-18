@@ -480,10 +480,12 @@ val framebox : size -> ?halign:halignment -> t -> t
 
 
 type alignment = [ `L | `C | `R ]
+type v_alignment = [ `T | `C | `B ]
+  (** (`T)op, (`C)enter or (`B)ottom. *)
 type array_column =  [ alignment | `Vert | `Sep of t]
 type array_line
 
-val array: array_column list -> array_line list -> t
+val array: ?valign:v_alignment -> array_column list -> array_line list -> t
 val array_line: ?sep: size -> ?layout:(int*[alignment|`I]) list -> t list -> array_line
   (** Extra alignment [`I] in layout means that the column inherits the alignment
         of the first corresponding column in the array layout.

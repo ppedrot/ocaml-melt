@@ -1013,7 +1013,14 @@ let latex_of_array_column = function
   | `Sep t -> concat [ text "@{" ; t ; text "}"] 
 let multicolumn w a x =
   command "multicolumn" [(A,latex_of_int w); (A,latex_of_array_column a); (M,x)] A
-let array c l =
+
+type v_alignment = [ `T | `C | `B ]
+let latex_of_v_alignment = function
+  | `T -> text"t"
+  | `C -> text"c"
+  | `B -> text"b"
+
+let array ?valign c l =
   let cols = concat begin List.map latex_of_array_column c end in
   let alignments = 
     Array.of_list (List.filter (function #alignment -> true | _ -> false) c)
@@ -1041,7 +1048,8 @@ let array c l =
     | ArrayCommand x -> x ^^ text"\n"
   end l in
   let body = concat lines (*(list_insert newline lines)*) in
-  environment "array" ~args: [M, cols] (M, body) M
+  let opt = Opt.map (fun a -> A,latex_of_v_alignment a) valign in
+  environment "array" ?opt ~args: [M, cols] (M, body) M
 
 let list_env l name = 
 (*  let items = List.map ((^^) (command "item" [] T)) l in*)
