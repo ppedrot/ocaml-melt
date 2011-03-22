@@ -142,6 +142,7 @@ Melt pre-processor";
   "-no-final", Arg.Clear final, " Do not produce the PS or the PDF";
   "-no-link", Arg.Clear link, " Do not create a symbolic link to the PS or PDF";
 
+  "-byte", Arg.Clear native, " Compile to byte code (default)";
   "-native", Arg.Set native, " Compile to native code instead of bytecode";
 
   "-dvi", Arg.Set dvi, " Produce a DVI instead of a PS";
