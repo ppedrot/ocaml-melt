@@ -1011,11 +1011,13 @@ let latex_of_array_column = function
 let multicolumn w a x =
   command "multicolumn" [(A,latex_of_int w); (A,latex_of_array_column a); (M,x)] A
 
-type v_alignment = [ `T | `C | `B ]
-let latex_of_v_alignment = function
-  | `T -> text"t"
-  | `C -> text"c"
-  | `B -> text"b"
+
+
+type valignment = [ `T | `C | `B ]
+let latex_of_valignment = function
+  | `T -> text "t"
+  | `C -> text "c"
+  | `B -> text "b"
 
 let array ?valign c l =
   let cols = concat begin List.map latex_of_array_column c end in
@@ -1045,7 +1047,7 @@ let array ?valign c l =
     | ArrayCommand x -> x ^^ text"\n"
   end l in
   let body = concat lines (*(list_insert newline lines)*) in
-  let opt = Opt.map (fun a -> A,latex_of_v_alignment a) valign in
+  let opt = Opt.map (fun a -> A,latex_of_valignment a) valign in
   environment "array" ?opt ~args: [M, cols] (M, body) M
 
 let list_env l name = 
@@ -1073,13 +1075,6 @@ let nointerlineskip = command "nointerlineskip" [] T
 let phantom x = command "phantom" [T, x] T
 let vphantom x = command "vphantom" [T, x] T
 let hphantom x = command "hphantom" [T, x] T
-
-
-type valignment = [ `T | `C | `B ]
-let latex_of_valignment = function
-  | `T -> text "t"
-  | `C -> text "c"
-  | `B -> text "b"
 
 let parbox x ?valign y =
   let opt = Opt.map (fun v -> A,latex_of_valignment v) valign in
