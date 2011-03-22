@@ -37,11 +37,18 @@ ifeq ($(TERM), dumb)
 	OB := $(OBCLASSIC)
 endif
 
+HAS_OCAMLOPT := $(shell if which ocamlopt > /dev/null; then echo yes; else echo no; fi)
+NATDYNLINK := $(shell if [ -f `ocamlc -where`/dynlink.cmxa ]; then echo YES; else echo NO; fi)
+
 #################################################################################
 BYTE = latex/latex.cma melt/melt.cma melt/tool.byte latop/latop.byte meltpp/main.byte
+ifeq ($(HAS_OCAMLOPT),yes)
 NATIVE := latex/latex.cmxa melt/melt.cmxa melt/tool.native latop/latop.native
 ifeq ($(NATDYNLINK), YES)
 	NATIVE := $(NATIVE) meltpp/main.native
+endif
+else
+NATIVE :=
 endif
 DOC = latex/latex.docdir/index.html melt/melt.docdir/index.html
 BENCHPLUGS = bench/plugs/quot.cma

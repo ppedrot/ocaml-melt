@@ -63,7 +63,7 @@ let main_file = ref ""
 
 let mlpost = ref Melt.compiled_with_mlpost
 let ocamlbuild = ref true
-let native = ref true
+let native = ref false
 let final = ref true
 let link = ref true
 
@@ -142,7 +142,7 @@ Melt pre-processor";
   "-no-final", Arg.Clear final, " Do not produce the PS or the PDF";
   "-no-link", Arg.Clear link, " Do not create a symbolic link to the PS or PDF";
 
-  "-byte", Arg.Clear native, " Compile to bytecode instead of native code";
+  "-native", Arg.Set native, " Compile to native code instead of bytecode";
 
   "-dvi", Arg.Set dvi, " Produce a DVI instead of a PS";
   "-ps", Arg.Clear pdf, " Produce a PS file (this is the default behavior)";

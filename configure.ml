@@ -73,14 +73,12 @@ compiler version (%s)" s v ocaml_version;
       (String.uppercase name)
   in
 
-  ocaml_var "ocamlopt";
+  if (try Sys.getenv "HAS_OCAMLOPT" with Not_found -> "no") = "yes" then ocaml_var "ocamlopt";
   ocaml_var "ocamlbuild";
   ocaml_var "ocaml";
   ocaml_var "ocamllex";
   ocaml_var "ocamlyacc";
   ocaml_var "ocamldoc";
-
-  BVar.usimple "NATDYNLINK" (Version.ge ocaml_version "3.11");
 
   let cm_dir pkg cm = SVar.make
     ~guess: (fun s ->
