@@ -998,9 +998,6 @@ let subfloat ?label ?caption body =
   let body = labelo label ^^ body in
   environment ?opt ~packages: [ "subfig", "" ] "subfloat" (T, body) T
 
-let minipage size x =
-  environment ~args: [A, latex_of_size size] "minipage" (T, x) T
-
 let center x = environment "center" (T, x) T
 let flushleft x = environment "flushleft" (T,x) T
 let flushright x = environment "flushright" (T,x) T
@@ -1077,7 +1074,20 @@ let phantom x = command "phantom" [T, x] T
 let vphantom x = command "vphantom" [T, x] T
 let hphantom x = command "hphantom" [T, x] T
 
-let parbox x y = command "parbox" [A, latex_of_size x; T, y] T
+
+type valignment = [ `T | `C | `B ]
+let latex_of_valignment = function
+  | `T -> text "t"
+  | `C -> text "c"
+  | `B -> text "b"
+
+let parbox x ?valign y =
+  let opt = Opt.map (fun v -> A,latex_of_valignment v) valign in
+  command "parbox" ?opt [A, latex_of_size x; T, y] T
+let minipage size ?valign x =
+  let opt = Opt.map (fun v -> A,latex_of_valignment v) valign in
+  let args = [A,latex_of_size size] in
+  environment "minipage" ?opt ~args (T,x) T
 
 type halignment = [ `C | `L | `R | `S ]
 let latex_of_halignment = function
@@ -1085,6 +1095,7 @@ let latex_of_halignment = function
   | `L -> text "l"
   | `R -> text "r"
   | `S -> text "s"
+
 let makeframebox name size ?halign t =
   let size = (A, bracket,latex_of_size size) in
   let halign = Opt.map (fun h -> (A,bracket,latex_of_halignment h)) halign in

@@ -439,8 +439,6 @@ val center: t -> t
 val flushleft: t -> t
 val flushright: t -> t
 
-val minipage: size -> t -> t
-
 val quote: t -> t
 val quotation: t -> t
 
@@ -466,9 +464,17 @@ val phantom: t -> t
 val vphantom: t -> t (** Vertical-only phantom *)
 val hphantom: t -> t (** Horizontal-only phantom *)
 
-val parbox: size -> t -> t
+type valignment = [ `T | `C | `B ]
+  (** (`T)op, (`C)enter, (`B)ottom. *)
+
+val parbox: size -> ?valign:valignment -> t -> t
   (** A box in which new lines and paragraphs may be used. Useful to display
-      code listings, for instance. *)
+      code listings, for instance.
+      The [valign] optional argument controls the vertical alignment of
+      the box with respect to the surrounding text. *)
+val minipage: size -> ?valign:valignment -> t -> t
+  (** A box in which almost all command may be used. A more robust kind of
+      [parbox]. *)
 
 type halignment = [ `C | `L | `R | `S ]
   (** (`C)enter, flush (`L)eft, flush (`R)ight or (`S)pread. *)
