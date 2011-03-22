@@ -1,14 +1,14 @@
 .\"                                      Hey, EMACS: -*- nroff -*-
-.TH MELT 1 "September 2010"
+.TH MELTBUILD 1 "September 2010"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 melt \- compiles Melt sources into DVI, PostScript or PDF files
 .SH SYNOPSIS
-.B melt
+.B meltbuild
 .RI [OPTIONS] " " [OTHER_FILES] " MAIN_FILE"
 .SH DESCRIPTION
 .PP
-\fBmelt\fP compiles Melt sources (.mlt files) into DVI, PostScript (.ps) or PDF files. It first calls the Melt preprocessor
+\fBmeltbuild\fP compiles Melt sources (.mlt files) into DVI, PostScript (.ps) or PDF files. It first calls the Melt preprocessor
 .BR meltpp.
 It then calls the OCaml compiler, either directly or through Ocamlbuild or Mlpost. The program is linked with the Melt and Latex libraries. The program is then executed, producing .tex files. Then
 .BR latex

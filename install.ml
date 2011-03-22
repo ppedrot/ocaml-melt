@@ -226,7 +226,7 @@ let do_meta () =
 
 let () =
   do_bin ["meltpp/main.native"; "meltpp/main.byte"] "meltpp";
-  do_bin ["melt/tool.native"; "melt/tool.byte"] "melt";
+  do_bin ["melt/tool.native"; "melt/tool.byte"] "meltbuild";
   do_bin ["latop/latop.native"; "latop/latop.byte"] "latop";
   List.iter do_lib [
     "latex/latex.a";
@@ -240,7 +240,7 @@ let () =
     "meltpp/meltpp_plugin.cmi"
   ];
   do_meta ();
-  do_man "man/melt.1" "melt.1";
+  do_man "man/meltbuild.1" "meltbuild.1";
   do_man "man/meltpp.1" "meltpp.1";
   do_man "man/latop.1" "latop.1";
   if !uninstall then rm_dir !lib;
