@@ -33,15 +33,29 @@ open Printf
 (* From Totoconf *)
 exception Exec_error of int
 
+let try_finally f g =
+  let result =
+    try
+      f ();
+    with exn ->
+      g ();
+    raise exn
+  in
+  (g (): unit);
+  result
+
 let exec_line cmd args =
   let c = String.concat " " (cmd::args) in
   let tmp = Filename.temp_file "configure_exec_line" ".out" in
-  try
-    match Sys.command (c ^ " > " ^ tmp) with
-      | 0 -> input_line (open_in tmp)
-      | n -> raise (Exec_error n)
-  with End_of_file ->
-    ""
+  try_finally
+    (fun () ->
+      try
+        match Sys.command (c ^ " > " ^ tmp) with
+          | 0 -> input_line (open_in tmp)
+          | n -> raise (Exec_error n)
+      with End_of_file ->
+        "")
+    (fun () -> Sys.remove tmp)
 (* *)
 
 let files = Queue.create ()
