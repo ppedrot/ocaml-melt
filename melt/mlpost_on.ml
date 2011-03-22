@@ -88,10 +88,7 @@ let mlpost_gen includegraphics ?(mode = mode) ?file f =
   in
   let full_name = file ^ ext in
   Mlpost.Metapost.emit file f;
-  Latex.concat
-    [Latex.setf tex_dependencies
-	(fun tex_dependencies -> full_name :: tex_dependencies);
-     includegraphics (Latex.text full_name)]
+  includegraphics (Latex.text full_name)
 
 let mlpost = mlpost_gen Latex.includegraphics
 
