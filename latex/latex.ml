@@ -1076,6 +1076,12 @@ let phantom x = command "phantom" [T, x] T
 let vphantom x = command "vphantom" [T, x] T
 let hphantom x = command "hphantom" [T, x] T
 
+let rule_ ?lift width height =
+  let width = latex_of_size width in
+  let height = latex_of_size height in
+  let opt = Opt.map (fun l->A,latex_of_size l) lift in
+  command "rule" ?opt [A,width;A,height] A
+
 let parbox x ?valign y =
   let opt = Opt.map (fun v -> A,latex_of_valignment v) valign in
   command "parbox" ?opt [A, latex_of_size x; T, y] T

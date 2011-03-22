@@ -464,6 +464,15 @@ val phantom: t -> t
 val vphantom: t -> t (** Vertical-only phantom *)
 val hphantom: t -> t (** Horizontal-only phantom *)
 
+val rule_: ?lift:size -> size -> size -> t
+  (** [rule_ width height] draws a rule (i.e. a black box) of width [width]
+      and height [height] (for instance a horizontal or vertical line).
+      The optional argument [lift] moves the rule up if positive and down
+      if negative.
+      A special case is when [width] is null. In this case the rule,
+      called a strut, does not display, it only makes sure that the
+      surrounding box has at least its height. *)
+
 type valignment = [ `T | `C | `B ]
   (** (`T)op, (`C)enter, (`B)ottom. *)
 
