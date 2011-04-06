@@ -390,19 +390,19 @@ val maketitle: t
 val part: ?label: label -> t -> t
   (** For the report style. *)
 
-val chapter: ?label: label -> t -> t
-val section: ?label: label -> t -> t
-val subsection: ?label: label -> t -> t
-val subsubsection: ?label: label -> t -> t
+val chapter: ?label: label -> ?short: t -> t -> t
+val section: ?label: label -> ?short: t -> t -> t
+val subsection: ?label: label -> ?short: t -> t -> t
+val subsubsection: ?label: label -> ?short: t -> t -> t
 val paragraph: t -> t
 
-val chapter': ?label: label -> t -> t
+val chapter': ?label: label -> ?short: t -> t -> t
   (** Same as [chapter] but with no numbering. *)
-val section': ?label: label -> t -> t
+val section': ?label: label -> ?short: t -> t -> t
   (** Same as [section] but with no numbering. *)
-val subsection': ?label: label -> t -> t
+val subsection': ?label: label -> ?short: t -> t -> t
   (** Same as [subsection] but with no numbering. *)
-val subsubsection': ?label: label -> t -> t
+val subsubsection': ?label: label -> ?short: t -> t -> t
   (** Same as [subsubsection] but with no numbering. *)
 
 val par: t

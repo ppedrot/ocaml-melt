@@ -804,32 +804,26 @@ let index_exponent x y z =
 let part ?label title =
   command "part" [T, title] T ^^ labelo label
 
-let chapter ?label title =
-  command "chapter" [T, title] T ^^ labelo label
+let section_command name numbered ?label ?short title =
+  let opt =
+    match short with
+      | Some short -> Some (T, short)
+      | None -> None
+  in
+  command (if numbered then name else name ^ "*") ?opt [T, title] T ^^ labelo label
 
-let section ?label title =
-  command "section" [T, title] T ^^ labelo label
-
-let subsection ?label title =
-  command "subsection" [T, title] T ^^ labelo label
-
-let subsubsection ?label title =
-  command "subsubsection" [T, title] T ^^ labelo label
+let chapter = section_command "chapter" true
+let section = section_command "section" true
+let subsection = section_command "subsection" true
+let subsubsection = section_command "subsubsection" true
 
 let paragraph title =
   command "paragraph" [T, title] T
 
-let chapter' ?label title =
-  command "chapter*" [T, title] T ^^ labelo label
-
-let section' ?label title =
-  command "section*" [T, title] T ^^ labelo label
-
-let subsection' ?label title =
-  command "subsection*" [T, title] T ^^ labelo label
-
-let subsubsection' ?label title =
-  command "subsubsection*" [T, title] T ^^ labelo label
+let chapter' = section_command "chapter" false
+let section' = section_command "section" false
+let subsection' = section_command "subsection" false
+let subsubsection' = section_command "subsubsection" false
 
 let displaymath x =
   environment "displaymath" (M, x) T
