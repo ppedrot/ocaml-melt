@@ -48,7 +48,7 @@ used  for the  figure Metapost  script. Otherwise,  a default  name is
 chosen.  This default name is [base.melt.figureN.ext], where [base] is
 the executable base name (can  be overriden with the [-name] option on
 the  command line),  [N] is  the figure  index and  [ext] is  [mps] if
-[~pdf] is [true] or [1] otherwise. *)
+[-pdf] is [true] or [1] otherwise. *)
 
   module Beamer :
     sig
@@ -65,7 +65,11 @@ let compiled_with_mlpost = true
 
 open Melt_common
 
-let picture_of_latex l = Mlpost.Picture.tex (Latex.to_string l)
+let picture_of_latex l =
+  try
+    Mlpost.Picture.tex (Latex.to_string l)
+  with (Invalid_argument txt) ->
+    Mlpost.Picture.tex (Latex.to_string (Latex.Verbatim.verbatim txt))
 
 let mlpost_gen includegraphics ?(mode = mode) ?file f =
   let file = match file with
