@@ -46,7 +46,7 @@ let () =
     exit 0
   end
 
-let file f =
+let file opt f =
   if not (Sys.file_exists f) then begin
     eprintf "Error: File not found: %s\n" f;
     exit 2
@@ -59,7 +59,8 @@ let file f =
 -I %s/../_build/latex -I %s/../_build/melt \
 -latop %s/../_build/latop/latop.byte \
 -meltpp %s/../_build/meltpp/main.byte \
-%s 2>> %s >> %s" cwd cwd cwd cwd cwd cwd f log log in
+%s \
+%s 2>> %s >> %s" cwd cwd cwd cwd cwd cwd opt f log log in
   let dots = String.make (!maxlen - String.length f + 5) '.' in
   match Sys.command cmd with
     | 0 ->
@@ -69,4 +70,7 @@ let file f =
         printf "%s %s: FAILED (code %d)\n%!" f dots n
 
 let () =
-  Queue.iter file files
+  printf "\nTesting melt examples by compiling to .ps...\n%!";
+  Queue.iter (file "-ps") files;
+  printf "\nTesting melt examples by compiling to .pdf...\n%!";
+  Queue.iter (file "-pdf") files;
