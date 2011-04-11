@@ -69,7 +69,11 @@ let picture_of_latex l =
   try
     Mlpost.Picture.tex (Latex.to_string l)
   with (Invalid_argument txt) ->
-    Mlpost.Picture.tex (Latex.to_string (Latex.Verbatim.verbatim txt))
+    Mlpost.Picture.tex
+      ("Cannot compile Mlpost figure. Reason: " ^
+          (Latex.to_string
+             (Latex.texttt
+                (Latex.Verbatim.verbatim txt))))
 
 let mlpost_gen includegraphics ?(mode = mode) ?file f =
   let file = match file with
