@@ -39,8 +39,11 @@ let print_tex_dependencies basefile depends =
     let ch = open_out file in
     List.iter
       (fun dep ->
-         let hash = Digest.file dep in
-         Digest.output ch hash)
+        if Sys.file_exists dep then
+          let hash = Digest.file dep in
+          Digest.output ch hash
+        else
+          ())
       depends;
     close_out ch
   end
