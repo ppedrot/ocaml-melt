@@ -33,8 +33,8 @@
 open Beamer
 
 (* set_prelude is only available in versions > 0.8.1 of mlpost
-   if you really want to compile this file with mlpost <= 0.8.1, delete the following
-   three lines; then, compile twice to obtain a fixpoint *)
+   if you really want to compile this file with mlpost <= 0.8.1, delete the
+   following three lines; then, compile twice to obtain a fixpoint *)
 let () =
   let prelude = documentclass "beamer" in
   Mlpost.Defaults.set_prelude (Latex.to_string prelude)
