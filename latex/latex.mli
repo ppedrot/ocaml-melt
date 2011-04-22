@@ -549,7 +549,11 @@ val breve: t -> t
 val tilde: t -> t
 val ddot: t -> t
 val widehat: t -> t
+  (** A wide [hat] which spreads over the whole argument. *)
 val widetilde: t -> t
+  (** A wide [tilde] which spreads over the whole argument. *)
+val overline: t -> t
+  (** A wide [bar] which spreads over the whole argument. *)
 
 (** {3 Greek Letters} *)
 

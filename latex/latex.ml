@@ -1186,6 +1186,7 @@ let tilde x = command "tilde" [M, x] M
 let ddot x = command "ddot" [M, x] M
 let widehat x = command "widehat" [M, x] M
 let widetilde x = command "widetilde" [M, x] M
+let overline x = command "overline" [M, x] M
 
 (*******************************************************************************)
 
