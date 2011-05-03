@@ -1097,13 +1097,46 @@ let latex_of_halignment = function
   | `R -> text "r"
   | `S -> text "s"
 
+type xsize = [
+    size
+  | `Width of float
+  | `Height of float
+  | `Depth of float
+  | `Totalheight of float
+  ]
+(** Horizontal box commands ({!makebox}, {!framebox} and {!raisebox})
+    can use extra size information in their definition. These are computed
+    from their content:
+    [`Width] is the width of the content
+    [`Height] is the height above the baseline
+    [`Depth] is the height below the baseline
+    [`Totalheight] is the sum of [`Height] and [`Depth]
+ *)
+
+let string_of_xsize = function
+  | `Width x -> sprintf "%f\\width" x
+  | `Height x -> sprintf "%f\\height" x
+  | `Depth x -> sprintf "%f\\depth" x
+  | `Totalheight x -> sprintf "%f\\totalheight" x
+  | #size as s -> string_of_size s
+
+let latex_of_xsize s = text(string_of_xsize s)
+
 let makeframebox name size ?halign t =
-  let size = (A, bracket,latex_of_size size) in
+  let size = (A, bracket,latex_of_xsize size) in
   let halign = Opt.map (fun h -> (A,bracket,latex_of_halignment h)) halign in
   let t = (T,brace,t) in
   unusual_command name (size::(Opt.cons halign [t])) T
 let makebox = makeframebox "makebox"
 let framebox = makeframebox "framebox"
+
+let raisebox ~shift ?fakeheight x =
+  let shift = (A,brace,latex_of_xsize shift) in
+  let opt s = (A,bracket,latex_of_xsize s) in
+  let fakeh = Opt.map (fun (h,_) -> opt h) fakeheight in
+  let faked = Opt.map (fun (_,d) -> opt d) fakeheight in
+  let x = (T,brace,x) in
+  unusual_command "raisebox" (shift::(Opt.cons fakeh (Opt.cons faked [x]))) T
 
 let noindent = command "noindent" [] T
 

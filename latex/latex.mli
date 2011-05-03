@@ -488,10 +488,34 @@ val minipage: size -> ?valign:valignment -> t -> t
 type halignment = [ `C | `L | `R | `S ]
   (** (`C)enter, flush (`L)eft, flush (`R)ight or (`S)pread. *)
 
-val makebox : size -> ?halign:halignment -> t -> t
+type xsize = [
+    size
+  | `Width of float
+  | `Height of float
+  | `Depth of float
+  | `Totalheight of float
+  ]
+(** Horizontal box commands ({!makebox}, {!framebox} and {!raisebox})
+    can use extra size information in their definition. These are computed
+    from their content:
+    [`Width] is the width of the content
+    [`Height] is the height above the baseline
+    [`Depth] is the height below the baseline
+    [`Totalheight] is the sum of [`Height] and [`Depth]
+ *)
+
+val makebox : xsize -> ?halign:halignment -> t -> t
   (** A box which only deals with horizontaly aligned material. *)
-val framebox : size -> ?halign:halignment -> t -> t
+val framebox : xsize -> ?halign:halignment -> t -> t
   (** Same as [makebox] but draws a frame around the box. *)
+
+val raisebox : shift:xsize -> ?fakeheight:xsize*xsize -> t -> t
+  (** [raisebox ~shift x] displays x vertically displaced by [shift].
+      If [~fakeheight] is not specified, then the line is built as if
+      [x] had not been moved.
+      If [~fakeheight:(h,d)] then the line building algorithm sees a box
+      which extends [h] above the baseline (height) and [d] below the
+      baseline (depth). *)
 
 
 type alignment = [ `L | `C | `R ]
