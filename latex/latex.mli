@@ -1226,7 +1226,7 @@ type env
 (* environment used to keep track of the content of variables between
    multiple applications of to_* functions *)
 
-val get_in_env: 'a variable -> env -> 'a
+val get_in_env: ?position:position -> 'a variable -> env -> 'a
 
 (** All printing functions take the expected mode as a parameter
 (default is text). The printed expression will be coerced if its mode differs. *)

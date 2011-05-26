@@ -54,89 +54,6 @@ module Opt = struct
     | Some _ -> false
 end
 
-module IntMap = Map.Make(
-  struct
-    type t = int
-    let compare = compare
-  end)
-
-module Environment : 
-sig
-  type t
-
-  val empty : t
-  val new_variable : ?eq:('a -> 'a -> bool) -> 'a -> (t -> 'a -> t) * (t -> 'a)
-
-  val equal : t -> t -> bool
-
-end =
-struct
-
-  type t = (bool -> bool) IntMap.t
-    (* Those functions [f] hide a value in their closure.
-       It can be accessed thanks to their side effet.
-       [f true] is true iff the last function called, having the same
-       identifier, holded the same value as [f].
-       [f false] is true iff f hold the default value. *)
-
-  let empty = IntMap.empty
-
-  let new_id = 
-    let id = ref 0 in
-    fun () -> incr id; !id
-
-  let new_variable ?(eq=(=)) default =
-    let id = new_id () in
-    (* reference shared by all variable with the same id *)
-    let v = ref default in
-    (* add in the map [t] a function holding data [x] *)
-    let set t x =
-      let f test_x_equal_default =
-	let old = !v in
-	v := x;
-	if test_x_equal_default then eq x default else eq x old
-      in
-      IntMap.add id f t
-    in
-    (* recover the hidden value *)
-    let get t =
-      ( try ignore ((IntMap.find id t) false) with Not_found -> v := default );
-      !v
-    in
-    set,get
-
-  let equal t1 t2 =
-    (* fold returns keys in ascending order so to_list reverse to
-       descending order *)
-    let to_list t = IntMap.fold (fun k x l -> (k,x)::l) t [] in
-    let l1 = to_list t1 in
-    let l2 = to_list t2 in
-    let rec check l1 l2 =
-      match l1,l2 with
-	| [], [] -> true
-	| (k1,f1)::q1,(k2,f2)::q2 when k1 = k2 ->
-	  let _ = f1 false in
-	  (* now the shared reference [v] holds the value of f1 *)
-	  let eq = f2 false in
-	  (* f2 checks equality against the shared reference *)
-	  if eq then check q1 q2 else false
-	| (k1,f1)::q1,(k2,f2)::q2 when k1 > k2 ->
-	  (* keys are in descending order, so k1 > k2 means that l1
-	     has a key that l2 doesn't have *)
-	  let eq = f1 true in
-	  if eq then check q1 ((k2,f2)::q2) else false
-	| (_,f1)::q1,[] ->
-	  let eq = f1 true in
-	  if eq then check q1 [] else false
-	| l1,l2 ->
-	  check l2 l1
-    in
-    check l1 l2
-
-end
-
-type env = Environment.t
-type position = { pos_name : string; pos_id : int }
 
 type mode = M | T | A
 type arg_kind = Bracket | Brace | NoBr
@@ -144,25 +61,15 @@ let bracket = Bracket
 let brace = Brace
 let nobr = NoBr
 
-type elt =
-  | Command of string * (mode * arg_kind * t) list * mode
+type 'r elt =
+  | Command of string * (mode * arg_kind * 'r) list * mode
   | Text of string
-  | Environment of string * (mode * t) option * (mode * t) list *
-      (mode * t) * mode
-  | Mode of mode * t
-  | Set of ( env -> env )
-  (* update the environment in the remaining ast, replaced by [Concat
-     []] in fixpoint *)
-  | Get of ( env -> t )
-  (* fixpoint apply the function to the current environment to obtain
-     [t], then replace this node by [t] then
-     traverse [t]. *)
-  | Get_position of ( env -> t ) * position
-  (* like Get, but the environment is taken at the given position *)
-  | Place of position
-  (* fixpoint store the current environment under the name [position]
-     and replace this node by [Concat []] *)
-and t = elt Clist.t
+  | Environment of string * (mode * 'r) option * (mode * 'r) list *
+      (mode * 'r) * mode
+  | Mode of mode * 'r
+
+type t = (t elt,t) Variable.with_var Clist.t
+type raw = raw elt Clist.t
 
 let concat l = Clist.list_concat l
 let empty = Clist.empty
@@ -171,146 +78,100 @@ let empty = Clist.empty
 (*                                  Variables                                 *)
 (******************************************************************************)
 
-type 'a variable =
-    { set : Environment.t -> 'a -> Environment.t;
-      get : Environment.t -> 'a;
-      equal : 'a -> 'a -> bool;
-      var_name : string;
-      var_printer : 'a -> string }
+type 'a variable = 'a Variable.t
+type position = Variable.position
+type env = Variable.env
 
-let variable ?(eq=(=)) ?(name="unnamed") ?(printer=fun _ -> "undefined printer" ) x =
-  let set,get = Environment.new_variable ~eq x in
-  { set = set; get = get; equal = eq; var_name = name; var_printer = printer }
+let variable = Variable.make
 
-let position : ?name:string -> unit -> position =
-  let id = ref 0 in
-  fun ?name () -> incr id;
-    let name =
-      match name with
-	| None -> "unnamed position " ^ (string_of_int !id)
-	| Some n -> n
-    in
-    { pos_name = name ; pos_id = !id }
+let position = Variable.position
 
-let get_in_env v env = v.get env
+let get_in_env = Variable.get_in_env
 
-exception Multiple_place of position
-exception Fixpoint_divergent of position list list
-
-
-let fixpoint ?(env=Environment.empty) ?(iterations=10) t =
-  (* TODO: controler le nombre d'iterations par une option de melt
-     et mettre une fonction 'set number of iterations' *)
-  let placed_tbl = Hashtbl.create 0 in
-  (* table of already placed positions *)
-  let position_tbl = Hashtbl.create 0 in
-  (* position -> env *)
-  let get_position_env pos =
-    try Hashtbl.find position_tbl pos.pos_id
-    with
-      | Not_found -> Environment.empty
-  in
-  let assert_not_placed i =
-    if Hashtbl.mem placed_tbl i
-    then raise ( Multiple_place i )
-    else Hashtbl.add placed_tbl i ()
-  in
-  let positions_changed = ref [] in
-  (* list of position that changed during the current/last application of iter*)
-  let changelog = ref [] in
-  (* list of list of position that changed during each iteration *)
-  let rec iter_elt env = function (* go througt the ast updating the environment and
-				 appliying Get functions *)
+(* spiwack: this function is mostly implied by its types.
+   we could lower the apparent complexity by having a few
+   combinators on the state monad. *)
+let compute_elt : ('e->'r->'e*'k) -> 'e -> 'r elt -> 'e*'k elt
+  = fun m env -> function
     | Command (s, l , mode) ->
-      let l,env =
-	let aux (l,env) (mode,kind,t) =
-	  let (t,env) = iter env t in
-	  ((mode,kind,t)::l,env)
+      let env,l =
+	let aux (env,l) (mode,kind,t) =
+	  let (env,t) = m env t in
+	  (env,(mode,kind,t)::l)
 	in
-	List.fold_left aux ([],env) l
+	List.fold_left aux (env,[]) l
       in
-      Clist.singleton (Command (s, List.rev l, mode)),env
+      env ,
+      Command (s, List.rev l, mode)
     | Mode (mode, t) ->
-      let t,env = iter env t in
-      Clist.singleton (Mode (mode, t)),env
+      let env,t = m env t in
+      env , Mode (mode, t)
     | Environment (s , opt, l, (mode, t), mode') ->
       (* l'ordre d'évaluation est gratuit, je ne sais pas si c'est le
 	 bon *)
-      let opt,env =
+      let env , opt =
 	match opt with
-	  | None -> opt,env
+	  | None -> env,None
 	  | Some (mode,t) ->
-	    let t,env = iter env t in
-	    Some (mode,t),env
+	    let env,t = m env t in
+	    env,Some (mode,t)
       in
-      let l,env =
-	let aux (l,env) (mode,t) =
-	  let (t,env) = iter env t in
-	  ((mode,t)::l,env)
+      let env,l =
+	let aux (env,l) (mode,t) =
+	  let (env,t) = m env t in
+	  (env,(mode,t)::l)
 	in
-	List.fold_left aux ([],env) l
+	List.fold_left aux (env,[]) l
       in
-      let t,env = iter env t in
-      Clist.singleton begin
-	Environment (s, opt, List.rev l, (mode, t), mode' )
-      end,
-      env
-    | Text s -> (Clist.singleton (Text s),env)
-    | Set setter ->
-      empty,(setter env)
-    | Get maker ->
-      iter env (maker env)
-    | Get_position (maker,position) ->
-      let t = maker (get_position_env position) in
-      iter env t
-    | Place position ->
-      assert_not_placed position;
-      ( if Environment.equal (get_position_env position) env
-	then ()
-	else ( Hashtbl.replace position_tbl position.pos_id env;
-	       positions_changed := position :: !positions_changed ));
-      (* TODO récupérer les variables qui ont changé *)
-      empty,env
-  and iter env x =
-    Clist.fold_left begin fun (x,env) t ->
-      let (t,env) = iter_elt env t in (Clist.app x t,env)
-    end (Clist.empty,env) x
-  in
-  let rec apply n =
-    if n = 0 then raise (Fixpoint_divergent !changelog)
+      let env,t = m env t in
+      env ,
+      Environment (s, opt, List.rev l, (mode, t), mode' )
+    | Text s -> env , Text s
+
+let rec compute_clist : ('e->'a->'e*'k Clist.t) -> 'e -> 'a Clist.t -> 'e*'k Clist.t
+  = fun m env l ->
+    if Clist.is_empty l then
+      env, Clist.empty
     else
-      let (t,env) = iter env t in
-      match !positions_changed with
-	| [] -> t,env
-	| l -> ( positions_changed := [];
-		changelog := l :: !changelog;
-		Hashtbl.clear placed_tbl;
-		apply (n-1) )
-  in
-  apply iterations
+      let (env,x) = m env (Clist.head l) in
+      let (env,q) = compute_clist m env (Clist.tail l) in
+      env , Clist.app x q
+
+let rec compute : Variable.env -> t -> (Variable.env*raw)
+  = fun env (x:t) ->
+    compute_clist begin fun (env:Variable.env) (xelt:(t elt,t) Variable.with_var) ->
+      Variable.compute
+	(Clist.empty : raw)
+	compute_of_elt
+	compute
+	env
+	xelt
+    end env x
+and compute_of_elt : Variable.env -> t elt -> (Variable.env*raw)
+  = fun env elt ->
+    let (env,elt) = compute_elt compute env elt in
+    (env,Clist.singleton elt)
+
+let fixpoint ?env ?iterations x =
+  Variable.fixpoint compute ?env ?iterations x
 
 let setf var f =
-  Clist.singleton (Set (fun env -> var.set env (f (var.get env))))
+  Clist.singleton (Variable.setf var f)
 
 let setf2 var1 var2 f =
-  Clist.singleton (
-    Set (fun env -> var2.set env (f (var1.get env) (var2.get env)))
-  )
+  Clist.singleton (Variable.setf2 var1 var2 f)
 
 let get ?position var f =
-  Clist.singleton begin match position with
-    | None -> Get (fun env -> f (var.get env))
-    | Some p -> Get_position ((fun env -> f (var.get env)),p)
-  end
+  Clist.singleton (Variable.get ?position var f)
 
 let place position =
-  Clist.singleton (Place position)
+  Clist.singleton (Variable.place position)
 
-let set x v = setf x (fun _ -> v)
+let set var x = Clist.singleton (Variable.set var x)
 let incr_var x = setf x (fun x -> x + 1)
 let decr_var x = setf x (fun x -> x - 1)
 
-let text s = Clist.singleton (Text s)
+let text s = Clist.singleton (Variable.raw (Text s))
 
 let vari x = get x (fun v -> text (string_of_int v))
 let varf x = get x (fun v -> text (string_of_float v))
@@ -361,7 +222,7 @@ let require_package_string acc (a, b) =
   require_package acc (text a, text b)
 
 let unusual_command ?(packages = []) name args mode =
-  let thecommand = Clist.singleton (Command (name, args, mode)) in
+  let thecommand = Clist.singleton (Variable.raw (Command (name, args, mode))) in
   List.fold_left require_package_string thecommand packages
 
 let command ?(packages=[]) name ?opt args mode =
@@ -372,7 +233,7 @@ let command ?(packages=[]) name ?opt args mode =
 
 let environment ?(packages = []) name ?opt ?(args = []) body mode =
   let theenvironment =
-    Clist.singleton (Environment(name, opt, args, body, mode))
+    Clist.singleton (Variable.raw (Environment(name, opt, args, body, mode)))
   in
   List.fold_left
     require_package_string
@@ -380,7 +241,7 @@ let environment ?(packages = []) name ?opt ?(args = []) body mode =
     packages
 
 let (^^) x y = Clist.app x y
-let mode mode x = Clist.singleton (Mode(mode, x))
+let mode mode x = Clist.singleton (Variable.raw (Mode(mode, x)))
 
 let latex = command "LaTeX" [] T
 
@@ -535,10 +396,6 @@ let rec out_elt toplevel mode pp = function
       Pp.string pp s
   | Mode(m, x) ->
       ensure_mode pp m mode (fun () -> out false m pp x)
-  | Set _
-  | Get _
-  | Get_position _
-  | Place _ -> assert false
 and out toplevel mode pp x =
   Clist.iter (out_elt toplevel mode pp) x
 
@@ -561,7 +418,7 @@ and out_args =
   List.iter (out_arg pp) args
 
 let to_buffer ?(mode = T) ?env buf x =
-  let x,env = (fixpoint ?env (concat [x;place finalpos])) in
+  let env,x = (fixpoint ?env (concat [x;place finalpos])) in
   out true mode (Pp.make buf) x;
   env
 
@@ -661,14 +518,12 @@ let latex_of_size size = text (string_of_size size)
 let latex_of_int x = text (string_of_int x)
 let latex_of_float x = text (string_of_float x)
 
-let rec is_empty_elt = function
-  | Text "" -> true
-  | Mode(_, y) -> is_empty y
-  | Command _ | Environment _ | Text _
-  | Set _ | Get _ | Get_position _ | Place _ ->
-      (* You would assume that these should disappear after [compute_variables]
-         is called. However, when building the AST, this is not actually
-         the case, yet. *)
+let rec is_empty_elt x = match Variable.content x with
+  | Some (Text "") -> true
+  | Some (Mode(_, y)) -> is_empty y
+  | Some (Command _ | Environment _ | Text _)
+  | None ->
+      (* When the AST is built, we are working with variables. *)
       false
 and is_empty x =
   Clist.forall is_empty_elt x
