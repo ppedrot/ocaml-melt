@@ -68,11 +68,14 @@ type 'r elt =
       (mode * 'r) * mode
   | Mode of mode * 'r
 
-type t = (t elt,t) Variable.with_var Clist.t
-type raw = raw elt Clist.t
+type t = X of (t elt,t) Variable.with_var Clist.t
+type raw = R of raw elt Clist.t
 
-let concat l = Clist.list_concat l
-let empty = Clist.empty
+let unX = function X l -> l
+
+let concat l = X (Clist.list_concat (List.map unX l))
+let empty = X (Clist.empty)
+let of_elt e = X (Clist.singleton e)
 
 (******************************************************************************)
 (*                                  Variables                                 *)
@@ -138,16 +141,20 @@ let rec compute_clist : ('e->'a->'e*'k Clist.t) -> 'e -> 'a Clist.t -> 'e*'k Cli
       env , Clist.app x q
 
 let rec compute : Variable.env -> t -> (Variable.env*raw)
-  = fun env (x:t) ->
-    compute_clist begin fun (env:Variable.env) (xelt:(t elt,t) Variable.with_var) ->
-      Variable.compute
-	(Clist.empty : raw)
-	compute_of_elt
-	compute
-	env
-	xelt
-    end env x
-and compute_of_elt : Variable.env -> t elt -> (Variable.env*raw)
+  = fun env x ->
+    let (env,l) = compute_clist2 env x in
+    env , R l
+and compute_clist2 : Variable.env -> t -> (Variable.env*raw elt Clist.t)
+  = fun env x ->
+  compute_clist begin fun (env:Variable.env) (xelt:(t elt,t) Variable.with_var) ->
+    Variable.compute
+      Clist.empty
+      compute_of_elt
+      compute_clist2
+      env
+      xelt
+  end env (unX x)
+and compute_of_elt : Variable.env -> t elt -> (Variable.env*raw elt Clist.t)
   = fun env elt ->
     let (env,elt) = compute_elt compute env elt in
     (env,Clist.singleton elt)
@@ -156,22 +163,22 @@ let fixpoint ?env ?iterations x =
   Variable.fixpoint compute ?env ?iterations x
 
 let setf var f =
-  Clist.singleton (Variable.setf var f)
+  of_elt (Variable.setf var f)
 
 let setf2 var1 var2 f =
-  Clist.singleton (Variable.setf2 var1 var2 f)
+  of_elt (Variable.setf2 var1 var2 f)
 
 let get ?position var f =
-  Clist.singleton (Variable.get ?position var f)
+  of_elt (Variable.get ?position var f)
 
 let place position =
-  Clist.singleton (Variable.place position)
+  of_elt (Variable.place position)
 
-let set var x = Clist.singleton (Variable.set var x)
+let set var x = of_elt (Variable.set var x)
 let incr_var x = setf x (fun x -> x + 1)
 let decr_var x = setf x (fun x -> x - 1)
 
-let text s = Clist.singleton (Variable.raw (Text s))
+let text s = of_elt (Variable.raw (Text s))
 
 let vari x = get x (fun v -> text (string_of_int v))
 let varf x = get x (fun v -> text (string_of_float v))
@@ -222,7 +229,7 @@ let require_package_string acc (a, b) =
   require_package acc (text a, text b)
 
 let unusual_command ?(packages = []) name args mode =
-  let thecommand = Clist.singleton (Variable.raw (Command (name, args, mode))) in
+  let thecommand = of_elt (Variable.raw (Command (name, args, mode))) in
   List.fold_left require_package_string thecommand packages
 
 let command ?(packages=[]) name ?opt args mode =
@@ -233,15 +240,15 @@ let command ?(packages=[]) name ?opt args mode =
 
 let environment ?(packages = []) name ?opt ?(args = []) body mode =
   let theenvironment =
-    Clist.singleton (Variable.raw (Environment(name, opt, args, body, mode)))
+    of_elt (Variable.raw (Environment(name, opt, args, body, mode)))
   in
   List.fold_left
     require_package_string
     theenvironment
     packages
 
-let (^^) x y = Clist.app x y
-let mode mode x = Clist.singleton (Variable.raw (Mode(mode, x)))
+let (^^) x y = X (Clist.app (unX x) (unX y))
+let mode mode x = of_elt (Variable.raw (Mode(mode, x)))
 
 let latex = command "LaTeX" [] T
 
@@ -396,7 +403,7 @@ let rec out_elt toplevel mode pp = function
       Pp.string pp s
   | Mode(m, x) ->
       ensure_mode pp m mode (fun () -> out false m pp x)
-and out toplevel mode pp x =
+and out toplevel mode pp (R x) =
   Clist.iter (out_elt toplevel mode pp) x
 
 and command_argument pp (mode, x) before after =
@@ -526,7 +533,7 @@ let rec is_empty_elt x = match Variable.content x with
       (* When the AST is built, we are working with variables. *)
       false
 and is_empty x =
-  Clist.forall is_empty_elt x
+  Clist.forall is_empty_elt (unX x)
 
 let none_if_empty x =
   if is_empty x then None else Some x

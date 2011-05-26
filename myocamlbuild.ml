@@ -45,9 +45,7 @@ let tool_targets =
 
 let () = dispatch begin function
   | After_rules ->
-      (* enables ocaml's option -rectypes *)
-      flag ["compile"; "ocaml"] (S [A"-rectypes"]);
-      flag ["ocaml"; "doc"] (S[A"-rectypes"; A "-hide-warnings"; Sh (config "OCAMLINCLUDES")]);
+      flag ["ocaml"; "doc"] (S[A "-hide-warnings"; Sh (config "OCAMLINCLUDES")]);
 
       ocaml_lib ~extern: true "cairo";
       ocaml_lib ~extern: true "bitstring";
