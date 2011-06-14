@@ -510,7 +510,8 @@ val framebox : xsize -> ?halign:halignment -> t -> t
   (** Same as [makebox] but draws a frame around the box. *)
 
 val raisebox : shift:xsize -> ?fakeheight:xsize*xsize -> t -> t
-  (** [raisebox ~shift x] displays x vertically displaced by [shift].
+  (** [raisebox ~shift x] displays x vertically displaced by [shift]
+      (up if [shift] is positive or down if it is negative).
       If [~fakeheight] is not specified, then the line is built as if
       [x] had not been moved.
       If [~fakeheight:(h,d)] then the line building algorithm sees a box
