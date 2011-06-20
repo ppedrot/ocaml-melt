@@ -850,8 +850,10 @@ is translated to a number of line-skips *)
 
 (** The package ["stmaryrd"] is automatically added by these commands. *)
 
-val llbracket: t
-val rrbracket: t
+val llbracket: t (** [\[|] *)
+val rrbracket: t (** [|\]] *)
+val llparenthesis: t (** [(|] *)
+val rrparenthesis: t (** [|)] *)
 
 (** {3 Slide Document Class} *)
 

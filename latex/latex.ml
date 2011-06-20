@@ -1428,6 +1428,8 @@ let cmd_stmaryrd = command ~packages: ["stmaryrd", ""]
 
 let llbracket = cmd_stmaryrd "llbracket" [] M
 let rrbracket = cmd_stmaryrd "rrbracket" [] M
+let llparenthesis = cmd_stmaryrd "llparenthesis" [] M
+let rrparenthesis = cmd_stmaryrd "rrparenthesis" [] M
 
 (*******************************************************************************)
 
