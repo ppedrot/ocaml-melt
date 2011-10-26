@@ -332,8 +332,8 @@ end = struct
   let string x s =
     let s = Str.full_split (Str.regexp"\n\\|\r") s in
     List.iter begin function
-      | Str.Delim "\n" -> newline ~force:true x
-      | Str.Delim "\r" -> newline ~force:false x
+      | Str.Delim "\n" (* -> newline ~force:true x*)
+      | Str.Delim "\r" -> newline (*~force:false*) x
       | Str.Delim _ -> assert false
       | Str.Text l -> force_alinea x;output_string x l
     end s
