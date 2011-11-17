@@ -32,6 +32,8 @@ More information can be found on:
 
         http://melt.forge.ocamlcore.org/
 
+Note that there is a Debian package for melt, called ocaml-melt.
+
 Pre-requisites
 ==============
 
@@ -119,4 +121,5 @@ contributions from:
   Vincent Aravantinos
   François Bobot
   Pierre Chambart
+  Stéphane Glondu
   Arnaud Spiwack

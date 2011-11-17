@@ -22,7 +22,7 @@ make dist
 
 * Check that it compiles and executes.
 
-tar tf (file).tgz
+tar xf (file).tgz
 cd (dir)
 make bench
 

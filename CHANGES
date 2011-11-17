@@ -1,5 +1,40 @@
 Changes that may break existing programs are marked using a star *.
 
+Version 1.4.0
+=============
+
+- Support for bytecode architectures.
+- Fix detection of native dynlink.
+
+Melt tool:
+* The tool is now called melt-build instead of melt, to have the same name
+  than in the Debian package.
+- Added -native option.
+- Bytecode compilation is now the default behavior. It is slower to execute
+  bytecode, but much faster to compile.
+- Fixed a bug where files would be left in the temporary directory.
+
+Latex library:
+- Added LaTeX commands: rule, llparenthesis, overline, ignorespaces.
+- Better pretty-printing of [par] and [newpage].
+- Added support for the optional argument (vertical alignment) of arrays.
+- Support for the optional argument of parbox and minipage + doc minipage.
+- Added size options to makebox and parbox + added raisebox command.
+- ~short argument on chapter, section, subsection, subsubsection
+- Primed versions of section, subsection and other such commands are now
+  available. They correspond to the starred version of the LaTeX command.
+- Added list_insert function.
+- Introduce a new kind of (low-level) array line: array_command.
+- Fix handling mode of the argument in multicolumn.
+
+Melt library:
+- Export Melt_commond.mode in Melt.Arg.
+
+Mlpost interaction:
+* Removed support for tex_dependencies in mlpost_on.ml.
+  (It did not actually work and caused a bug.)
+- Tweaks to compile without needing two passes.
+
 Version 1.3.0
 =============
 
