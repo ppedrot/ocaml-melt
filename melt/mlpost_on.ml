@@ -65,8 +65,24 @@ let compiled_with_mlpost = true
 
 open Melt_common
 
+let to_emit = Latex.variable ~eq:(fun _ _ -> true) []
+
+let push_emit file f =
+  Latex.setf to_emit (fun l -> (file,f) :: l)
+
+(* spiwack: the [file] argument is used to fetch the appropriate latex
+   prelude. *)
+let mlpost_emit file env =
+  let s = Mlpost.Metapost_tool.read_prelude_from_tex_file file  in
+  Mlpost.Defaults.set_prelude s;
+  let to_emit = Latex.get_in_env to_emit env in
+  List.iter (fun (file,f) -> Mlpost.Metapost.emit file f) to_emit
+
+
 let picture_of_latex l =
   try
+    (* arnaud: ce Latex.to_string devrait être intégré
+       à l'état global d'une manière ou d'une autre. *)
     Mlpost.Picture.tex (Latex.to_string l)
   with (Invalid_argument txt) ->
     Mlpost.Picture.tex
@@ -77,18 +93,22 @@ let picture_of_latex l =
 
 let mlpost_gen includegraphics ?(mode = mode) ?file f =
   let file = match file with
-    | None -> next_name ()
-    | Some file -> file
+    | None -> next_name
+    | Some file -> (fun k -> k file)
   in
-  let ext = match mode with
-    | `Pdf -> ".mps"
-    | `Ps -> ".1"
-    | `Cairo -> ".pdf"
-    | `Mps -> ".mps"
-  in
-  let full_name = file ^ ext in
-  Mlpost.Metapost.emit file f;
-  includegraphics (Latex.text full_name)
+  file begin fun file ->
+    let ext = match mode with
+      | `Pdf -> ".mps"
+      | `Ps -> ".1"
+      | `Cairo -> ".pdf"
+      | `Mps -> ".mps"
+    in
+    let full_name = file ^ ext in
+    Latex.concat [
+      push_emit file f;
+      includegraphics (Latex.text full_name)
+    ]
+  end
 
 let mlpost = mlpost_gen Latex.includegraphics
 

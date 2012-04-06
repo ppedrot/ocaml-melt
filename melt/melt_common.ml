@@ -65,10 +65,14 @@ let print_depends =
   !b
 
 let next_name =
-  let cnt = ref 0 in
-  fun () ->
-    incr cnt;
-    Printf.sprintf "%s-melt-figure%d" name !cnt
+  let cnt = Latex.variable 0 in
+  fun k ->
+    Latex.concat [
+      Latex.incr_var cnt ;
+      Latex.get cnt begin fun i ->
+	Printf.ksprintf k "%s-melt-figure%d" name i
+      end
+    ]
 
 (* The document may depend on other files than the .tex, for instance,
    Mlpost figures. This is a list of these files. *)

@@ -30,6 +30,8 @@
 
 open Melt_common
 
+include Mlpost_specific
+
 let print_tex_dependencies basefile depends =
   if print_depends then begin
     let file = basefile ^ ".depends" in
@@ -50,6 +52,7 @@ let print_tex_dependencies basefile depends =
 
 let emit ?(file = name ^ ".tex") x =
   let env = Latex.to_file file x in
+  mlpost_emit file env;
   print_tex_dependencies file (Latex.get_in_env tex_dependencies env)
 
 let rec list_split_when f ?(acc = []) = function
@@ -129,8 +132,6 @@ module Verbatim = struct
                ?kw_apply ?id_apply ?rem_apply ?keywords ?symbols
                ?keyword_symbols ?underscore) s
 end
-
-include Mlpost_specific
 
 module Arg =
 struct

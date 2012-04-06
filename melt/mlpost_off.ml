@@ -41,3 +41,5 @@ View the [README] file for more information. *)
 end
 
 let compiled_with_mlpost = false
+
+let  mlpost_emit _ _ = ()
