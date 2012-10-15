@@ -1651,7 +1651,7 @@ module Verbatim = struct
     in
     let s = trim s in
     let ident_regexp =
-      (ident,
+      (id_regexp,
        fun s ->
          let us_split = split_delim underscore s in
          match us_split with
