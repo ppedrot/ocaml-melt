@@ -112,6 +112,18 @@ can find it here:
 
         http://www.vim.org/scripts/script.php?script_id=2787
 
+Emacs mode
+==========
+
+An emacs mode is available in the distribution: emacs-mode.el. To
+install it, copy it in your load-path and add:
+
+(require 'melt-mode)
+
+to your .emacs. To add a path to your load-path:
+
+(add-to-list 'load-path "~/path/to/melt-mode/")
+
 Author and contributions
 ========================
 
