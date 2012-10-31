@@ -800,6 +800,7 @@ let figure ?label ?(pos = [ `H ]) ?center ?(side_caption = false) ?caption
     | `B -> "b"
     | `Force -> "!"
   end pos end in
+  let opt = if spos = "" then None else Some (A, text spos) in
   let body = generic_figure_contents ?label ?center ?caption body in
   let name = match side_caption, wide with
     | false, false -> "figure"
@@ -814,7 +815,7 @@ let figure ?label ?(pos = [ `H ]) ?center ?(side_caption = false) ?caption
     else
       packages
   in
-  environment ~packages ~opt: (A, text spos) name (T, body) T
+  environment ~packages ?opt name (T, body) T
 
 type wrapfigure_position =
     [ `L | `R | `I | `O | `Force of [ `L | `R | `I | `O ] ]
