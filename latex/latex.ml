@@ -673,10 +673,10 @@ let subsubsection = section_command "subsubsection" true
 let paragraph title =
   command "paragraph" [T, title] T
 
-let chapter' = section_command "chapter" false
-let section' = section_command "section" false
-let subsection' = section_command "subsection" false
-let subsubsection' = section_command "subsubsection" false
+let chapter' = section_command ?short:None "chapter" false
+let section' = section_command ?short:None "section" false
+let subsection' = section_command ?short:None "subsection" false
+let subsubsection' = section_command ?short:None "subsubsection" false
 
 let displaymath x =
   environment "displaymath" (M, x) T
