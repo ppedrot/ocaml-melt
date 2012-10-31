@@ -248,6 +248,19 @@ let environment ?(packages = []) name ?opt ?(args = []) body mode =
     packages
 
 let (^^) x y = X (Clist.app (unX x) (unX y))
+let append x y = y ^^ x
+let prepend x y = x ^^ y
+
+let list_fold_right_sep f g xs acc =
+  let rec aux xs acc = match xs with
+    | [] -> acc
+    | x :: xs -> g (f x (aux xs acc)) in
+  match xs with
+  | [] -> acc
+  | x :: xs -> f x (aux xs acc)
+
+let concat_sep sep xs = list_fold_right_sep (^^) ((^^) sep) xs empty
+
 let mode mode x = of_elt (Variable.raw (Mode(mode, x)))
 
 let latex = command "LaTeX" [] T
@@ -695,11 +708,16 @@ let textit x = command "textit" [T, x] T
 let textbf x = command "textbf" [T, x] T
 let textrm x = command "textrm" [T, x] T
 let textsf x = command "textsf" [T, x] T
+let textnormal t = command "textnormal" [T,t] T
 
 let mathit x = command "mathit" [M, x] M
 let mathbf x = command "mathbf" [M, x] M
 let mathcal x = command "mathcal" [M, x] M
 let mathsf t = command "mathsf" [M,t] M
+let mathtt t = command "mathtt" [M,t] M
+
+let uppercase x = command "uppercase" [A, x] A
+let lowercase x = command "lowercase" [A, x] A
 
 let tiny x = block (command "tiny" [T, x] T)
 let scriptsize x = block (command "scriptsize" [T, x] T)
@@ -771,8 +789,16 @@ let newlinegen = function
 let space = command " " [] A
 let quad = command "quad" [] M
 let qquad = command "qquad" [] M
+let nonbreakingspace = text "~"
+let itspace = command "/" [] T
+let negthinspace = command "!" [] M
+let thinspace = command "," [] M
+let medspace = command ":" [] M
+let thickspace = command ";" [] M
 
-let includegraphics filename = command ~packages: ["graphicx", ""]
+let includegraphics ?width filename = command
+  ~packages: ["graphicx", ""]
+  ?opt:(Opt.map (fun w -> T, text "width=" ^^ latex_of_size w) width)
   "includegraphics" [ A, filename ] T
 
 let symbol i = command "symbol" [T, latex_of_int i] T
@@ -992,6 +1018,7 @@ let makeframebox name size ?halign t =
   unusual_command name (size::(Opt.cons halign [t])) T
 let makebox = makeframebox "makebox"
 let framebox = makeframebox "framebox"
+let fbox x = command "fbox" [T, x] T
 
 let raisebox ~shift ?fakeheight x =
   let shift = (A,brace,latex_of_xsize shift) in
@@ -1001,7 +1028,8 @@ let raisebox ~shift ?fakeheight x =
   let x = (T,brace,x) in
   unusual_command "raisebox" (shift::(Opt.cons fakeh (Opt.cons faked [x]))) T
 
-let noindent = command "noindent" [] T
+(* do not use command: adding {} around noindent changes the semantics *)
+let noindent = text "\\noindent"
 
 let stackrel x y = command "stackrel" [M, x; M, y] M
 
@@ -1029,6 +1057,13 @@ let cdots = command "cdots" [] M
 let sharp  =command "sharp" [] M
 
 let emptyset = command "emptyset" [] M
+
+let heartsuit = command "heartsuit" [] M
+let diamondsuit = command "diamondsuit" [] M
+let guillemotleft = command "guillemotleft" [] T
+let guillemotright = command "guillemotright" [] T
+let partial = command "partial" [] M
+
 
 type doublable_delimiter =
     [ `Down | `Up | `Up_down | `Vert ]
@@ -1077,6 +1112,7 @@ let just_right d x = mode M (concat [left `None; x; right d])
 let between d x = mode M (concat [left d; x; right d])
 
 let oe = command "oe" [] T
+let operatorname x = command "operatorname" [T, x] M
 
 (*******************************************************************************)
 
@@ -1285,7 +1321,9 @@ let leadsto = command ~packages: ["latexsym", ""] "leadsto" [] M
 
 (*******************************************************************************)
 
-let mathbb x = command "mathbb" ~packages:["amssymb",""] [M, x] M
+
+let mathbb x = command "mathbb" ~packages:["amsmath",""] [M, x] M
+  (* mathbb should import from amsmath, not amssymb *)
 let align x = environment "align" (M, x) T
 let align_ x = environment "align*" (M, x) T
 let gather x = environment "gather" (M, x) T
@@ -1376,6 +1414,10 @@ let geq = math_cmd_no_arg "geq"
 let leq = math_cmd_no_arg "leq"
 let dots = cmd_no_arg "dots"
 let ldots = cmd_no_arg "ldots"
+let vdots = command "vdots" [] M
+let ddots = command "ddots" [] M
+let iddots = command ~packages:["mathdots", ""] "iddots" [] M
+
 let underbrace x y = (math_cmd_no_arg "underbrace")^^(index x y)
 let overbrace x y = (math_cmd_no_arg "overbrace")^^(exponent x y)
 let not_ = (^^) (math_cmd_no_arg "not")

@@ -427,10 +427,17 @@ val clearpage: t
 current page to be printed. *)
 val noindent: t
 val space : t
+val nonbreakingspace : t
+val itspace : t
+val negthinspace : t
+val thinspace : t
+val medspace : t
+val thickspace : t
+
   (** Forces a space, same as "\ " in LaTeX *)
 val quad: t
 val qquad : t
-val includegraphics: t -> t
+val includegraphics: ?width:size -> t -> t
 val symbol: int -> t
 val symbolc: char -> t
   (** Convert a [char] into an [int] and apply [symbol]. *)
@@ -508,6 +515,7 @@ val makebox : xsize -> ?halign:halignment -> t -> t
   (** A box which only deals with horizontaly aligned material. *)
 val framebox : xsize -> ?halign:halignment -> t -> t
   (** Same as [makebox] but draws a frame around the box. *)
+val fbox : t -> t
 
 val raisebox : shift:xsize -> ?fakeheight:xsize*xsize -> t -> t
   (** [raisebox ~shift x] displays x vertically displaced by [shift]
@@ -553,12 +561,17 @@ val textit: t -> t (** Italic *)
 val textbf: t -> t (** Bold *)
 val textrm: t -> t (** Roman *)
 val textsf: t -> t (** Sans serif *)
+val textnormal : t -> t  (** Normal *)
 
 val mathit: t -> t (** Italic (for math mode) *)
 val mathbf: t -> t (** Bold (for math mode) *)
 val mathrm: t -> t (** Roman (for math mode) *)
 val mathsf: t -> t (** Sans serif (for math mode) *)
 val mathcal: t -> t (** Caligraphic *)
+val mathtt: t -> t  (** Monospace (for math mode) *)
+
+val uppercase: t -> t
+val lowercase: t -> t
 
 (** {4 Font Sizes} *)
 
@@ -824,8 +837,17 @@ val sharp : t
 val dots: t
 val cdots: t (** Centered dots [...] *)
 val ldots: t (** elipsis, works in math and text mode *)
+val vdots: t
+val ddots: t
+val iddots: t
 
 val emptyset: t
+
+val heartsuit: t
+val diamondsuit: t
+val guillemotleft: t
+val guillemotright: t
+val partial: t
 
 type doublable_delimiter =
     [ `Down | `Up | `Up_down | `Vert ]
@@ -846,6 +868,8 @@ val between: delimiter -> t -> t
   (** [between d x]: concatenation of [left d], [x] and [right d]. *)
 
 val oe: t (** French e in o as in "coeur", "noeud"... *)
+
+val operatorname : t -> t
 
 (** {4 AMS} *)
 
@@ -1082,6 +1106,9 @@ val text: string -> t
 
 (** Concatenation. *)
 val concat: t list -> t
+val concat_sep : t -> t list -> t
+val append : t -> t -> t
+val prepend : t -> t -> t
 
 (** Infix Concatenation. *)
 val (^^): t -> t -> t
