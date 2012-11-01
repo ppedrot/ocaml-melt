@@ -1,3 +1,4 @@
+<*.ml{,i,y,l}>: annot
 <melt/tool.*>: use_unix, use_str
 <latop/latop.*>: use_unix, use_str
 <meltpp/*.*>: use_unix, use_dynlink, use_str

@@ -96,7 +96,7 @@ sig
 	The value defaults to 0. if unspecified *)
 
   val text : ?default:Latex.t -> Latex.t -> Latex.t
-    (** [float "text"] is [Latex.text s] if the command line contains
+    (** [text "text"] is [Latex.text s] if the command line contains
 	"-text s" The value defaults to the empty string if
 	unspecified *)
 
