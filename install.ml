@@ -91,24 +91,24 @@ let mkdir dir =
     add_com (sprintf "mkdir -p %s" dir)
 
 let install_file name =
-  add_com (sprintf "install -D -m 644 %s %s/%s" name !lib name)
+  add_com (sprintf "install -m 644 %s %s/%s" name !lib name)
 
 let install_lib l =
   let base = Filename.basename l in
   try
     let l = first base [l] in
-    add_com (sprintf "install -D -m 644 %s %s/%s" l !lib base)
+    add_com (sprintf "install -m 644 %s %s/%s" l !lib base)
   with Not_found -> ()
 
 let install_bin b final =
   try
     let b = first final b in
-    add_com (sprintf "install -D %s %s/%s" b !bin final)
+    add_com (sprintf "install %s %s/%s" b !bin final)
   with Not_found -> ()
 
 let install_man m final =
   try
-    add_com (sprintf "install -D %s %s/%s" m !man final)
+    add_com (sprintf "install %s %s/%s" m !man final)
   with Not_found -> ()
 
 let rm f =
@@ -139,6 +139,7 @@ let do_file = if !uninstall then uninstall_file else install_file
 let do_lib = if !uninstall then uninstall_lib else install_lib
 let do_bin = if !uninstall then uninstall_bin else install_bin
 let do_man = if !uninstall then uninstall_man else install_man
+let do_dir = if !uninstall then rm_dir else mkdir
 
 let check_code = function
   | 0 -> ()
@@ -228,6 +229,9 @@ let () =
   do_bin ["meltpp/main.native"; "meltpp/main.byte"] "meltpp";
   do_bin ["melt/tool.native"; "melt/tool.byte"] "meltbuild";
   do_bin ["latop/latop.native"; "latop/latop.byte"] "latop";
+  do_dir (!lib ^ "/latex");
+  do_dir (!lib ^ "/melt");
+  do_dir (!lib ^ "/meltpp");
   List.iter do_lib [
     "latex/latex.a";
     "latex/latex.cmi";
