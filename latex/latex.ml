@@ -1475,12 +1475,13 @@ module type BEAMER = sig
 
   val color: color -> t -> t
 
-  type overlays_spec = [`I of int]
+  type overlays_spec = [ `I of int | `From of int | `To of int | `Fromto of int * int ]
 
   (*val command: ?packages: (string * string) list -> string -> ?only: overlays_spec list -> 
     ?opt: (mode * t) -> (mode * t) list -> mode -> t*)
     
   val only: overlays_spec list -> t -> t
+  val uncover: overlays_spec list -> t -> t
 
   val includegraphics: ?only: overlays_spec list -> t -> t
 
@@ -1488,6 +1489,9 @@ module type BEAMER = sig
   val columns: ?align: column_alignment -> t -> t
   val column: ?align: column_alignment -> size -> t -> t
   val equi_columns: ?align: column_alignment -> t list -> t
+
+  val pause : t
+  val alert : t -> t
 end
 
 module Beamer = struct
@@ -1578,12 +1582,23 @@ module Beamer = struct
             x
           ] end
 
-  type overlays_spec = [`I of int]
+  type overlays_spec = [ `I of int | `From of int | `To of int | `Fromto of int * int ]
+
+  let string_of_overlay = function
+    | `I i -> string_of_int i
+    | `From i -> string_of_int i ^ "-"
+    | `To i -> "-" ^ string_of_int i
+    | `Fromto (i,j) -> string_of_int i ^ "-" ^ string_of_int j
+
+  let neg_overlay = function
+    | `I i -> [`To (i-1); `From (i+1)]
+    | `From i -> [`To (i-1)]
+    | `To i -> [`From (i+1) ]
 
   let string_of_overlays_spec name = function
     | [] -> name
-    | l -> let l = List.map (function `I i -> string_of_int i) l in
-      let s = String.concat "," l in
+    | l ->
+      let s = String.concat "," (List.map string_of_overlay l) in
       sprintf "%s<%s>" name s
 
   let unusual_command ?packages name ?(only=[]) args mode =
@@ -1613,6 +1628,11 @@ module Beamer = struct
     let size = `Textwidth (1. /. float_of_int count) in
     let cols = List.map (column size) cols in
     columns ?align (concat cols)
+
+  let pause = command "pause" [] A
+  let alert x = command "alert" [A, x] A
+  let uncover only arg = command "uncover" ~only [A,arg] A
+
 end
 
 module Verbatim = struct

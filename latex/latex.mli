@@ -961,12 +961,13 @@ module type BEAMER = sig
 
   val color: color -> t -> t
 
-  type overlays_spec = [`I of int]
+  type overlays_spec = [ `I of int | `From of int | `To of int | `Fromto of int * int ]
 
   (*val command: ?packages: (string * string) list -> string -> ?only: overlays_spec list -> 
     ?opt: (mode * t) -> (mode * t) list -> mode -> t*)
     
   val only: overlays_spec list -> t -> t
+  val uncover: overlays_spec list -> t -> t
 
   val includegraphics: ?only: overlays_spec list -> t -> t
     (** Same as {!Latex.includegraphics} but with the [only] parameter. *)
@@ -996,6 +997,10 @@ module type BEAMER = sig
         length of the list. The [align]ment is the same for each column.
 
         Example with two columns: [equi_columns ["Hello"; "World"]]*)
+
+  val pause : t
+  val alert : t -> t
+
 end
 
 module Beamer : BEAMER
