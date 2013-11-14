@@ -65,7 +65,8 @@ let compiled_with_mlpost = true
 
 open Melt_common
 
-let to_emit = Latex.variable ~eq:(fun _ _ -> true) []
+let to_emit: (string * Mlpost.Command.t) list Latex.variable =
+  Latex.variable ~eq:(fun _ _ -> true) []
 
 let push_emit file f =
   Latex.setf to_emit (fun l -> (file,f) :: l)
