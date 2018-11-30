@@ -140,11 +140,11 @@ module Str = struct
       s
 
   let replace_char f c b =
-    let f = String.copy f in
-    for i = 0 to String.length f - 1 do
-      if f.[i] = c then f.[i] <- b
+    let f = Bytes.of_string f in
+    for i = 0 to Bytes.length f - 1 do
+      if Bytes.get f i = c then f.[i] <- b
     done;
-    f
+    Bytes.to_string f
 end
 
 (**************************************************************************)
