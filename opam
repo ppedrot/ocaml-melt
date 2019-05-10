@@ -1,4 +1,4 @@
-opam-version: "1.2"
+opam-version: "2.0"
 maintainer: "https://github.com/ocaml/opam-repository/issues"
 authors: "Romain Bardou"
 bug-reports: "https://github.com/ocaml/opam-repository/issues"
@@ -18,6 +18,13 @@ build: [
 ]
 remove: [["ocamlfind" "remove" "melt"]]
 depends: [
+  "ocaml"
   "ocamlbuild" {build}
 ]
 install: [make "install"]
+synopsis: "Program LaTeX documents using OCaml"
+description: """
+Melt is a set of libraries and tools which allows you to program LaTeX
+documents using OCaml. This combines the typesetting power of LaTeX
+with the programming power of OCaml. It can be combined with Mlpost to
+include figures."""
