@@ -60,7 +60,6 @@ let load_plugin =
   let init = ref false in
   fun name ->
     if not !init then begin
-      Dynlink.init ();
       Dynlink.prohibit ["Ast"; "Lexer"; "Parser"; "Plugin_private"];
       init := true;
     end;
